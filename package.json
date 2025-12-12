@@ -1,14 +1,16 @@
 {
-  "name": "astro-gravatar-new",
+  "name": "astro-gravatar-bun",
+  "module": "index.ts",
   "type": "module",
-  "version": "0.0.1",
-  "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
   },
-  "dependencies": {
-    "astro": "^5.16.4"
-  }
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ]
 }
