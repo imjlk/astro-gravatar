@@ -1,0 +1,343 @@
+---
+/**
+ * GravatarQR Component
+ *
+ * Displays a Gravatar QR code for a given email address with extensive customization options.
+ * The QR code links to the user's Gravatar profile page when scanned.
+ *
+ * @example
+ * ```astro
+ * import GravatarQR from 'astro-gravatar/GravatarQR';
+ *
+ * <GravatarQR email="user@example.com" />
+ *
+ * <GravatarQR
+ *   email="user@example.com"
+ *   size={150}
+ *   version={3}
+ *   type="gravatar"
+ *   utmMedium="web"
+ *   utmCampaign="profile_share"
+ *   class="qr-code"
+ * />
+ * ```
+ */
+
+import { buildQRCodeUrl } from '../lib/gravatar.js';
+import type { GravatarQRProps, QRCodeVersion, QRCodeIcon } from '../lib/types.js';
+import { GravatarError, GRAVATAR_ERROR_CODES } from '../lib/types.js';
+
+interface Props {
+  /** Email address to generate QR code for */
+  email: string;
+  /** QR code size in pixels (default: 80, max: 1000) */
+  size?: number;
+  /** QR code style version (1: standard, 3: modern dots) */
+  version?: QRCodeVersion;
+  /** Center icon type (user, gravatar, none) */
+  type?: QRCodeIcon;
+  /** UTM medium parameter for tracking */
+  utmMedium?: string;
+  /** UTM campaign parameter for tracking */
+  utmCampaign?: string;
+  /** CSS class for the QR code image */
+  class?: string;
+  /** Alt text for the QR code image */
+  alt?: string;
+}
+
+const {
+  email,
+  size = 80,
+  version = 1,
+  type = 'none',
+  utmMedium,
+  utmCampaign,
+  class: className,
+  alt,
+}: Props = Astro.props;
+
+let error: Error | null = null;
+let qrCodeUrl: string | null = null;
+
+try {
+  // Validate email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    throw new GravatarError(
+      'Valid email address is required for QR code generation',
+      GRAVATAR_ERROR_CODES.INVALID_EMAIL
+    );
+  }
+
+  // Validate size
+  if (size && (size < 1 || size > 1000)) {
+    throw new GravatarError(
+      'QR code size must be between 1 and 1000 pixels',
+      GRAVATAR_ERROR_CODES.INVALID_EMAIL
+    );
+  }
+
+  // Validate version
+  if (version && ![1, 3].includes(version)) {
+    throw new GravatarError(
+      'QR code version must be 1 (standard) or 3 (modern dots)',
+      GRAVATAR_ERROR_CODES.INVALID_EMAIL
+    );
+  }
+
+  // Validate type
+  if (type && !['user', 'gravatar', 'none'].includes(type)) {
+    throw new GravatarError(
+      'QR code type must be "user", "gravatar", or "none"',
+      GRAVATAR_ERROR_CODES.INVALID_EMAIL
+    );
+  }
+
+  // Build QR code URL
+  qrCodeUrl = buildQRCodeUrl(email, {
+    size,
+    version,
+    type,
+    utmMedium,
+    utmCampaign,
+  });
+
+} catch (err) {
+  error = err instanceof Error ? err : new Error('Unknown error occurred');
+}
+
+  // Generate alt text
+  const altText = alt || `QR code linking to ${email}'s Gravatar profile`;
+
+  // Generate CSS classes
+  const cssClasses = [
+    'gravatar-qr',
+    className || '',
+  ].filter(Boolean).join(' ');
+
+  // Generate srcset for responsive QR codes
+  const generateSrcset = (baseSize: number) => {
+    if (error) return ''; // Don't generate srcset if there's an error
+
+    const scales = [1, 1.5, 2];
+    return scales
+      .map(scale => {
+        const scaledSize = Math.round(baseSize * scale);
+        const maxSize = 1000;
+        if (scaledSize > maxSize) return null;
+
+        const scaledUrl = buildQRCodeUrl(email, {
+          size: scaledSize,
+          version,
+          type,
+          utmMedium,
+          utmCampaign,
+        });
+
+        return `${scaledUrl} ${scale}x`;
+      })
+      .filter(Boolean)
+      .join(', ');
+  };
+
+  const srcset = generateSrcset(size);
+
+  // Generate sizes attribute for responsive images
+  const sizes = `(max-width: 768px) ${Math.min(size, 120)}px, ${size}px`;
+---
+
+<div class="gravatar-qr-container">
+  {error ? (
+    <!-- Error fallback state -->
+    <div class={`gravatar-qr--error ${cssClasses}`} title={`QR code generation failed: ${error.message}`}>
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 100 100"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        class="gravatar-qr-error-icon"
+      >
+        <!-- Error QR code placeholder -->
+        <rect width="100" height="100" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="2"/>
+
+        <!-- QR code pattern placeholders -->
+        <g fill="#9ca3af">
+          <!-- Top-left corner -->
+          <rect x="10" y="10" width="25" height="25" />
+          <rect x="15" y="15" width="15" height="15" fill="#f3f4f6" />
+          <rect x="20" y="20" width="5" height="5" />
+
+          <!-- Top-right corner -->
+          <rect x="65" y="10" width="25" height="25" />
+          <rect x="70" y="15" width="15" height="15" fill="#f3f4f6" />
+          <rect x="75" y="20" width="5" height="5" />
+
+          <!-- Bottom-left corner -->
+          <rect x="10" y="65" width="25" height="25" />
+          <rect x="15" y="70" width="15" height="15" fill="#f3f4f6" />
+          <rect x="20" y="75" width="5" height="5" />
+
+          <!-- Center error icon -->
+          <circle cx="50" cy="40" r="8" fill="#ef4444" />
+          <text x="50" y="45" text-anchor="middle" fill="white" font-size="12" font-weight="bold">!</text>
+        </g>
+
+        <!-- Error text -->
+        <text x="50" y="60" text-anchor="middle" fill="#6b7280" font-size="8">QR Error</text>
+      </svg>
+    </div>
+  ) : (
+    <img
+      src={qrCodeUrl}
+      {srcset}
+      {sizes}
+      width={size}
+      height={size}
+      alt={altText}
+      class={cssClasses}
+      loading="lazy"
+      decoding="async"
+      title={`Scan QR code to view ${email}'s Gravatar profile`}
+    />
+  )}
+
+  <!-- Optional scan hint for better UX -->
+  <div class="gravatar-qr-hint">
+    <span class={`gravatar-qr-hint-text ${error ? 'gravatar-qr-hint-text--error' : ''}`}>
+      {error ? 'QR code unavailable' : 'Scan to view profile'}
+    </span>
+  </div>
+</div>
+
+<style>
+  :global(.gravatar-qr-container) {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  :global(.gravatar-qr) {
+    display: inline-block;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+
+    /* Ensure QR codes remain square */
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+  }
+
+  :global(.gravatar-qr:hover) {
+    transform: scale(1.02);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Hint text styling */
+  :global(.gravatar-qr-hint) {
+    text-align: center;
+  }
+
+  :global(.gravatar-qr-hint-text) {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-style: italic;
+  }
+
+  /* Style variants */
+  :global(.gravatar-qr.rounded) {
+    border-radius: 1rem;
+  }
+
+  :global(.gravatar-qr.rounded-full) {
+    border-radius: 50%;
+  }
+
+  :global(.gravatar-qr.no-border) {
+    border: none;
+    padding: 0;
+  }
+
+  :global(.gravatar-qr.shadow-none) {
+    box-shadow: none;
+  }
+
+  :global(.gravatar-qr.shadow-lg) {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Size variants */
+  :global(.gravatar-qr.small) {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  :global(.gravatar-qr.large) {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  :global(.gravatar-qr.extra-large) {
+    width: 200px !important;
+    height: 200px !important;
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    :global(.gravatar-qr) {
+      background-color: #1f2937;
+      border-color: #374151;
+    }
+
+    :global(.gravatar-qr-hint-text) {
+      color: #9ca3af;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :global(.gravatar-qr) {
+      border: 2px solid currentColor;
+    }
+
+    :global(.gravatar-qr-hint-text) {
+      color: currentColor;
+      font-weight: 600;
+      font-style: normal;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    :global(.gravatar-qr) {
+      transition: none;
+    }
+
+    :global(.gravatar-qr:hover) {
+      transform: none;
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    :global(.gravatar-qr-container) {
+      break-inside: avoid;
+    }
+
+    :global(.gravatar-qr) {
+      border-color: #000 !important;
+      box-shadow: none !important;
+    }
+
+    :global(.gravatar-qr-hint) {
+      display: none;
+    }
+  }
+</style>
+
+

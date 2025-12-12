@@ -1,0 +1,233 @@
+---
+/**
+ * GravatarAvatar Component
+ *
+ * Displays a Gravatar avatar for a given email address with extensive customization options.
+ *
+ * @example
+ * ```astro
+ * import GravatarAvatar from 'astro-gravatar/GravatarAvatar';
+ *
+ * <GravatarAvatar email="user@example.com" size={100} />
+ *
+ * <GravatarAvatar
+ *   email="user@example.com"
+ *   size={150}
+ *   rating="pg"
+ *   default="identicon"
+ *   class="rounded-full"
+ * />
+ * ```
+ */
+
+import { buildAvatarUrl, validateAvatarParams, getDefaultAvatarConfig } from '../lib/gravatar.js';
+import type { GravatarAvatarProps, AvatarRating, DefaultAvatar } from '../lib/types.js';
+
+interface Props {
+  /** Email address to generate avatar for */
+  email: string;
+  /** Avatar size in pixels (1-2048) */
+  size?: number;
+  /** Maximum rating level allowed (g, pg, r, x) */
+  rating?: AvatarRating;
+  /** Default image to use when no avatar is found */
+  default?: DefaultAvatar;
+  /** Whether to force default image */
+  forceDefault?: boolean;
+  /** CSS class for the avatar image */
+  class?: string;
+  /** Alt text for the image */
+  alt?: string;
+  /** Whether to enable lazy loading */
+  lazy?: boolean;
+}
+
+const {
+  email,
+  size = 80,
+  rating,
+  default: defaultImage,
+  forceDefault,
+  class: className,
+  alt,
+  lazy = false,
+}: Props = Astro.props;
+
+// Validate parameters
+validateAvatarParams(size, rating);
+
+// Get default configuration
+const defaultConfig = getDefaultAvatarConfig();
+
+// Build avatar URL
+const avatarUrl = buildAvatarUrl(email, {
+  size: size || defaultConfig.size,
+  rating: rating || defaultConfig.rating,
+  default: defaultImage || defaultConfig.default,
+  forceDefault,
+});
+
+// Generate alt text
+const altText = alt || `Avatar for ${email}`;
+
+// Generate CSS classes
+const cssClasses = [
+  'gravatar-avatar',
+  className || '',
+].filter(Boolean).join(' ');
+
+// Generate loading attribute and intersection observer for lazy loading
+const loadingAttr = lazy ? 'lazy' : 'eager';
+
+// Generate srcset for responsive images
+const generateSrcset = (baseSize: number) => {
+  const sizes = [1, 1.5, 2];
+  return sizes
+    .map(scale => {
+      const scaledSize = Math.round(baseSize * scale);
+      const maxSize = 2048;
+      if (scaledSize > maxSize) return null;
+
+      const scaledUrl = buildAvatarUrl(email, {
+        size: scaledSize,
+        rating: rating || defaultConfig.rating,
+        default: defaultImage || defaultConfig.default,
+        forceDefault,
+      });
+
+      return `${scaledUrl} ${scale}x`;
+    })
+    .filter(Boolean)
+    .join(', ');
+};
+
+const srcset = size ? generateSrcset(size) : undefined;
+
+// Generate sizes attribute for responsive images
+const sizes = size ? `(max-width: 768px) ${Math.min(size, 80)}px, ${size}px` : undefined;
+---
+
+<div class="gravatar-avatar-wrapper" data-lazy={lazy ? 'true' : 'false'}>
+  {lazy && (
+    <div class="lazy-placeholder" style={{
+      width: size + 'px',
+      height: size + 'px',
+      borderRadius: className?.includes('rounded-full') ? '50%' : className?.includes('rounded') ? '0.25rem' : '0'
+    }}></div>
+  )}
+  <img
+    src={avatarUrl}
+    {srcset}
+    {sizes}
+    width={size}
+    height={size}
+    alt={altText}
+    class={cssClasses}
+    loading={loadingAttr}
+    decoding="async"
+  />
+</div>
+{lazy && (
+  <script>
+    document.addEventListener('astro:page-load', () => {
+      const wrapper = document.currentScript?.previousElementSibling as HTMLElement;
+      if (!wrapper) return;
+
+      const img = wrapper.querySelector('img') as HTMLImageElement;
+      const placeholder = wrapper.querySelector('.lazy-placeholder') as HTMLElement;
+
+      if (img && placeholder) {
+        img.style.opacity = '0';
+
+        const handleLoad = () => {
+          placeholder.style.opacity = '0';
+          setTimeout(() => placeholder.remove(), 300);
+          img.style.opacity = '1';
+          img.classList.add('loaded');
+        };
+
+        const handleError = () => {
+          if (placeholder) {
+            placeholder.remove();
+          }
+        };
+
+        img.addEventListener('load', handleLoad);
+        img.addEventListener('error', handleError);
+      }
+    });
+  </script>
+)}
+<style>
+  :global(.gravatar-avatar-wrapper) {
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+  }
+
+  :global(.gravatar-avatar) {
+    display: inline-block;
+    vertical-align: middle;
+    background-color: #f0f0f0;
+    object-fit: cover;
+
+    /* Smooth loading animation */
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  :global(.lazy-placeholder) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  :global(.gravatar-avatar-wrapper[data-lazy="true"] .gravatar-avatar) {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  :global(.gravatar-avatar.loaded) {
+    opacity: 1;
+  }
+
+  @keyframes skeleton-loading {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Default rounded styles */
+  :global(.gravatar-avatar.rounded) {
+    border-radius: 0.25rem;
+  }
+
+  :global(.gravatar-avatar.rounded-full) {
+    border-radius: 50%;
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    :global(.gravatar-avatar) {
+      background-color: #2a2a2a;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :global(.gravatar-avatar) {
+      border: 1px solid currentColor;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    :global(.gravatar-avatar) {
+      transition: none;
+    }
+  }
+</style>

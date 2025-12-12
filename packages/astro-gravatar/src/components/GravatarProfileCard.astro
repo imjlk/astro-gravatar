@@ -1,0 +1,505 @@
+---
+/**
+ * GravatarProfileCard Component
+ *
+ * Displays a combined avatar and profile card for a given email address.
+ * Fetches profile data from the Gravatar API and displays it in a customizable layout.
+ *
+ * @example
+ * ```astro
+ * import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+ *
+ * <GravatarProfileCard email="user@example.com" />
+ *
+ * <GravatarProfileCard
+ *   email="user@example.com"
+ *   layout="horizontal"
+ *   showVerified
+ *   showLinks
+ *   maxLinks={3}
+ * />
+ * ```
+ */
+
+import { getProfile, buildAvatarUrl } from '../lib/gravatar.js';
+import type { GravatarProfile, GravatarProfileCardProps } from '../lib/types.js';
+
+interface Props {
+  /** Email address to display profile for */
+  email: string;
+  /** Avatar size in pixels */
+  avatarSize?: number;
+  /** Layout style (horizontal, vertical, card) */
+  layout?: 'horizontal' | 'vertical' | 'card';
+  /** Whether to show the display name */
+  showName?: boolean;
+  /** Whether to show the bio/description */
+  showBio?: boolean;
+  /** Whether to show verified accounts */
+  showVerified?: boolean;
+  /** Whether to show social links */
+  showLinks?: boolean;
+  /** Maximum number of links to show */
+  maxLinks?: number;
+  /** CSS class for the card container */
+  class?: string;
+  /** Whether to make the profile clickable */
+  clickable?: boolean;
+  /** Custom template for profile data */
+  template?: 'default' | 'compact' | 'detailed';
+}
+
+const {
+  email,
+  avatarSize = 80,
+  layout = 'card',
+  showName = true,
+  showBio = true,
+  showVerified = true,
+  showLinks = true,
+  maxLinks = 3,
+  class: className,
+  clickable = false,
+  template = 'default',
+}: Props = Astro.props;
+
+// Generate avatar URL
+const avatarUrl = buildAvatarUrl(email, { size: avatarSize });
+
+// Try to fetch profile data (with error handling)
+let profile: GravatarProfile | null = null;
+let profileError: Error | null = null;
+
+try {
+  profile = await getProfile(email);
+} catch (error) {
+  profileError = error as Error;
+  // Continue without profile data - we'll still show the avatar
+}
+
+// Generate CSS classes
+const cssClasses = [
+  'gravatar-profile-card',
+  `gravatar-profile-card--${layout}`,
+  `gravatar-profile-card--${template}`,
+  clickable ? 'gravatar-profile-card--clickable' : '',
+  className || '',
+].filter(Boolean).join(' ');
+
+// Helper to truncate text
+const truncate = (text: string, maxLength: number = 100) => {
+  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+};
+
+// Filter and limit links
+const filteredLinks = profile?.links?.slice(0, maxLinks) || [];
+
+// Filter verified accounts (exclude hidden ones)
+const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
+  account => !account.is_hidden
+) || [];
+---
+
+<article class={cssClasses}>
+  <!-- Avatar Section -->
+  <div class="gravatar-profile-card__avatar">
+    <img
+      src={avatarUrl}
+      width={avatarSize}
+      height={avatarSize}
+      alt={`Avatar for ${email}`}
+      class="gravatar-profile-card__avatar-img"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+
+  <!-- Content Section -->
+  <div class="gravatar-profile-card__content">
+    <!-- Name Section -->
+    {showName && (
+      <div class="gravatar-profile-card__name">
+        {profile?.display_name ? (
+          clickable ? (
+            <a
+              href={profile.profile_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="gravatar-profile-card__name-link"
+            >
+              {profile.display_name}
+            </a>
+          ) : (
+            <h3 class="gravatar-profile-card__name-text">{profile.display_name}</h3>
+          )
+        ) : (
+          <span class="gravatar-profile-card__email">{email}</span>
+        )}
+      </div>
+    )}
+
+    <!-- Bio/Description Section -->
+    {showBio && profile?.description && (
+      <p class="gravatar-profile-card__bio">
+        {template === 'compact'
+          ? truncate(profile.description, 60)
+          : truncate(profile.description, 150)
+        }
+      </p>
+    )}
+
+    <!-- Additional Info (only for detailed template) -->
+    {template === 'detailed' && (
+      <div class="gravatar-profile-card__details">
+        {profile?.job_title && (
+          <div class="gravatar-profile-card__detail">
+            <span class="gravatar-profile-card__detail-label">Title:</span>
+            <span class="gravatar-profile-card__detail-value">{profile.job_title}</span>
+          </div>
+        )}
+
+        {profile?.company && (
+          <div class="gravatar-profile-card__detail">
+            <span class="gravatar-profile-card__detail-label">Company:</span>
+            <span class="gravatar-profile-card__detail-value">{profile.company}</span>
+          </div>
+        )}
+
+        {profile?.location && (
+          <div class="gravatar-profile-card__detail">
+            <span class="gravatar-profile-card__detail-label">Location:</span>
+            <span class="gravatar-profile-card__detail-value">{profile.location}</span>
+          </div>
+        )}
+      </div>
+    )}
+
+    <!-- Verified Accounts -->
+    {showVerified && visibleVerifiedAccounts.length > 0 && (
+      <div class="gravatar-profile-card__verified">
+        <span class="gravatar-profile-card__verified-label">Verified:</span>
+        <div class="gravatar-profile-card__verified-accounts">
+          {visibleVerifiedAccounts.slice(0, 5).map((account) => (
+            <a
+              href={account.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="gravatar-profile-card__verified-account"
+              title={account.service_label}
+            >
+              <img
+                src={account.service_icon}
+                alt={account.service_label}
+                class="gravatar-profile-card__verified-icon"
+                width={16}
+                height={16}
+                loading="lazy"
+              />
+            </a>
+          ))}
+          {visibleVerifiedAccounts.length > 5 && (
+            <span class="gravatar-profile-card__verified-more">
+              +{visibleVerifiedAccounts.length - 5}
+            </span>
+          )}
+        </div>
+      </div>
+    )}
+
+    <!-- Links -->
+    {showLinks && filteredLinks.length > 0 && (
+      <div class="gravatar-profile-card__links">
+        {filteredLinks.map((link) => (
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="gravatar-profile-card__link"
+            title={link.label}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+    )}
+
+    <!-- Error State -->
+    {profileError && (
+      <div class="gravatar-profile-card__error">
+        <span class="gravatar-profile-card__error-text">
+          Profile information unavailable
+        </span>
+      </div>
+    )}
+  </div>
+
+  <!-- Click overlay for clickable cards -->
+  {clickable && profile?.profile_url && (
+    <a
+      href={profile.profile_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="gravatar-profile-card__overlay"
+      aria-label={`View ${profile.display_name || email}'s Gravatar profile`}
+    ></a>
+  )}
+</article>
+
+<style>
+  :global(.gravatar-profile-card) {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    position: relative;
+    transition: all 0.2s ease-in-out;
+  }
+
+  /* Layout Variants */
+  :global(.gravatar-profile-card--horizontal) {
+    align-items: center;
+  }
+
+  :global(.gravatar-profile-card--vertical) {
+    flex-direction: column;
+    text-align: center;
+    max-width: 200px;
+  }
+
+  :global(.gravatar-profile-card--card) {
+    flex-direction: column;
+    text-align: left;
+    max-width: 320px;
+  }
+
+  /* Avatar Styles */
+  :global(.gravatar-profile-card__avatar-img) {
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #f3f4f6;
+  }
+
+  :global(.gravatar-profile-card--vertical .gravatar-profile-card__avatar-img),
+  :global(.gravatar-profile-card--card .gravatar-profile-card__avatar-img) {
+    margin: 0 auto;
+  }
+
+  /* Content Styles */
+  :global(.gravatar-profile-card__content) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Name Styles */
+  :global(.gravatar-profile-card__name-link),
+  :global(.gravatar-profile-card__name-text) {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    text-decoration: none;
+    margin: 0 0 0.25rem 0;
+    display: block;
+  }
+
+  :global(.gravatar-profile-card__name-link:hover) {
+    color: #3b82f6;
+  }
+
+  :global(.gravatar-profile-card__email) {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  /* Bio Styles */
+  :global(.gravatar-profile-card__bio) {
+    color: #4b5563;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin: 0.5rem 0;
+  }
+
+  /* Detail Styles (for detailed template) */
+  :global(.gravatar-profile-card__details) {
+    margin: 0.75rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  :global(.gravatar-profile-card__detail) {
+    display: flex;
+    font-size: 0.75rem;
+  }
+
+  :global(.gravatar-profile-card__detail-label) {
+    color: #6b7280;
+    min-width: 60px;
+    font-weight: 500;
+  }
+
+  :global(.gravatar-profile-card__detail-value) {
+    color: #374151;
+    flex: 1;
+  }
+
+  /* Verified Accounts */
+  :global(.gravatar-profile-card__verified) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 0.75rem;
+  }
+
+  :global(.gravatar-profile-card__verified-label) {
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  :global(.gravatar-profile-card__verified-accounts) {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  :global(.gravatar-profile-card__verified-account) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    transition: transform 0.2s ease;
+  }
+
+  :global(.gravatar-profile-card__verified-account:hover) {
+    transform: scale(1.1);
+  }
+
+  :global(.gravatar-profile-card__verified-icon) {
+    border-radius: 50%;
+  }
+
+  :global(.gravatar-profile-card__verified-more) {
+    color: #6b7280;
+    font-size: 0.625rem;
+  }
+
+  /* Links */
+  :global(.gravatar-profile-card__links) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  :global(.gravatar-profile-card__link) {
+    font-size: 0.75rem;
+    color: #3b82f6;
+    text-decoration: none;
+    padding: 0.25rem 0.5rem;
+    background-color: #f0f9ff;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+  }
+
+  :global(.gravatar-profile-card__link:hover) {
+    background-color: #dbeafe;
+    color: #2563eb;
+  }
+
+  /* Error State */
+  :global(.gravatar-profile-card__error) {
+    margin-top: 0.5rem;
+  }
+
+  :global(.gravatar-profile-card__error-text) {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  /* Clickable Overlay */
+  :global(.gravatar-profile-card--clickable) {
+    cursor: pointer;
+  }
+
+  :global(.gravatar-profile-card--clickable:hover) {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+
+  :global(.gravatar-profile-card__overlay) {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  :global(.gravatar-profile-card__overlay:focus-visible) {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  /* Dark Mode Support */
+  @media (prefers-color-scheme: dark) {
+    :global(.gravatar-profile-card) {
+      background: #1f2937;
+      border-color: #374151;
+    }
+
+    :global(.gravatar-profile-card__name-link),
+    :global(.gravatar-profile-card__name-text) {
+      color: #f9fafb;
+    }
+
+    :global(.gravatar-profile-card__email) {
+      color: #9ca3af;
+    }
+
+    :global(.gravatar-profile-card__bio) {
+      color: #d1d5db;
+    }
+
+    :global(.gravatar-profile-card__detail-label) {
+      color: #9ca3af;
+    }
+
+    :global(.gravatar-profile-card__detail-value) {
+      color: #e5e7eb;
+    }
+
+    :global(.gravatar-profile-card__verified-label) {
+      color: #9ca3af;
+    }
+
+    :global(.gravatar-profile-card__verified-account) {
+      background-color: #374151;
+    }
+
+    :global(.gravatar-profile-card__link) {
+      background-color: #1e3a8a;
+      color: #60a5fa;
+    }
+
+    :global(.gravatar-profile-card__link:hover) {
+      background-color: #1e40af;
+      color: #3b82f6;
+    }
+  }
+
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    :global(.gravatar-profile-card),
+    :global(.gravatar-profile-card__verified-account),
+    :global(.gravatar-profile-card__link),
+    :global(.gravatar-profile-card--clickable) {
+      transition: none;
+    }
+  }
+</style>
