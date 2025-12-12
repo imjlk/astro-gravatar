@@ -1,0 +1,109 @@
+---
+title: Installation
+description: Set up astro-gravatar in your Astro project
+---
+
+# Installation
+
+Get astro-gravatar installed and running in your Astro project.
+
+## Prerequisites
+
+- Astro project (version 4.0 or higher)
+- Node.js 18+ or Bun
+- Package manager (npm, yarn, pnpm, or Bun)
+
+## Install Package
+
+Choose your preferred package manager:
+
+```bash
+# Using npm
+npm install astro-gravatar
+
+# Using yarn
+yarn add astro-gravatar
+
+# Using pnpm
+pnpm add astro-gravatar
+
+# Using Bun (recommended)
+bun add astro-gravatar
+```
+
+## Basic Setup
+
+### 1. Import Components
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+---
+```
+
+### 2. Add Your First Avatar
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<GravatarAvatar
+  email="user@example.com"
+  size={80}
+  class="rounded-full"
+/>
+```
+
+### 3. Verify Installation
+
+Run your development server:
+
+```bash
+# Using npm
+npm run dev
+
+# Using Bun (recommended)
+bun run dev
+```
+
+Visit your site and you should see the Gravatar avatar display.
+
+## Environment Setup (Optional)
+
+For enhanced profile features, add your Gravatar API key:
+
+```bash
+# .env file
+GRAVATAR_API_KEY=your-api-key-here
+```
+
+Get your API key from [gravatar.com/developers](https://gravatar.com/developers).
+
+## TypeScript Support
+
+TypeScript types are included automatically. No additional setup needed.
+
+## Next Steps
+
+- [Quick Start Guide](/guides/quick-start) - Learn the basics
+- [Basic Usage](/guides/basic-usage) - See common patterns
+- [Authentication](/guides/authentication) - Set up API keys
+- [Component Reference](/reference/components) - Complete API docs
+
+## Troubleshooting
+
+**Module not found error?**
+- Ensure you're using Astro 4.0+
+- Restart your development server
+- Check that `node_modules/astro-gravatar` exists
+
+**Avatar not showing?**
+- Verify the email address is valid
+- Check browser console for errors
+- Try adding a default avatar: `default="identicon"`
+
+**TypeScript errors?**
+- Make sure your editor is using the workspace TypeScript version
+- Restart your TypeScript language server

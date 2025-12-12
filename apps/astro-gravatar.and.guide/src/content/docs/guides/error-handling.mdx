@@ -1,0 +1,315 @@
+---
+title: Error Handling
+description: Handle common errors and edge cases with astro-gravatar
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+# Error Handling
+
+Learn how to handle common errors and implement fallbacks for robust avatar displays.
+
+## Missing Avatar Fallbacks
+
+### Default Avatar Types
+
+```astro
+<GravatarAvatar
+  email="user@example.com"
+  default="identicon"  <!-- Show geometric pattern -->
+  size={80}
+/>
+```
+
+Available options:
+- `identicon` - Geometric pattern based on email hash
+- `mp` - Mystery person silhouette
+- `monsterid` - Generated monster
+- `wavatar` - Generated faces
+- `retro` - 8-bit arcade-style
+- `robohash` - Generated robot
+- `blank` - Transparent PNG
+- `404` - Return 404 error
+
+### Custom Fallback Image
+
+```astro
+<GravatarAvatar
+  email="user@example.com"
+  size={80}
+  onError={(e) => {
+    // Fallback to custom avatar
+    e.target.src = '/images/default-avatar.png';
+  }}
+/>
+```
+
+## Profile Data Errors
+
+### Handle Missing Profiles
+
+```astro
+---
+import { getProfile, GravatarProfileCard } from 'astro-gravatar';
+
+let profile = null;
+let error = null;
+
+try {
+  profile = await getProfile('user@example.com', {
+    apiKey: import.meta.env.GRAVATAR_API_KEY
+  });
+} catch (err) {
+  error = err;
+  console.error('Profile fetch failed:', err);
+}
+---
+
+{profile ? (
+  <GravatarProfileCard
+    email={profile.email}
+    layout="card"
+    avatarSize={100}
+    showName
+    showBio
+  />
+) : (
+  <div style="padding: 2rem; background: #fee2e2; border-radius: 0.5rem; border: 1px solid #fca5a5;">
+    <h3 style="margin: 0 0 0.5rem 0; color: #991b1b;">Profile Not Available</h3>
+    <p style="margin: 0; color: #991b1b;">
+      {error?.message || 'User profile not found'}
+    </p>
+  </div>
+)}
+```
+
+### Silent Fallback
+
+```typescript
+import { getProfile } from 'astro-gravatar';
+
+async function getProfileWithFallback(email: string) {
+  try {
+    const profile = await getProfile(email);
+    return profile;
+  } catch (error) {
+    // Return minimal profile data
+    return {
+      email,
+      display_name: email.split('@')[0],
+      avatar_url: `https://www.gravatar.com/avatar/${hashEmail(email)}?d=identicon&s=80`,
+      description: null
+    };
+  }
+}
+```
+
+## Network and API Errors
+
+### Rate Limiting
+
+```typescript
+import { getProfile } from 'astro-gravatar';
+
+async function fetchWithRetry(email: string, retries = 3): Promise<Profile | null> {
+  try {
+    return await getProfile(email);
+  } catch (error) {
+    if (retries > 0 && error.code === 'rate_limit_exceeded') {
+      const delay = Math.pow(2, 4 - retries) * 1000; // 1s, 2s, 4s
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return fetchWithRetry(email, retries - 1);
+    }
+    throw error;
+  }
+}
+```
+
+### Timeout Handling
+
+```astro
+---
+import { getProfile } from 'astro-gravatar';
+
+const TIMEOUT_MS = 5000; // 5 seconds
+
+async function getProfileWithTimeout(email: string) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const profile = await getProfile(email, {
+      apiKey: import.meta.env.GRAVATAR_API_KEY
+    });
+    clearTimeout(timeoutId);
+    return profile;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout');
+    }
+    throw error;
+  }
+}
+---
+```
+
+## Input Validation
+
+### Email Validation
+
+```typescript
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function safeGetAvatarUrl(email: string, options = {}) {
+  if (!isValidEmail(email)) {
+    console.warn('Invalid email provided:', email);
+    // Return default avatar URL
+    return 'https://www.gravatar.com/avatar/default?s=80&d=mp';
+  }
+
+  try {
+    return buildAvatarUrl(email, options);
+  } catch (error) {
+    console.error('Failed to build avatar URL:', error);
+    return 'https://www.gravatar.com/avatar/default?s=80&d=mp';
+  }
+}
+```
+
+### Component Props Validation
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+
+function validateAvatarProps(props) {
+  if (!props.email || typeof props.email !== 'string') {
+    throw new Error('Valid email is required');
+  }
+
+  if (props.size && (props.size < 1 || props.size > 2048)) {
+    throw new Error('Size must be between 1 and 2048 pixels');
+  }
+
+  return props;
+}
+
+const avatarProps = validateAvatarProps({
+  email: 'user@example.com',
+  size: 80,
+  default: 'identicon'
+});
+---
+
+<GravatarAvatar {...avatarProps} />
+```
+
+## Common Error Patterns
+
+<CardGrid>
+  <Card title="Missing API Key" icon="key">
+    <p style="margin: 0;">Add <code>GRAVATAR_API_KEY</code> to your environment variables</p>
+  </Card>
+  <Card title="Invalid Email" icon="mail">
+    <p style="margin: 0;">Validate email format before using with components</p>
+  </Card>
+  <Card title="Network Issues" icon="wifi">
+    <p style="margin: 0;">Implement retries and timeout handling</p>
+  </Card>
+  <Card title="No Profile" icon="user">
+    <p style="margin: 0;">Use default avatars and fallback data</p>
+  </Card>
+</CardGrid>
+
+## Error Recovery Patterns
+
+### Global Error Boundary
+
+```typescript
+// in your Astro layout
+export function handleAvatarError(error: Error) {
+  console.error('Avatar component error:', error);
+
+  // Track errors in your analytics
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'avatar_error', {
+      error_message: error.message,
+      error_type: error.constructor.name
+    });
+  }
+}
+```
+
+### Graceful Degradation
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+
+function createFallbackAvatar(email: string, size: number = 80) {
+  const initials = email.split('@')[0]
+    .split('.')
+    .map(part => part[0]?.toUpperCase())
+    .join('')
+    .slice(0, 2);
+
+  return `<div style="
+    width: ${size}px;
+    height: ${size}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e5e7eb;
+    border-radius: 50%;
+    font-weight: bold;
+    color: #6b7280;
+    font-size: ${size * 0.4}px;
+  ">${initials}</div>`;
+}
+---
+
+<!-- Try Gravatar first, fallback to custom avatar -->
+<GravatarAvatar
+  email="user@example.com"
+  size={80}
+  default="blank"
+  onError={(e) => {
+    e.target.outerHTML = createFallbackAvatar('user@example.com', 80);
+  }}
+/>
+```
+
+## Testing Error Cases
+
+```typescript
+import { test, expect } from 'bun:test';
+import { getProfile, hashEmail, GravatarError } from 'astro-gravatar';
+
+test('handles invalid email gracefully', () => {
+  expect(() => hashEmail('invalid-email')).toThrow();
+});
+
+test('returns null for non-existent profile', async () => {
+  const profile = await getProfile('nonexistent@example.com');
+  expect(profile).toBeNull();
+});
+
+test('throws GravatarError for API errors', async () => {
+  expect.assertions(1);
+  try {
+    await getProfile('user@example.com', { apiKey: 'invalid-key' });
+  } catch (error) {
+    expect(error).toBeInstanceOf(GravatarError);
+  }
+});
+```
+
+## Next Steps
+
+- [Component Reference](/reference/components) - Learn about error props
+- [Troubleshooting](/guides/troubleshooting) - Common issues and solutions
+- [Authentication](/guides/authentication) - API key setup and usage

@@ -1,0 +1,428 @@
+---
+title: Advanced Examples
+description: Complex patterns and practical implementations
+---
+
+import GravatarAvatar from 'astro-gravatar';
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+
+Practical implementations for real-world use cases.
+
+## Team Display
+
+### Team Grid with Profile Cards
+
+```astro
+---
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+
+const team = [
+  {
+    email: 'ceo@company.com',
+    role: 'CEO'
+  },
+  {
+    email: 'cto@company.com',
+    role: 'CTO'
+  },
+  {
+    email: 'design@company.com',
+    role: 'Lead Designer'
+  }
+];
+---
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0;">
+  {team.map(member => (
+    <GravatarProfileCard
+      key={member.email}
+      email={member.email}
+      layout="card"
+      avatarSize={100}
+      showName
+      showBio
+      showLinks
+      maxLinks={3}
+      style="border: 1px solid var(--sl-color-gray-5); border-radius: 0.5rem; padding: 1.5rem;"
+    />
+  ))}
+</div>
+```
+
+### Compact Team Header
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+
+const team = [
+  'alice@company.com',
+  'bob@company.com',
+  'charlie@company.com',
+  'diana@company.com',
+  'eve@company.com'
+];
+---
+
+<div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem;">
+  <div>
+    <h4 style="margin: 0; font-size: 0.9rem; color: var(--sl-color-text-secondary);">Our Team</h4>
+    <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--sl-color-text-secondary);">{team.length} members</p>
+  </div>
+  <div style="display: flex; margin-left: auto;">
+    {team.slice(0, 5).map((email, index) => (
+      <div
+        key={email}
+        style={{
+          marginLeft: index > 0 ? '-0.5rem' : '0',
+          border: '2px solid var(--sl-color-bg-inset)',
+          borderRadius: '50%'
+        }}
+      >
+        <GravatarAvatar
+          email={email}
+          size={40}
+          default="identicon"
+          class="rounded-full"
+        />
+      </div>
+    ))}
+  </div>
+</div>
+```
+
+## User Lists
+
+### Comment Section
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+
+const comments = [
+  {
+    id: 1,
+    email: 'alice@example.com',
+    name: 'Alice',
+    content: 'Great article! Really helpful.',
+    timestamp: '2 hours ago'
+  },
+  {
+    id: 2,
+    email: 'bob@example.com',
+    name: 'Bob',
+    content: 'Thanks for sharing this. I learned a lot.',
+    timestamp: '5 hours ago'
+  }
+];
+---
+
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+  {comments.map(comment => (
+    <div key={comment.id} style="display: flex; gap: 1rem; padding: 1rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem;">
+      <GravatarAvatar
+        email={comment.email}
+        size={48}
+        default="identicon"
+        class="rounded-full flex-shrink-0"
+        style="margin-top: 0.25rem;"
+      />
+      <div style="flex: 1;">
+        <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <strong style="color: var(--sl-color-text);">{comment.name}</strong>
+          <span style="font-size: 0.85rem; color: var(--sl-color-text-secondary);">{comment.timestamp}</span>
+        </div>
+        <p style="margin: 0; line-height: 1.5;">{comment.content}</p>
+      </div>
+    </div>
+  ))}
+</div>
+```
+
+### User Directory
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+import { getProfiles } from 'astro-gravatar';
+
+// Server-side profile fetching
+const users = [
+  'alice@company.com',
+  'bob@company.com',
+  'charlie@company.com'
+];
+
+const profiles = await getProfiles(users, {
+  apiKey: import.meta.env.GRAVATAR_API_KEY
+});
+---
+
+<div style="display: flex; flex-direction: column; gap: 1rem;">
+  {users.map((email, index) => {
+    const profile = profiles[index];
+    return (
+      <div key={email} style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid var(--sl-color-gray-5); border-radius: 0.5rem;">
+        <GravatarAvatar
+          email={email}
+          size={64}
+          default="identicon"
+          class="rounded-full"
+        />
+        <div style="flex: 1;">
+          <h4 style="margin: 0; font-size: 1.1rem;">
+            {profile?.display_name || email.split('@')[0]}
+          </h4>
+          {profile?.job_title && (
+            <p style="margin: 0.25rem 0 0 0; color: var(--sl-color-text-secondary); font-size: 0.9rem;">
+              {profile.job_title}
+            </p>
+          )}
+          {profile?.location && (
+            <p style="margin: 0.25rem 0 0 0; color: var(--sl-color-text-secondary); font-size: 0.85rem;">
+              📍 {profile.location}
+            </p>
+          )}
+        </div>
+        {profile?.profile_url && (
+          <a
+            href={profile.profile_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style="padding: 0.5rem 1rem; background: var(--sl-color-text-accent); color: white; text-decoration: none; border-radius: 0.25rem; font-size: 0.9rem;"
+          >
+            View Profile
+          </a>
+        )}
+      </div>
+    );
+  })}
+</div>
+```
+
+## Loading States
+
+### Skeleton Loading
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+
+// Simulate loading state
+const isLoading = false;
+const userEmail = 'user@example.com';
+---
+
+<div style="padding: 1.5rem; border: 1px solid var(--sl-color-gray-5); border-radius: 0.5rem;">
+  {isLoading ? (
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 80px; height: 80px; background: linear-gradient(90deg, var(--sl-color-gray-3) 25%, var(--sl-color-gray-4) 50%, var(--sl-color-gray-3) 75%); background-size: 200% 100%; animation: pulse 1.5s ease-in-out infinite; border-radius: 50%;"></div>
+      <div style="flex: 1;">
+        <div style="height: 1.2rem; background: var(--sl-color-gray-3); border-radius: 0.25rem; margin-bottom: 0.5rem; width: 60%;"></div>
+        <div style="height: 1rem; background: var(--sl-color-gray-3); border-radius: 0.25rem; width: 40%;"></div>
+      </div>
+    </div>
+  ) : (
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <GravatarAvatar
+        email={userEmail}
+        size={80}
+        default="identicon"
+        class="rounded-full"
+      />
+      <div>
+        <h4 style="margin: 0;">User Name</h4>
+        <p style="margin: 0.25rem 0 0 0; color: var(--sl-color-text-secondary);">user@example.com</p>
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  @keyframes pulse {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+</style>
+```
+
+## Responsive Design
+
+### Responsive Avatar Grid
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+
+const users = [
+  'user1@example.com',
+  'user2@example.com',
+  'user3@example.com',
+  'user4@example.com',
+  'user5@example.com',
+  'user6@example.com',
+  'user7@example.com',
+  'user8@example.com'
+];
+---
+
+<div style="
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(60px, 100%), 1fr));
+  gap: 1rem;
+  max-width: 400px;
+  margin: 0 auto;
+">
+  {users.map(email => (
+    <div style="text-align: center;">
+      <GravatarAvatar
+        email={email}
+        size={60}
+        default="identicon"
+        class="rounded-full"
+        style="width: 100%; height: auto; aspect-ratio: 1; object-fit: cover;"
+      />
+      <p style="margin: 0.5rem 0 0 0; font-size: 0.75rem; color: var(--sl-color-text-secondary);">
+        {email.split('@')[0]}
+      </p>
+    </div>
+  ))}
+</div>
+```
+
+## Custom Styling
+
+### Themed Avatars
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<style>
+  .avatar-light {
+    filter: brightness(1.1);
+    border: 3px solid white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .avatar-dark {
+    filter: brightness(0.9);
+    border: 3px solid #1f2937;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .avatar-glow {
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(45deg, #3b82f6, #8b5cf6) border-box;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+</style>
+
+<div style="display: flex; gap: 2rem; justify-content: center; align-items: center; padding: 2rem;">
+  <div style="text-align: center;">
+    <GravatarAvatar
+      email="user@example.com"
+      size={80}
+      default="identicon"
+      class="rounded-full avatar-light"
+    />
+    <p style="margin-top: 0.5rem; font-size: 0.9rem;">Light Theme</p>
+  </div>
+
+  <div style="text-align: center;">
+    <GravatarAvatar
+      email="user@example.com"
+      size={80}
+      default="identicon"
+      class="rounded-full avatar-dark"
+    />
+    <p style="margin-top: 0.5rem; font-size: 0.9rem;">Dark Theme</p>
+  </div>
+
+  <div style="text-align: center;">
+    <GravatarAvatar
+      email="user@example.com"
+      size={80}
+      default="identicon"
+      class="rounded-full avatar-glow"
+    />
+    <p style="margin-top: 0.5rem; font-size: 0.9rem;">Glow Effect</p>
+  </div>
+</div>
+```
+
+## Performance Tips
+
+### Lazy Loading for Large Lists
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+
+const largeUserList = Array.from({ length: 100 }, (_, i) => ({
+  email: `user${i + 1}@example.com`,
+  name: `User ${i + 1}`
+}));
+---
+
+<div style="max-height: 500px; overflow-y: auto; border: 1px solid var(--sl-color-gray-5); border-radius: 0.5rem;">
+  {largeUserList.map((user, index) => (
+    <div key={user.email} style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-bottom: 1px solid var(--sl-color-gray-2);">
+      <GravatarAvatar
+        email={user.email}
+        size={40}
+        default="identicon"
+        lazy={true}  <!-- Built-in lazy loading -->
+        class="rounded-full"
+        loading={index > 10 ? "lazy" : "eager"}  <!-- Native lazy loading -->
+      />
+      <div>
+        <div style="font-weight: 500;">{user.name}</div>
+        <div style="font-size: 0.85rem; color: var(--sl-color-text-secondary);">{user.email}</div>
+      </div>
+    </div>
+  ))}
+</div>
+```
+
+### Batch Profile Fetching
+
+```astro
+---
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+import { getProfiles } from 'astro-gravatar';
+
+// More efficient than individual getProfile calls
+const teamEmails = [
+  'alice@company.com',
+  'bob@company.com',
+  'charlie@company.com'
+];
+
+const profiles = await getProfiles(teamEmails, {
+  apiKey: import.meta.env.GRAVATAR_API_KEY
+});
+---
+
+<div style="display: grid; gap: 1rem;">
+  {profiles.filter(Boolean).map(profile => (
+    <GravatarProfileCard
+      key={profile.hash}
+      email={profile.email}
+      layout="horizontal"
+      avatarSize={60}
+      showName
+      showBio={false}
+      showLinks={false}
+    />
+  ))}
+</div>
+```
+
+## Next Steps
+
+- [Error Handling](/guides/error-handling) - Robust fallback patterns
+- [Performance Guide](/guides/performance) - Optimization techniques
+- [Component Reference](/reference/components) - Complete API documentation

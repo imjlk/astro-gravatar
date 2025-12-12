@@ -1,0 +1,427 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for astro-gravatar integration
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+Solutions to common issues when working with astro-gravatar components.
+
+## Common Issues
+
+### Avatar Not Displaying
+
+#### Problem
+Avatar images are not showing up or showing default placeholders.
+
+#### Solutions
+
+1. **Check Email Hash Generation**
+   ```typescript
+   import { hashEmail } from 'astro-gravatar';
+
+   const hash = hashEmail('user@example.com');
+   console.log('Hash:', hash); // Should be 64-character SHA256 hash
+   ```
+
+2. **Verify Default Image Settings**
+   ```astro
+   <GravatarAvatar
+     email="user@example.com"
+     default="identicon"  <!-- Always show something -->
+   />
+   ```
+
+3. **Check Network Requests**
+   - Open browser dev tools
+   - Look for failed image requests
+   - Verify the URL construction
+
+### Profile Data Missing
+
+#### Problem
+Profile cards show empty or incomplete information.
+
+#### Solutions
+
+1. **Use API Key for Complete Data**
+   ```astro
+   ---
+   import { getProfile } from 'astro-gravatar';
+
+   const profile = await getProfile('user@example.com', {
+     apiKey: import.meta.env.GRAVATAR_API_KEY
+   });
+   ---
+   ```
+
+2. **Handle Missing Profiles Gracefully**
+   ```typescript
+   try {
+     const profile = await getProfile('user@example.com');
+     if (!profile) {
+       // Use fallback data
+       return createFallbackProfile();
+     }
+   } catch (error) {
+     console.error('Profile fetch failed:', error);
+   }
+   ```
+
+### Performance Issues
+
+#### Problem
+Slow loading or excessive API calls.
+
+#### Solutions
+
+1. **Implement Caching**
+   ```typescript
+   // Built-in caching is automatic
+   import { getApiCacheStats } from 'astro-gravatar';
+
+   console.log('Cache stats:', getApiCacheStats());
+   ```
+
+2. **Use Lazy Loading**
+   ```astro
+   <GravatarAvatar
+     email="user@example.com"
+     lazy={true}
+     size={80}
+   />
+   ```
+
+3. **Batch Profile Requests**
+   ```typescript
+   import { getProfiles } from 'astro-gravatar';
+
+   const profiles = await getProfiles([
+     'user1@example.com',
+     'user2@example.com',
+     'user3@example.com'
+   ]);
+   ```
+
+## Error Codes and Solutions
+
+### Rate Limit Exceeded
+
+**Error**: Too many API requests
+
+**Solutions**:
+- Implement client-side caching
+- Use API key for higher limits (1000/hour vs limited)
+- Apply for increased limits at [gravatar.com/developers](https://gravatar.com/developers)
+- Use exponential backoff for retries
+
+```typescript
+// Exponential backoff implementation
+async function fetchWithBackoff(email: string, retries = 3): Promise<Profile | null> {
+  try {
+    return await getProfile(email);
+  } catch (error) {
+    if (retries > 0 && error.code === 'rate_limit_exceeded') {
+      const delay = Math.pow(2, 4 - retries) * 1000; // 1s, 2s, 4s
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return fetchWithBackoff(email, retries - 1);
+    }
+    throw error;
+  }
+}
+```
+
+### Authentication Failed
+
+**Error**: API key authentication failed
+
+**Solutions**:
+- Verify API key is correct
+- Check environment variable setup
+- Ensure no extra spaces in API key
+- Use HTTPS for all requests
+
+```typescript
+// Environment variable check
+if (!import.meta.env.GRAVATAR_API_KEY) {
+  console.warn('GRAVATAR_API_KEY not set. Profile data will be limited.');
+}
+```
+
+### Profile Not Found
+
+**Error**: User profile doesn't exist or is disabled
+
+**Solutions**:
+- Use the user's primary email address
+- Check if user has disabled their profile
+- Implement fallback handling
+- Use default avatar styles
+
+```astro
+<GravatarAvatar
+  email="user@example.com"
+  default="identicon"
+  onError={(e) => {
+    // Fallback to custom avatar
+    e.target.src = '/images/default-avatar.png';
+  }}
+/>
+```
+
+## Development Issues
+
+### MDX Parsing Errors
+
+**Problem**: `<style>` tags causing parsing errors in MDX files
+
+**Solution**: Use separate CSS files or inline styles
+
+```css
+/* Instead of <style> in MDX, create styles/gravatar.css */
+.custom-avatar {
+  border: 2px solid #3b82f6;
+  border-radius: 50%;
+}
+```
+
+```astro
+---
+import '../styles/gravatar.css';
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<GravatarAvatar
+  email="user@example.com"
+  class="custom-avatar"
+/>
+```
+
+### Component Import Errors
+
+**Problem**: Import paths not working correctly
+
+**Solution**: Use the correct import syntax
+
+```astro
+<!-- Correct imports -->
+---
+import GravatarAvatar from 'astro-gravatar';
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+import { getProfile, hashEmail } from 'astro-gravatar';
+---
+
+<!-- Incorrect import -->
+import * as Gravatar from 'astro-gravatar';  // Avoid this
+```
+
+### TypeScript Errors
+
+**Problem**: Type errors with component props
+
+**Solution**: Import types explicitly
+
+```typescript
+import type {
+  GravatarProfile,
+  GravatarAvatarProps,
+  GravatarProfileCardProps
+} from 'astro-gravatar';
+
+const avatarProps: GravatarAvatarProps = {
+  email: 'user@example.com',
+  size: 80,
+  default: 'identicon'
+};
+```
+
+## Browser Compatibility
+
+### IE11 Support
+
+**Problem**: Components not working in Internet Explorer
+
+**Solution**: Add appropriate polyfills
+
+```astro
+---
+// In your layout or main Astro file
+---
+
+<script>
+  // Polyfill for older browsers
+  if (!window.fetch) {
+    // Add fetch polyfill
+  }
+
+  if (!window.IntersectionObserver) {
+    // Add Intersection Observer polyfill for lazy loading
+  }
+</script>
+```
+
+### Image Loading Issues
+
+**Problem**: Avatars not loading in certain browsers
+
+**Solution**: Add error handling and fallbacks
+
+```astro
+<GravatarAvatar
+  email="user@example.com"
+  size={80}
+  onError={(e) => {
+    // Fallback to identicon
+    const fallbackUrl = `https://www.gravatar.com/avatar/${hashEmail(e.target.dataset.email)}?d=identicon&s=80`;
+    e.target.src = fallbackUrl;
+  }}
+  data-email="user@example.com"
+/>
+```
+
+## Performance Optimization
+
+### Large Avatar Lists
+
+**Problem**: Performance issues with many avatars on one page
+
+**Solution**: Use lazy loading and pagination
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+
+const users = Array.from({length: 100}, (_, i) => ({
+  email: `user${i + 1}@example.com`,
+  name: `User ${i + 1}`
+}));
+---
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 1rem;">
+  {users.map((user) => (
+    <GravatarAvatar
+      key={user.email}
+      email={user.email}
+      size={60}
+      lazy={true}
+      default="identicon"
+      class="rounded-full"
+      style="aspect-ratio: 1;"
+    />
+  ))}
+</div>
+```
+
+### Caching Strategies
+
+**Problem**: Repeated API calls for same users
+
+**Solution**: Implement server-side caching
+
+```typescript
+// In an API route or server function
+const profileCache = new Map();
+
+export async function getServerProfile(email: string) {
+  if (profileCache.has(email)) {
+    return profileCache.get(email);
+  }
+
+  const profile = await getProfile(email, {
+    apiKey: process.env.GRAVATAR_API_KEY
+  });
+
+  // Cache for 5 minutes
+  profileCache.set(email, profile);
+  setTimeout(() => profileCache.delete(email), 5 * 60 * 1000);
+
+  return profile;
+}
+```
+
+## Debugging Tools
+
+### Profile URL Checker
+
+```typescript
+import { buildAvatarUrl, hashEmail } from 'astro-gravatar';
+
+function debugGravatar(email: string) {
+  const hash = hashEmail(email);
+  const avatarUrl = buildAvatarUrl(email, { size: 200 });
+
+  console.log('Email:', email);
+  console.log('Hash:', hash);
+  console.log('Avatar URL:', avatarUrl);
+  console.log('Profile URL:', `https://gravatar.com/${hash}`);
+  console.log('JSON Profile:', `https://gravatar.com/${hash}.json`);
+}
+
+debugGravatar('user@example.com');
+```
+
+### Network Request Monitor
+
+```typescript
+// Monitor Gravatar API requests
+const originalFetch = global.fetch;
+global.fetch = async function(url, options) {
+  if (url.includes('gravatar.com')) {
+    console.log('Gravatar Request:', url);
+    console.log('Headers:', options?.headers);
+  }
+
+  const response = await originalFetch(url, options);
+
+  if (url.includes('api.gravatar.com')) {
+    console.log('Rate Limit Headers:', {
+      limit: response.headers.get('X-RateLimit-Limit'),
+      remaining: response.headers.get('X-RateLimit-Remaining'),
+      reset: response.headers.get('X-RateLimit-Reset')
+    });
+  }
+
+  return response;
+};
+```
+
+## Getting Help
+
+### Community Resources
+
+- **GitHub Issues**: [Report bugs and request features](https://github.com/your-username/astro-gravatar/issues)
+- **Discussions**: [Ask questions and share examples](https://github.com/your-username/astro-gravatar/discussions)
+- **Gravatar Documentation**: [Official API docs](https://en.gravatar.com/site/implement/api/)
+
+### Debug Information
+
+When reporting issues, include:
+
+1. **Environment Info**: Node version, Astro version, browser
+2. **Code Example**: Minimal reproduction of the issue
+3. **Error Messages**: Full error stack traces
+4. **Network Logs**: Failed request details
+5. **Email Used**: For testing purposes (can be dummy email)
+
+### Minimal Reproduction Template
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<!-- Issue reproduction template -->
+<GravatarAvatar
+  email="test@example.com"
+  size={80}
+  default="identicon"
+  class="rounded-full"
+/>
+```
+
+## Next Steps
+
+- [Component Reference](/reference/components) - Complete API documentation
+- [Authentication Guide](/guides/authentication) - API key setup and usage
+- [API Endpoints](/reference/api-endpoints) - Direct API access
+- [Performance Guide](/guides/performance) - Optimization techniques

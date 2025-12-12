@@ -1,0 +1,330 @@
+---
+title: Component Reference
+description: Complete API documentation for astro-gravatar components
+---
+
+Complete API documentation for astro-gravatar components.
+
+## Available Components
+
+- **[GravatarAvatar](#gravataravatar)** - Display user avatars
+- **[GravatarProfileCard](#gravatarprofilecard)** - Complete profile cards with user information
+- **[GravatarQR](/reference/gravatar-qr)** - QR codes that link to Gravatar profiles
+
+## GravatarAvatar
+
+The main avatar component for displaying user avatars.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `email` | `string` | **Required** | Email address for the avatar |
+| `size` | `number` | `80` | Avatar size in pixels (1-2048) |
+| `rating` | `'g' \| 'pg' \| 'r' \| 'x'` | `'g'` | Maximum rating level |
+| `default` | `string` | `'mp'` | Default image for missing avatars |
+| `forceDefault` | `boolean` | `false` | Force default image even if avatar exists |
+| `lazy` | `boolean` | `false` | Enable lazy loading |
+| `alt` | `string` | Auto-generated | Alt text for accessibility |
+| `class` | `string` | `''` | Additional CSS classes |
+| `style` | `string` | `''` | Inline styles |
+
+### Default Avatar Options
+
+- `404` - Return a 404 error
+- `mp` - Mystery person (silhouette)
+- `identicon` - Geometric pattern
+- `monsterid` - Generated monster
+- `wavatar` - Generated faces
+- `retro` - 8-bit arcade-style
+- `robohash` - Generated robot
+- `blank` - Transparent PNG
+
+### Examples
+
+#### Basic Avatar
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<GravatarAvatar email="user@example.com" size={80} class="rounded-full" />
+```
+
+#### Custom Default Avatar
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<GravatarAvatar
+  email="user@example.com"
+  size={100}
+  default="identicon"
+  class="rounded-full"
+/>
+```
+
+#### Lazy Loading
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<GravatarAvatar
+  email="user@example.com"
+  size={120}
+  lazy={true}
+  class="rounded-full"
+/>
+```
+
+## GravatarProfileCard
+
+A complete profile card component that combines avatar and user information.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `email` | `string` | **Required** | Email address for the profile |
+| `layout` | `'horizontal' \| 'vertical' \| 'card'` | `'card'` | Layout style |
+| `avatarSize` | `number` | `80` | Avatar size in pixels |
+| `showName` | `boolean` | `true` | Display user's name |
+| `showBio` | `boolean` | `true` | Display user's bio |
+| `showVerified` | `boolean` | `true` | Show verified accounts |
+| `showLinks` | `boolean` | `true` | Show profile links |
+| `maxLinks` | `number` | `3` | Maximum links to display |
+| `template` | `'default' \| 'compact' \| 'detailed'` | `'default'` | Card template |
+| `class` | `string` | `''` | Additional CSS classes |
+
+### Layout Options
+
+- **`card`** - Compact card layout (default)
+- **`vertical`** - Stacked vertical layout
+- **`horizontal`** - Side-by-side horizontal layout
+
+### Template Options
+
+- **`default`** - Standard profile card
+- **`compact`** - Minimal information display
+- **`detailed`** - Complete profile information
+
+### Examples
+
+#### Card Layout
+
+```astro
+---
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+---
+
+<GravatarProfileCard
+  email="user@example.com"
+  layout="card"
+  avatarSize={100}
+  showName
+  showBio
+  showLinks
+  maxLinks={3}
+/>
+```
+
+#### Vertical Layout
+
+```astro
+---
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+---
+
+<GravatarProfileCard
+  email="user@example.com"
+  layout="vertical"
+  avatarSize={120}
+  showName
+  showBio
+  template="detailed"
+/>
+```
+
+#### Horizontal Layout
+
+```astro
+---
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+---
+
+<GravatarProfileCard
+  email="user@example.com"
+  layout="horizontal"
+  avatarSize={80}
+  showName
+  showVerified
+  maxLinks={2}
+/>
+```
+
+## Utilities Reference
+
+For utility functions like `hashEmail`, `buildAvatarUrl`, `getProfile`, and `getProfiles`, see the [Utilities Reference](/reference/utilities) page.
+## TypeScript Types
+
+### GravatarProfile
+
+```typescript
+interface GravatarProfile {
+  hash: string;
+  profile_url: string;
+  avatar_url: string;
+  avatar_alt_text: string;
+  display_name: string;
+  pronouns: string;
+  location: string;
+  job_title: string;
+  company: string;
+  description: string;
+  verified_accounts: VerifiedAccount[];
+  pronunciation: string;
+  pronouns: string;
+  timezone: string;
+  languages: string[];
+  first_name: string;
+  last_name: string;
+  is_organization: boolean;
+  header_image: string;
+  hide_default_header_image: boolean;
+  background_color: string;
+  links: Link[];
+  interests: Interest[];
+  payments: Payment[];
+  contact_info: ContactInfo;
+  gallery: Gallery[];
+  number_verified_accounts: number;
+  last_profile_edit: string;
+  registration_date: string;
+}
+```
+
+### GravatarAvatarProps
+
+```typescript
+interface GravatarAvatarProps {
+  email: string;
+  size?: number;
+  rating?: AvatarRating;
+  default?: DefaultAvatar;
+  forceDefault?: boolean;
+  lazy?: boolean;
+  alt?: string;
+  class?: string;
+  style?: string;
+}
+
+type AvatarRating = 'g' | 'pg' | 'r' | 'x';
+type DefaultAvatar = '404' | 'mp' | 'identicon' | 'monsterid' | 'wavatar' | 'retro' | 'robohash' | 'blank';
+```
+
+### GravatarProfileCardProps
+
+```typescript
+interface GravatarProfileCardProps {
+  email: string;
+  layout?: 'horizontal' | 'vertical' | 'card';
+  avatarSize?: number;
+  showName?: boolean;
+  showBio?: boolean;
+  showVerified?: boolean;
+  showLinks?: boolean;
+  maxLinks?: number;
+  template?: 'default' | 'compact' | 'detailed';
+  class?: string;
+}
+```
+
+## Advanced Configuration
+
+### Custom Cache Configuration
+
+```typescript
+import { GravatarClient } from 'astro-gravatar';
+
+const client = new GravatarClient({
+  apiKey: 'your-api-key',
+  cache: {
+    ttl: 300,        // 5 minutes cache time
+    maxSize: 1000    // Maximum cached items
+  }
+});
+```
+
+### Error Handling
+
+```typescript
+import { getProfile, GravatarError } from 'astro-gravatar';
+
+try {
+  const profile = await getProfile('user@example.com');
+  console.log('Profile:', profile);
+} catch (error) {
+  if (error instanceof GravatarError) {
+    console.error('Gravatar API Error:', error.message);
+    console.error('Error Code:', error.code);
+  } else {
+    console.error('Unexpected Error:', error);
+  }
+}
+```
+
+### Performance Monitoring
+
+```typescript
+import { getApiCacheStats, clearApiCache } from 'astro-gravatar';
+
+// Get cache statistics
+const stats = getApiCacheStats();
+console.log('Cache hits:', stats.hits);
+console.log('Cache misses:', stats.misses);
+console.log('Cache size:', stats.size);
+
+// Clear cache if needed
+clearApiCache();
+```
+
+## Best Practices
+
+1. **Always validate email addresses** before using them
+2. **Use appropriate avatar sizes** (32-200px recommended)
+3. **Implement error handling** for API failures
+4. **Use caching** to improve performance
+5. **Consider lazy loading** for avatars below the fold
+6. **Provide meaningful alt text** for accessibility
+7. **Use API keys** for production applications
+
+## Migration Guide
+
+### From Other Libraries
+
+If you're migrating from other avatar libraries:
+
+```typescript
+// Before (hypothetical library)
+<Avatar src="user@example.com" size={80} />
+
+// After with astro-gravatar
+<GravatarAvatar email="user@example.com" size={80} class="rounded-full" />
+```
+
+### API Changes
+
+The library follows semantic versioning. Check the changelog for breaking changes between versions.
+
+## Support
+
+- 📖 [Getting Started Guide](/guides/quick-start)
+- 🛡️ [Error Handling](/guides/error-handling)
+- ⚡ [Performance Guide](/guides/performance)
+- 🔐 [Authentication Guide](/guides/authentication)
+- 📚 [Advanced Examples](/guides/advanced-examples)

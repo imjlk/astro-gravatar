@@ -1,0 +1,674 @@
+---
+title: Performance
+description: Optimizing astro-gravatar components for speed and efficiency
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import GravatarAvatar from 'astro-gravatar';
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+
+Learn how to optimize astro-gravatar components for maximum performance, from caching strategies to lazy loading techniques.
+
+## Built-in Performance Features
+
+astro-gravatar includes several performance optimizations out of the box:
+
+- **Automatic Caching**: Server-side and client-side profile data caching
+- **Lazy Loading**: Load avatars only when they enter the viewport
+- **Responsive Images**: Automatic srcset generation for high-density displays
+- **Optimized URLs**: Efficient Gravatar URL construction
+
+## Caching Strategies
+
+### Server-Side Caching
+
+Profile data is automatically cached during build time and server-side rendering:
+
+```astro
+---
+import { getProfile, getApiCacheStats } from 'astro-gravatar';
+
+// Check cache statistics
+console.log('API Cache:', getApiCacheStats());
+
+// Profile fetched with automatic caching
+const profile = await getProfile('user@example.com', {
+  apiKey: import.meta.env.GRAVATAR_API_KEY
+});
+
+// Cache stats will show improved performance on subsequent requests
+---
+```
+
+### Cache Configuration
+
+```ts
+import { GravatarClient } from 'astro-gravatar';
+
+const client = new GravatarClient({
+  apiKey: 'your-api-key',
+  cache: {
+    ttl: 300,        // 5 minutes cache time
+    maxSize: 1000   // Maximum cached items
+  }
+});
+```
+
+### Manual Cache Management
+
+```astro
+---
+import { clearApiCache, getProfile } from 'astro-gravatar';
+
+// Clear cache if needed (useful for development)
+if (import.meta.env.DEV) {
+  clearApiCache();
+}
+
+// Fresh fetch after cache clear
+const profile = await getProfile('user@example.com', {
+  apiKey: import.meta.env.GRAVATAR_API_KEY
+});
+---
+```
+
+## Lazy Loading
+
+### Avatars Below the Fold
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<!-- Above the fold - load immediately -->
+<GravatarAvatar
+  email="visible@example.com"
+  size={100}
+  class="rounded-full"
+/>
+
+<!-- Below the fold - lazy load -->
+<GravatarAvatar
+  email="hidden@example.com"
+  size={100}
+  lazy={true}
+  class="rounded-full"
+/>
+```
+
+### Progressive Loading Strategy
+
+**Basic Lazy Loading:**
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<!-- Above the fold - load immediately -->
+<GravatarAvatar
+  email="visible@example.com"
+  size={60}
+  class="rounded-full"
+/>
+
+<!-- Below the fold - lazy load -->
+<GravatarAvatar
+  email="hidden@example.com"
+  size={60}
+  lazy={true}
+  class="rounded-full"
+/>
+```
+
+**Complete Example with Scroll Area:**
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<div style="display: flex; flex-direction: column; gap: 2rem; max-width: 600px; margin: 0 auto;">
+  <!-- Immediate loading avatar -->
+  <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem;">
+    <GravatarAvatar
+      email="visible@example.com"
+      size={60}
+      class="rounded-full"
+    />
+    <div>
+      <strong>Immediate Loading</strong>
+      <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: var(--sl-color-text-secondary);">
+        This avatar loads immediately when the page loads
+      </p>
+    </div>
+  </div>
+
+  <!-- Spacer to create scrolling -->
+  <div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--sl-color-bg-accordion); border-radius: 0.5rem;">
+    <p style="color: var(--sl-color-text-secondary);">Scroll down to see lazy loading</p>
+  </div>
+
+  <!-- Lazy loading avatar -->
+  <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem;">
+    <GravatarAvatar
+      email="hidden@example.com"
+      size={60}
+      lazy={true}
+      class="rounded-full"
+    />
+    <div>
+      <strong>Lazy Loading</strong>
+      <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: var(--sl-color-text-secondary);">
+        This avatar loads only when scrolled into view
+      </p>
+    </div>
+  </div>
+</div>
+```
+
+**Lazy Loading Features:**
+- Skeleton loading animation while image loads
+- Smooth fade-in transition when loaded
+- Native browser lazy loading (`loading="lazy"`)
+- Automatic placeholder creation
+- Error handling for failed loads
+
+### Intersection Observer Implementation
+
+For advanced lazy loading with custom trigger points:
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+<div id="avatar-container"></div>
+
+<script>
+  // Create lazy avatar loader with custom options
+  class LazyAvatarLoader {
+    constructor(container, email, options = {}) {
+      this.container = container;
+      this.email = email;
+      this.options = {
+        size: 80,
+        className: 'rounded-full',
+        rootMargin: '50px',  // Start loading 50px before element enters viewport
+        threshold: 0.1,     // Start loading when 10% visible
+        ...options
+      };
+      this.observer = null;
+      this.init();
+    }
+
+    init() {
+      // Create placeholder
+      this.createPlaceholder();
+
+      // Setup intersection observer
+      this.observer = new IntersectionObserver(
+        this.handleIntersection.bind(this),
+        {
+          rootMargin: this.options.rootMargin,
+          threshold: this.options.threshold
+        }
+      );
+
+      // Start observing the container
+      this.observer.observe(this.container);
+    }
+
+    createPlaceholder() {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'avatar-placeholder';
+      placeholder.style.cssText = `
+        width: ${this.options.size}px;
+        height: ${this.options.size}px;
+        background: #f3f4f6;
+        border-radius: ${this.options.className.includes('full') ? '50%' : '0.25rem'};
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+        transition: opacity 0.3s ease;
+      `;
+      placeholder.innerHTML = 'Loading...';
+      this.container.appendChild(placeholder);
+    }
+
+    handleIntersection(entries) {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.loadAvatar();
+          this.observer.unobserve(entry.target);
+        }
+      });
+    }
+
+    async loadAvatar() {
+      try {
+        // Remove placeholder
+        const placeholder = this.container.querySelector('.avatar-placeholder');
+        if (placeholder) {
+          placeholder.style.opacity = '0';
+          setTimeout(() => placeholder.remove(), 300);
+        }
+
+        // Load and create GravatarAvatar
+        const avatar = document.createElement('img');
+        const emailHash = await this.hashEmail(this.email);
+
+        avatar.src = \`https://0.gravatar.com/avatar/\${emailHash}?s=\${this.options.size}\`;
+        avatar.width = this.options.size;
+        avatar.height = this.options.size;
+        avatar.className = \`gravatar-avatar \${this.options.className}\`;
+        avatar.alt = \`Avatar for \${this.email}\`;
+        avatar.style.cssText = 'opacity: 0; transition: opacity 0.3s ease;';
+
+        // Add loading animation
+        avatar.onload = () => {
+          avatar.style.opacity = '1';
+        };
+
+        this.container.appendChild(avatar);
+
+        // Cleanup
+        this.observer?.disconnect();
+      } catch (error) {
+        console.error('Failed to load avatar:', error);
+        this.showError();
+      }
+    }
+
+    showError() {
+      const errorElement = document.createElement('div');
+      errorElement.className = 'avatar-error';
+      errorElement.style.cssText = \`
+        width: \${this.options.size}px;
+        height: \${this.options.size}px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: \${this.options.className.includes('full') ? '50%' : '0.25rem'};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #dc2626;
+        font-size: 0.75rem;
+      \`;
+      errorElement.innerHTML = '⚠';
+
+      const placeholder = this.container.querySelector('.avatar-placeholder');
+      if (placeholder) {
+        placeholder.remove();
+      }
+      this.container.appendChild(errorElement);
+    }
+
+    async hashEmail(email) {
+      // Simple email hashing for the example
+      const encoder = new TextEncoder();
+      const data = encoder.encode(email.toLowerCase().trim());
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    }
+
+    destroy() {
+      if (this.observer) {
+        this.observer.disconnect();
+        this.observer = null;
+      }
+    }
+  }
+
+  // Usage example
+  const container = document.getElementById('avatar-container');
+  const loader = new LazyAvatarLoader(container, 'user@example.com', {
+    size: 120,
+    className: 'rounded-full shadow-lg',
+    rootMargin: '100px',
+    threshold: 0.5
+  });
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', () => {
+    loader.destroy();
+  });
+</script>
+```
+
+## Image Optimization
+
+### Responsive Images
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<GravatarAvatar
+  email="user@example.com"
+  size={100}
+  class="rounded-full"
+  // Automatically generates:
+  // - 1x: 100px
+  // - 1.5x: 150px
+  // - 2x: 200px
+/>
+```
+
+### Manual Srcset Control
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<GravatarAvatar
+  email="user@example.com"
+  size={100}
+  class="rounded-full"
+  // Manual control for specific responsive breakpoints
+  srcset="https://0.gravatar.com/avatar/hash?s=50 1x,
+          https://0.gravatar.com/avatar/hash?s=75 1.5x,
+          https://0.gravatar.com/avatar/hash?s=100 2x"
+  sizes="(max-width: 600px) 50px, 100px"
+/>
+```
+
+## Profile Data Optimization
+
+### Batch Profile Fetching
+
+```astro
+---
+import { getProfiles } from 'astro-gravatar';
+
+const emails = [
+  'user1@example.com',
+  'user2@example.com',
+  'user3@example.com',
+  'user4@example.com'
+];
+
+// Fetch all profiles in parallel
+const profiles = await getProfiles(emails, {
+  apiKey: import.meta.env.GRAVATAR_API_KEY
+});
+---
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+  {profiles.map((profile, index) => (
+    <div key={index} style="padding: 1rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem;">
+      <GravatarProfileCard
+        email={profile.email}
+        layout="card"
+        avatarSize={60}
+        showName
+        template="compact"
+      />
+    </div>
+  ))}
+</div>
+```
+
+### Profile Data Caching
+
+```astro
+---
+import { getProfile, clearApiCache } from 'astro-gravatar';
+
+// Cache key generation
+const getCacheKey = (email, options) => {
+  return `${email}:${options.size || 'default'}:${options.layout || 'card'}`;
+};
+
+// Enhanced caching function
+async function getCachedProfile(email, options = {}) {
+  const cacheKey = getCacheKey(email, options);
+  const cache = new Map();
+
+  // Check cache first
+  if (cache.has(cacheKey)) {
+    const cached = cache.get(cacheKey);
+    if (Date.now() - cached.timestamp < 5 * 60 * 1000) { // 5 minutes
+      return cached.data;
+    }
+  }
+
+  // Fetch fresh data
+  const profile = await getProfile(email, {
+    apiKey: import.meta.env.GRAVATAR_API_KEY,
+    ...options
+  });
+
+  // Store in cache
+  cache.set(cacheKey, {
+    data: profile,
+    timestamp: Date.now()
+  });
+
+  return profile;
+}
+
+const profile = await getCachedProfile('user@example.com', {
+  layout: 'card',
+  avatarSize: 100
+});
+---
+
+<GravatarProfileCard
+  email={profile.email}
+  layout="card"
+  avatarSize={100}
+  showName
+  showBio
+/>
+```
+
+## Bundle Optimization
+
+### Tree Shaking
+
+astro-gravatar supports tree-shaking. Import only what you need:
+
+```ts
+// Good: Import only what you use
+import GravatarAvatar from 'astro-gravatar';
+import { getProfile } from 'astro-gravatar';
+
+// Avoid: Import everything
+import * as Gravatar from 'astro-gravatar';
+```
+
+### Component Splitting
+
+For performance-critical applications, consider component splitting:
+
+```astro
+---
+// pages/index.astro
+import GravatarAvatar from 'astro-gravatar';
+---
+<GravatarAvatar email="user@example.com" size={60} />
+```
+
+```ts
+// utils/avatar.astro (split into separate file)
+export const ProfileAvatar = ({ email, size = 80, ...props }) => (
+  <GravatarAvatar email={email} size={size} {...props} />
+);
+```
+
+## Loading States
+
+### Skeleton Loading
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+<div style="display: flex; gap: 1rem; align-items: center; margin: 2rem 0;">
+  {/* Skeleton placeholder */}
+  <div class="avatar-skeleton" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); animation: skeleton-loading 1.5s infinite;"></div>
+
+  {/* Real avatar with error handling */}
+  <GravatarAvatar
+    email="user@example.com"
+    size={60}
+    class="rounded-full"
+    onError={(e) => {
+      e.target.style.display = 'none';
+      e.target.parentElement.querySelector('.avatar-skeleton').style.display = 'block';
+    }}
+  />
+</div>
+
+### CSS Example
+
+Create a separate CSS file for skeleton loading:
+
+```css
+/* src/styles/skeleton.css */
+@keyframes skeleton-loading {
+  0% { background-position: -200% 0; }
+  100% { background-position: calc(200% + 1px) 0; }
+}
+
+.avatar-skeleton {
+  display: none; /* Hidden when real avatar loads */
+}
+```
+
+Then import it in your Astro component:
+
+```astro
+---
+import '../styles/skeleton.css';
+import GravatarAvatar from 'astro-gravatar';
+---
+```
+
+### Error Fallbacks
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+
+const emails = ['user1@example.com', 'user2@example.com'];
+---
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 1rem; margin: 2rem 0;">
+  {emails.map(email => (
+    <GravatarAvatar
+      key={email}
+      email={email}
+      size={60}
+      default="identicon"
+      class="rounded-full"
+      onError={(e) => {
+        // Fallback to default avatar
+        e.target.style.display = 'none';
+        const fallback = document.createElement('div');
+        fallback.className = 'avatar-fallback rounded-full';
+        fallback.style.width = '60px';
+        fallback.style.height = '60px';
+        fallback.style.background = `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`;
+        fallback.style.display = 'flex';
+        fallback.style.alignItems = 'center';
+        fallback.style.justifyContent = 'center';
+        fallback.style.color = 'white';
+        fallback.style.fontWeight = 'bold';
+        fallback.textContent = email[0].toUpperCase();
+        e.target.parentNode.insertBefore(fallback, e.target);
+      }}
+    />
+  ))}
+</div>
+
+### CSS Example for Fallbacks
+
+```css
+/* src/styles/avatar-fallback.css */
+.avatar-fallback {
+  font-size: 1.5rem;
+}
+```
+
+```astro
+---
+import '../styles/avatar-fallback.css';
+import GravatarAvatar from 'astro-gravatar';
+---
+```
+
+## Performance Monitoring
+
+### Cache Statistics
+
+```astro
+---
+import { getApiCacheStats } from 'astro-gravatar';
+---
+<div style="padding: 1rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; margin: 2rem 0;">
+  <h3>API Cache Statistics</h3>
+  <pre style="background: var(--sl-color-bg-code); padding: 1rem; border-radius: 0.25rem; overflow-x: auto;">
+{JSON.stringify(getApiCacheStats(), null, 2)}
+  </pre>
+</div>
+```
+
+### Performance Metrics
+
+```astro
+---
+// Track component performance
+import { performance } from 'node:perf';
+
+function measureComponent(componentName, renderFn) {
+  const start = performance.now();
+
+  const result = renderFn();
+
+  const end = performance.now();
+  const duration = end - start;
+
+  console.log(`${componentName} rendered in ${duration.toFixed(2)}ms`);
+
+  if (duration > 100) {
+    console.warn(`${componentName} is slow to render (>100ms)`);
+  }
+
+  return result;
+}
+
+const avatar = measureComponent('GravatarAvatar', () =>
+  GravatarAvatar.render({ email: 'user@example.com', size: 80 })
+);
+---
+```
+
+## Best Practices
+
+<CardGrid>
+  <Card title="Cache Aggressively" icon="database">
+    <p style="margin: 0;">Use built-in caching and avoid repeated API calls for the same user data.</p>
+  </Card>
+  <Card title="Lazy Load Below Fold" icon="eye">
+    <p style="margin: 0;">Enable lazy loading for avatars that aren't immediately visible.</p>
+  </Card>
+  <Card title="Use Appropriate Sizes" icon="ruler">
+    <p style="margin: 0;">Don't use unnecessarily large avatar sizes. Stick to 32-200px for optimal performance.</p>
+  </Card>
+  <Card title="Batch Operations" icon="layers">
+    <p style="margin: 0;">Fetch multiple profiles in parallel rather than sequentially.</p>
+  </Card>
+</CardGrid>
+
+## Next Steps
+
+- [Authentication](/guides/authentication) - API keys for enhanced profiles
+- [Error Handling](/guides/error-handling) - Robust fallback patterns
+- [Advanced Examples](/guides/advanced-examples) - Complex implementation patterns

@@ -1,0 +1,374 @@
+---
+title: Authentication
+description: Using API keys for enhanced Gravatar profile features and secure API access
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+
+Learn how to use API keys to access enhanced Gravatar profile features and implement secure authentication.
+
+## Why Use Authentication?
+
+While basic avatar display works without authentication, an API key unlocks powerful features:
+
+<CardGrid>
+  <Card title="Complete Profile Data" icon="user">
+    <p style="margin: 0;">Access detailed user profiles with job titles, bios, locations, and social links</p>
+  </Card>
+  <Card title="Verified Accounts" icon="check-circle">
+    <p style="margin: 0;">Show verified social media accounts and professional networks</p>
+  </Card>
+  <Card title="Higher Rate Limits" icon="zap">
+    <p style="margin: 0;">Increased API quotas for profile fetching (1000 requests/hour)</p>
+  </Card>
+  <Card title="Advanced Features" icon="shield">
+    <p style="margin: 0;">Access QR code generation and profile management features</p>
+  </Card>
+</CardGrid>
+
+## Getting Your API Key
+
+### Step-by-Step Process
+
+1. **Log in to your Gravatar account** at [gravatar.com](https://gravatar.com)
+2. **Navigate to Developer Dashboard**: [https://gravatar.com/developers/](https://gravatar.com/developers/)
+3. **Click "Create New Application"**
+4. **Fill in required information**:
+   - Application name
+   - Description
+   - Website URL (optional)
+   - Redirect URI (for OAuth applications)
+5. **Save your API key securely**
+
+### API Key Types
+
+- **Bearer Token**: Standard API key for server-side requests
+- **OAuth 2.0**: For applications that need user authorization
+- **Public Access**: Limited functionality without authentication
+
+## Basic Authentication
+
+For server-side usage, provide the API key directly to profile functions:
+
+```astro
+---
+import { getProfile } from 'astro-gravatar';
+
+const profile = await getProfile('user@example.com', {
+  apiKey: 'your-api-key-here'
+});
+---
+
+<GravatarProfileCard
+  email={profile.email}
+  layout="card"
+  avatarSize={100}
+  showName
+  showBio
+  showVerified
+/>
+```
+
+## Environment Configuration
+
+For security, store your API key in environment variables:
+
+```bash
+# .env
+GRAVATAR_API_KEY=your-api-key-here
+```
+
+```astro
+---
+import { getProfile } from 'astro-gravatar';
+
+const apiKey = import.meta.env.GRAVATAR_API_KEY;
+
+if (!apiKey) {
+  throw new Error('Gravatar API key not configured');
+}
+
+const profile = await getProfile('user@example.com', { apiKey });
+---
+```
+
+## Client-Side vs Server-Side
+
+### Server-Side (Recommended)
+
+```astro
+---
+// Works on the server during build or SSR
+import { getProfile, getProfiles } from 'astro-gravatar';
+
+const profiles = await getProfiles([
+  'user1@example.com',
+  'user2@example.com'
+], { apiKey: import.meta.env.GRAVATAR_API_KEY });
+---
+```
+
+### Client-Side
+
+```astro
+---
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+---
+
+<div id="profile-container"></div>
+
+<script>
+  import { getProfile } from 'astro-gravatar';
+
+  // Fetch client-side (not recommended for production)
+  const apiKey = 'your-api-key-here';
+
+  async function loadProfile() {
+    try {
+      const profile = await getProfile('user@example.com', { apiKey });
+      // Render profile in the DOM
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+    }
+  }
+
+  loadProfile();
+</script>
+```
+
+## Authentication Examples
+
+### Complete Team Display
+
+<div style="display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center; margin: 2rem 0;">
+  <GravatarProfileCard
+    email="hello@automattic.com"
+    layout="vertical"
+    avatarSize={80}
+    showName
+    showBio
+    showVerified
+    showLinks
+    maxLinks={2}
+  />
+  <GravatarProfileCard
+    email="matt@wordpress.org"
+    layout="vertical"
+    avatarSize={80}
+    showName
+    showBio
+    showVerified
+  />
+</div>
+
+### Enhanced Profile Data
+
+```astro
+---
+import { getProfile } from 'astro-gravatar';
+
+const profile = await getProfile('user@example.com', {
+  apiKey: import.meta.env.GRAVATAR_API_KEY
+});
+---
+
+<GravatarProfileCard
+  email={profile.email}
+  layout="card"
+  avatarSize={120}
+  showName
+  showBio
+  showVerified
+  showLinks
+  template="detailed"
+/>
+```
+
+## Rate Limit Management
+
+Gravatar API has rate limits. The built-in caching helps manage them:
+
+```astro
+---
+import { getProfile, clearApiCache, getApiCacheStats } from 'astro-gravatar';
+
+// Check cache stats
+console.log('Cache stats:', getApiCacheStats());
+
+// Clear cache if needed
+// clearApiCache();
+
+// Profile with automatic caching
+const profile = await getProfile('user@example.com', {
+  apiKey: import.meta.env.GRAVATAR_API_KEY
+});
+---
+
+<GravatarProfileCard
+  email={profile.email}
+  layout="horizontal"
+  avatarSize={80}
+  showName
+  showBio
+/>
+```
+
+## Error Handling
+
+```astro
+---
+import { getProfile, GravatarError } from 'astro-gravatar';
+
+let profile = null;
+let error = null;
+
+try {
+  profile = await getProfile('user@example.com', {
+    apiKey: import.meta.env.GRAVATAR_API_KEY
+  });
+} catch (err) {
+  if (err instanceof GravatarError) {
+    error = {
+      message: err.message,
+      code: err.code,
+      status: err.status,
+      rateLimit: err.rateLimit
+    };
+  } else {
+    error = { message: 'Unknown error occurred' };
+  }
+}
+---
+
+{profile ? (
+  <GravatarProfileCard
+    email={profile.email}
+    layout="card"
+    avatarSize={100}
+    showName
+    showBio
+  />
+) : (
+  <div style="padding: 2rem; background: #fee2e2; border-radius: 0.5rem; border: 1px solid #fca5a5;">
+    <h3 style="margin: 0 0 0.5rem 0; color: #991b1b;">Profile Not Available</h3>
+    {error && <p style="margin: 0; color: #991b1b;">{error.message}</p>}
+  </div>
+)}
+```
+
+## Security Best Practices
+
+<CardGrid>
+  <Card title="Environment Variables" icon="key">
+    <p style="margin: 0;">Never commit API keys to version control. Always use environment variables.</p>
+  </Card>
+  <Card title="Server-Side Only" icon="server">
+    <p style="margin: 0;">Prefer server-side profile fetching to avoid exposing API keys in client-side code.</p>
+  </Card>
+  <Card title="Rate Limiting" icon="clock">
+    <p style="margin: 0;">Implement proper error handling and retry logic for rate-limited requests.</p>
+  </Card>
+  <Card title="Cache Wisely" icon="database">
+    <p style="margin: 0;">Use built-in caching to reduce API calls and improve performance.</p>
+  </Card>
+</CardGrid>
+
+## Advanced Configuration
+
+### Custom API Client
+
+```astro
+---
+import { GravatarClient } from 'astro-gravatar';
+
+const client = new GravatarClient({
+  apiKey: import.meta.env.GRAVATAR_API_KEY,
+  baseUrl: 'https://api.gravatar.com/v3', // Custom base URL for proxy/CDN
+  timeout: 15000, // 15 second timeout
+  headers: {
+    'User-Agent': 'MyApp/1.0.0'
+  }
+});
+
+const profile = await client.getProfile('user@example.com');
+---
+
+<GravatarProfileCard
+  email={profile.email}
+  layout="card"
+  avatarSize={100}
+  showName
+  showBio
+/>
+```
+
+### Multiple API Keys
+
+```astro
+---
+const apiKeys = [
+  'key1', 'key2', 'key3'
+];
+
+let profile = null;
+let currentKeyIndex = 0;
+
+for (let i = 0; i < apiKeys.length; i++) {
+  try {
+    profile = await getProfile('user@example.com', {
+      apiKey: apiKeys[i]
+    });
+    break;
+  } catch (error) {
+    if (error.code === 'RATE_LIMITED' && i < apiKeys.length - 1) {
+      continue; // Try next key
+    }
+    throw error;
+  }
+}
+---
+```
+
+## Testing with Mock Data
+
+```astro
+---
+const isDevelopment = import.meta.env.DEV;
+
+const mockProfile = {
+  hash: 'mock-hash',
+  display_name: 'Test User',
+  avatar_url: 'https://0.gravatar.com/avatar/mock?s=100',
+  description: 'This is a test profile',
+  location: 'Test City',
+  job_title: 'Test Engineer'
+};
+
+const profile = isDevelopment
+  ? mockProfile
+  : await getProfile('user@example.com', {
+      apiKey: import.meta.env.GRAVATAR_API_KEY
+    });
+---
+```
+
+## Common Issues
+
+<CardGrid>
+  <Card title="404 Errors" icon="alert">
+    <p style="margin: 0;">User might not have a Gravatar account. Use fallback avatars.</p>
+  </Card>
+  <Card title="Rate Limits" icon="speed">
+    <p style="margin: 0;">Too many requests. Implement caching and retry with exponential backoff.</p>
+  </Card>
+  <Card title="Invalid API Key" icon="error">
+    <p style="margin: 0;">Check your API key format and ensure it's correctly configured.</p>
+  </Card>
+</CardGrid>
+
+## Next Steps
+
+- [Basic Usage](/guides/basic-usage) - Common usage patterns
+- [Performance Guide](/guides/performance) - Optimize profile fetching
+- [Component Reference](/reference/components) - Complete API documentation

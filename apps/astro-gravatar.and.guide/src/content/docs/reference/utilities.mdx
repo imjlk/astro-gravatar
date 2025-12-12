@@ -1,0 +1,356 @@
+---
+title: Utilities Reference
+description: Complete API documentation for astro-gravatar utility functions
+---
+
+Complete API documentation for astro-gravatar utility functions.
+
+## Core Functions
+
+### hashEmail
+
+Hash an email address for Gravatar API requests using SHA256.
+
+```typescript
+import { hashEmail } from 'astro-gravatar';
+
+const hash = hashEmail('user@example.com');
+// Returns: '27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109'
+```
+
+**Parameters:**
+- `email` (string): Email address to hash
+
+**Returns:**
+- `string`: 64-character SHA256 hash
+
+**Example:**
+```typescript
+// Direct use in avatar URL
+const email = 'user@example.com';
+const hash = hashEmail(email);
+const avatarUrl = `https://www.gravatar.com/avatar/${hash}?s=200`;
+```
+
+### buildAvatarUrl
+
+Build a complete Gravatar avatar URL with parameters.
+
+```typescript
+import { buildAvatarUrl } from 'astro-gravatar';
+
+const url = buildAvatarUrl('user@example.com', {
+  size: 200,
+  rating: 'pg',
+  default: 'identicon',
+  forceDefault: false
+});
+// Returns: 'https://www.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109?s=200&r=pg&d=identicon'
+```
+
+**Parameters:**
+- `email` (string): Email address for the avatar
+- `options` (object): Avatar configuration options
+
+**Options:**
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `size` | `number` | `80` | Avatar size in pixels (1-2048) |
+| `rating` | `'g' \| 'pg' \| 'r' \| 'x'` | `'g'` | Maximum rating level |
+| `default` | `string` | `'mp'` | Default image type |
+| `forceDefault` | `boolean` | `false` | Force default image |
+
+**Returns:**
+- `string`: Complete Gravatar avatar URL
+
+### getProfile
+
+Fetch user profile data from Gravatar API v3.
+
+```typescript
+import { getProfile } from 'astro-gravatar';
+
+const profile = await getProfile('user@example.com', {
+  apiKey: 'your-api-key' // Optional but recommended
+});
+
+// Returns GravatarProfile object or null if not found
+```
+
+**Parameters:**
+- `email` (string): Email address of the user
+- `options` (object, optional): Request configuration
+
+**Options:**
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `apiKey` | `string` | `undefined` | API key for enhanced profile data |
+| `cache` | `boolean` | `true` | Enable response caching |
+
+**Returns:**
+- `Promise<GravatarProfile \| null>`: Profile data or null if not found
+
+**Example with error handling:**
+```typescript
+import { getProfile, GravatarError } from 'astro-gravatar';
+
+try {
+  const profile = await getProfile('user@example.com', {
+    apiKey: import.meta.env.GRAVATAR_API_KEY
+  });
+
+  if (profile) {
+    console.log('User:', profile.display_name);
+    console.log('Bio:', profile.description);
+  } else {
+    console.log('Profile not found');
+  }
+} catch (error) {
+  if (error instanceof GravatarError) {
+    console.error('API Error:', error.message);
+  }
+}
+```
+
+### getProfiles
+
+Fetch multiple user profiles in parallel for better performance.
+
+```typescript
+import { getProfiles } from 'astro-gravatar';
+
+const emails = ['user1@example.com', 'user2@example.com', 'user3@example.com'];
+
+const profiles = await getProfiles(emails, {
+  apiKey: 'your-api-key'
+});
+
+// Returns array of GravatarProfile objects (null for missing profiles)
+```
+
+**Parameters:**
+- `emails` (string[]): Array of email addresses
+- `options` (object, optional): Request configuration (same as getProfile)
+
+**Returns:**
+- `Promise<(GravatarProfile \| null)[]>`: Array of profile data
+
+**Example:**
+```typescript
+const teamEmails = [
+  'alice@example.com',
+  'bob@example.com',
+  'charlie@example.com'
+];
+
+const profiles = await getProfiles(teamEmails, {
+  apiKey: import.meta.env.GRAVATAR_API_KEY
+});
+
+// Filter out null profiles (users without Gravatar)
+const validProfiles = profiles.filter(Boolean);
+console.log(`Found ${validProfiles.length} team members with profiles`);
+```
+
+## Advanced Functions
+
+### clearApiCache
+
+Clear the internal API response cache.
+
+```typescript
+import { clearApiCache } from 'astro-gravatar';
+
+// Clear all cached profiles
+clearApiCache();
+```
+
+**Use cases:**
+- Force refresh of profile data
+- Free memory in long-running applications
+- Handle user profile updates
+
+### getApiCacheStats
+
+Get statistics about the internal API cache.
+
+```typescript
+import { getApiCacheStats } from 'astro-gravatar';
+
+const stats = getApiCacheStats();
+console.log('Cache hits:', stats.hits);
+console.log('Cache misses:', stats.misses);
+console.log('Cache size:', stats.size);
+```
+
+**Returns:**
+```typescript
+interface CacheStats {
+  hits: number;      // Number of cache hits
+  misses: number;    // Number of cache misses
+  size: number;      // Number of cached items
+  hitRate: number;   // Cache hit rate (0-1)
+}
+```
+
+## Configuration
+
+### GravatarClient
+
+Advanced client for custom configuration and multiple API keys.
+
+```typescript
+import { GravatarClient } from 'astro-gravatar';
+
+const client = new GravatarClient({
+  apiKey: 'your-api-key',
+  baseUrl: 'https://api.gravatar.com/v3',
+  timeout: 15000,
+  cache: {
+    ttl: 300,        // 5 minutes
+    maxSize: 1000    // Maximum cached items
+  }
+});
+
+const profile = await client.getProfile('user@example.com');
+```
+
+**Constructor Options:**
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `apiKey` | `string` | `undefined` | API key for requests |
+| `baseUrl` | `string` | `https://api.gravatar.com/v3` | Custom API base URL |
+| `timeout` | `number` | `10000` | Request timeout in milliseconds |
+| `cache` | `object` | `{ ttl: 300, maxSize: 100 }` | Cache configuration |
+
+## Error Types
+
+### GravatarError
+
+Custom error class for Gravatar API errors.
+
+```typescript
+import { GravatarError } from 'astro-gravatar';
+
+try {
+  const profile = await getProfile('user@example.com');
+} catch (error) {
+  if (error instanceof GravatarError) {
+    console.error('Error code:', error.code);
+    console.error('HTTP status:', error.status);
+    console.error('Rate limit:', error.rateLimit);
+  }
+}
+```
+
+**Properties:**
+- `message`: string - Error message
+- `code`: string - Gravatar error code
+- `status`: number - HTTP status code
+- `rateLimit`: object - Rate limit information (if applicable)
+
+## Type Definitions
+
+### GravatarProfile
+
+```typescript
+interface GravatarProfile {
+  hash: string;
+  profile_url: string;
+  avatar_url: string;
+  avatar_alt_text: string;
+  display_name: string;
+  pronouns: string;
+  location: string;
+  job_title: string;
+  company: string;
+  description: string;
+  verified_accounts: VerifiedAccount[];
+  pronunciation: string;
+  timezone: string;
+  languages: string[];
+  first_name: string;
+  last_name: string;
+  is_organization: boolean;
+  header_image: string;
+  background_color: string;
+  links: Link[];
+  interests: Interest[];
+  payments: Payment[];
+  contact_info: ContactInfo;
+  gallery: Gallery[];
+}
+```
+
+### VerifiedAccount
+
+```typescript
+interface VerifiedAccount {
+  type: string;
+  url: string;
+  name: string;
+  verified: boolean;
+}
+```
+
+### Link
+
+```typescript
+interface Link {
+  url: string;
+  name: string;
+  icon: string;
+  type: string;
+}
+```
+
+## Performance Tips
+
+### Caching Strategy
+
+```typescript
+// Built-in caching is automatic and optimized
+// Cache TTL: 5 minutes for profiles
+// Cache size: 100 items by default
+// LRU eviction policy
+
+// Monitor cache performance
+const stats = getApiCacheStats();
+if (stats.hitRate < 0.8) {
+  console.log('Consider increasing cache TTL or size');
+}
+```
+
+### Batch Requests
+
+```typescript
+// Always use getProfiles() for multiple requests
+// This is much faster than individual getProfile() calls
+const profiles = await getProfiles(emailList);
+```
+
+### Error Recovery
+
+```typescript
+async function robustGetProfile(email: string, retries = 3): Promise<Profile | null> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await getProfile(email);
+    } catch (error) {
+      if (error.code === 'rate_limit_exceeded' && i < retries - 1) {
+        const delay = Math.pow(2, i) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+  return null;
+}
+```
+
+## Next Steps
+
+- [Component Reference](/reference/components) - Component APIs and props
+- [Authentication Guide](/guides/authentication) - API key setup and usage
+- [Performance Guide](/guides/performance) - Optimization techniques

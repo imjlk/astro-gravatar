@@ -1,0 +1,466 @@
+---
+title: GravatarQR Component
+description: Complete API documentation for GravatarQR component
+---
+
+import GravatarQR from 'astro-gravatar/GravatarQR';
+
+Generate QR codes that link to user Gravatar profiles for easy sharing and mobile access.
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `email` | `string` | **Required** | Email address for QR code |
+| `size` | `number` | `80` | QR code size in pixels (1-1000) |
+| `version` | `1 \| 3` | `1` | QR code style (1: standard, 3: modern dots) |
+| `type` | `'none' \| 'user' \| 'gravatar'` | `'none'` | Center icon type |
+| `utmMedium` | `string` | `undefined` | UTM medium parameter |
+| `utmCampaign` | `string` | `undefined` | UTM campaign parameter |
+| `class` | `string` | `''` | Additional CSS classes |
+| `alt` | `string` | Auto-generated | Alt text for accessibility |
+
+## Examples
+
+### Basic QR Code
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR email="user@example.com" />
+```
+
+<div style="display: flex; justify-content: center; margin: 2rem 0;">
+  <GravatarQR email="user@example.com" />
+</div>
+
+### Custom Size
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR
+  email="user@example.com"
+  size={150}
+  class="qr-large"
+/>
+```
+
+<div style="display: flex; justify-content: center; margin: 2rem 0;">
+  <GravatarQR
+    email="user@example.com"
+    size={150}
+    class="qr-large"
+  />
+</div>
+
+### Modern Style
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR
+  email="user@example.com"
+  version={3}
+  type="gravatar"
+  size={120}
+/>
+```
+
+<div style="display: flex; justify-content: center; margin: 2rem 0;">
+  <GravatarQR
+    email="user@example.com"
+    version={3}
+    type="gravatar"
+    size={120}
+  />
+</div>
+
+### With UTM Tracking
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR
+  email="user@example.com"
+  size={100}
+  utmMedium="website"
+  utmCampaign="profile_share"
+  class="qr-share"
+/>
+```
+
+<div style="display: flex; justify-content: center; margin: 2rem 0;">
+  <GravatarQR
+    email="user@example.com"
+    size={100}
+    utmMedium="website"
+    utmCampaign="profile_share"
+    class="qr-share"
+  />
+</div>
+
+### User Icon Center
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR
+  email="user@example.com"
+  version={3}
+  type="user"
+  size={120}
+/>
+```
+
+<div style="display: flex; justify-content: center; margin: 2rem 0;">
+  <GravatarQR
+    email="user@example.com"
+    version={3}
+    type="user"
+    size={120}
+  />
+</div>
+
+## Styling
+
+### Default Styles
+
+The component includes comprehensive styling for various scenarios:
+
+```css
+/* Container */
+.gravatar-qr-container {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* QR Code Image */
+.gravatar-qr {
+  display: inline-block;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Hover Effects */
+.gravatar-qr:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Size Variants */
+.gravatar-qr--small { width: 40px; height: 40px; }
+.gravatar-qr--medium { width: 80px; height: 80px; }
+.gravatar-qr--large { width: 120px; height: 120px; }
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .gravatar-qr {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+}
+```
+
+### Custom CSS Classes
+
+You can add custom classes for additional styling:
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR
+  email="user@example.com"
+  class="qr-custom qr-bordered qr-shadow"
+/>
+```
+
+```css
+.qr-custom {
+  border: 3px solid #3b82f6;
+  border-radius: 12px;
+}
+
+.qr-bordered {
+  border: 2px solid currentColor;
+}
+
+.qr-shadow {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+```
+
+## QR Code Parameters
+
+### Size Options
+
+- **Range**: 1-1000 pixels
+- **Default**: 80px
+- **Recommendation**: 80-200px for optimal scanning
+
+```astro
+<!-- Small QR for tight spaces -->
+<GravatarQR email="user@example.com" size={40} />
+
+<!-- Medium QR for general use -->
+<GravatarQR email="user@example.com" size={80} />
+
+<!-- Large QR for presentations -->
+<GravatarQR email="user@example.com" size={200} />
+```
+
+### Version Options
+
+- **Version 1**: Standard QR code (classic style)
+- **Version 3**: Modern dots style
+
+```astro
+<!-- Classic QR code -->
+<GravatarQR email="user@example.com" version={1} />
+
+<!-- Modern dots QR code -->
+<GravatarQR email="user@example.com" version={3} />
+```
+
+### Center Icon Types
+
+- **`none`**: No center icon (default)
+- **`user`**: User silhouette icon
+- **`gravatar`**: Gravatar logo icon
+
+```astro
+<!-- No icon -->
+<GravatarQR email="user@example.com" type="none" />
+
+<!-- User silhouette -->
+<GravatarQR email="user@example.com" type="user" />
+
+<!-- Gravatar logo -->
+<GravatarQR email="user@example.com" type="gravatar" />
+```
+
+## UTM Tracking
+
+Add UTM parameters to track QR code scans in analytics:
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR
+  email="user@example.com"
+  utmMedium="business_card"
+  utmCampaign="qrcode_sharing"
+  utmSource="printed_material"
+/>
+```
+
+This generates URLs like:
+```
+https://gravatar.com/userhash?utm_medium=business_card&utm_campaign=qrcode_sharing&utm_source=printed_material
+```
+
+## Accessibility
+
+### Alt Text
+
+The component automatically generates descriptive alt text:
+
+```astro
+<!-- Auto-generated: "QR code for user@example.com" -->
+<GravatarQR email="user@example.com" />
+
+<!-- Custom alt text -->
+<GravatarQR
+  email="user@example.com"
+  alt="Scan this QR code with your phone to view my Gravatar profile"
+/>
+```
+
+### Keyboard Navigation
+
+QR codes are keyboard accessible and include proper ARIA labels:
+
+```html
+<div class="gravatar-qr-container">
+  <img
+    src="..."
+    alt="QR code for user@example.com"
+    title="Scan QR code to view user@example.com's Gravatar profile"
+    tabindex="0"
+    role="img"
+  />
+</div>
+```
+
+## Error Handling
+
+The component gracefully handles various error scenarios:
+
+### Invalid Email
+
+```astro
+<!-- Shows error message and fallback -->
+<GravatarQR email="invalid-email" />
+```
+
+### Network Errors
+
+```astro
+<!-- Shows fallback SVG when QR code generation fails -->
+<GravatarQR email="user@example.com" />
+```
+
+### Fallback Display
+
+When QR code generation fails, the component displays a helpful error message and fallback icon.
+
+## Performance Features
+
+### Responsive Images
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<!-- Automatically generates responsive image sources -->
+<GravatarQR
+  email="user@example.com"
+  size={100}
+/>
+```
+
+Generates:
+```html
+<img
+  src="https://api.gravatar.com/v3/qr-code/...?size=100"
+  srcset="https://api.gravatar.com/v3/qr-code/...?size=150 1.5x,
+          https://api.gravatar.com/v3/qr-code/...?size=200 2x"
+  sizes="(max-width: 768px) 80px, 100px"
+  loading="lazy"
+  decoding="async"
+  importance="auto"
+/>
+```
+
+### Lazy Loading
+
+QR codes are lazy-loaded by default for better performance:
+
+```astro
+<GravatarQR
+  email="user@example.com"
+  lazy={true}  // Default behavior
+/>
+```
+
+## Browser Support
+
+- **Chrome**: Full support
+- **Firefox**: Full support
+- **Safari**: Full support
+- **Edge**: Full support
+- **Mobile**: Full support with camera scanning
+
+## Best Practices
+
+### Size Guidelines
+
+- **Small (40-60px)**: For tight spaces like email signatures
+- **Medium (80-120px)**: General purpose use
+- **Large (150-200px)**: Presentations and displays
+- **Extra Large (300px+)**: Print materials
+
+### Contrast
+
+- Use light backgrounds for better scan contrast
+- Ensure sufficient whitespace around QR codes
+- Test QR code scannability before deployment
+
+### Testing
+
+Always test QR codes with mobile scanners:
+```bash
+# Test with various QR code scanner apps
+# Verify link destinations work correctly
+# Check accessibility with screen readers
+```
+
+## Advanced Usage
+
+### Dynamic QR Generation
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+
+const users = [
+  { email: 'alice@example.com', name: 'Alice' },
+  { email: 'bob@example.com', name: 'Bob' },
+  { email: 'charlie@example.com', name: 'Charlie' }
+];
+---
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2rem; text-align: center;">
+  {users.map(user => (
+    <div key={user.email}>
+      <GravatarQR
+        email={user.email}
+        size={120}
+        version={3}
+        type="user"
+        utmMedium="profile_card"
+        utmCampaign="team_display"
+      />
+      <h4 style="margin-top: 1rem;">{user.name}</h4>
+    </div>
+  ))}
+</div>
+```
+
+### Print Optimization
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<style>
+  .print-qr {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+</style>
+
+<GravatarQR
+  email="user@example.com"
+  size={200}
+  class="print-qr"
+/>
+```
+
+## Next Steps
+
+- [Component Reference](/reference/components) - Complete component APIs
+- [API Endpoints](/reference/api-endpoints) - Direct QR code API access
+- [Utilities Reference](/reference/utilities) - Helper functions for QR codes

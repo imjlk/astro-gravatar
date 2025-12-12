@@ -1,0 +1,338 @@
+---
+title: API Endpoints
+description: Complete reference for Gravatar API v3 endpoints
+---
+
+Complete reference for Gravatar API v3 endpoints and usage patterns.
+
+## Base URL
+
+```
+https://api.gravatar.com/v3
+```
+
+## Authentication
+
+Use Bearer token authentication for all API requests:
+
+```http
+Authorization: Bearer YOUR_API_KEY
+```
+
+## Profile Endpoints
+
+### Get Profile by Identifier
+
+Retrieve a user's profile using their email hash or profile URL slug.
+
+**Endpoint**: `GET /profiles/{profileIdentifier}`
+
+**Authentication**:
+- **Public**: Limited profile data
+- **Bearer Token**: Full profile data (recommended)
+
+**Parameters**:
+- `profileIdentifier` (required): SHA256 hash of email or profile URL slug
+
+**Response Codes**:
+- `200 OK`: Successfully retrieved profile
+- `404 Not Found`: Profile not found
+- `429 Too Many Requests`: Rate limit exceeded
+
+#### Example Request
+
+```bash
+# With authentication
+curl -X GET "https://api.gravatar.com/v3/profiles/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+#### Example Response
+
+```json
+{
+  "hash": "99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1",
+  "profile_url": "https://gravatar.com/examplefork",
+  "avatar_url": "https://0.gravatar.com/avatar/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1",
+  "avatar_alt_text": "User's avatar",
+  "display_name": "Example",
+  "pronouns": "He/Him",
+  "location": "E.G.",
+  "job_title": "Chief",
+  "company": "EG Inc",
+  "description": "Sorry, this is not my name. Just an example, you know."
+}
+```
+
+## QR Code Endpoints
+
+### Generate QR Code
+
+Generate a QR code for a user's profile.
+
+**Endpoint**: `GET /qr-code/{sha256_hash}`
+
+**Authentication**: Public (no authentication required)
+
+**Parameters**:
+- `sha256_hash` (required): SHA256 hash of email or profile URL slug
+
+**Query Parameters**:
+- `size` (optional): Size of QR code in pixels (default: 80)
+- `version` (optional): QR code style (1: standard, 3: modern dots)
+- `utm_medium` (optional): UTM medium parameter
+- `utm_campaign` (optional): UTM campaign parameter
+- `type` (optional): Center icon type (user, gravatar, none)
+
+**Response Codes**:
+- `200 OK`: QR code image (PNG format)
+- `429 Too Many Requests`: Rate limit exceeded
+- `500 Internal Server Error`: Server error
+
+#### Example Request
+
+```bash
+curl -X GET "https://api.gravatar.com/v3/qr-code/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1?size=300&type=user&version=3"
+```
+
+## Avatar URL Construction
+
+While not API endpoints, avatar URLs follow a predictable pattern:
+
+### Basic Avatar URL
+
+```
+https://www.gravatar.com/avatar/{hash}?parameters
+```
+
+### URL Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `s` or `size` | Avatar size in pixels | 80 |
+| `d` or `default` | Default avatar type | mp |
+| `r` or `rating` | Maximum rating level | g |
+| `f` or `forcedefault` | Force default image | y |
+
+### Default Avatar Options
+
+- `404` - Return a 404 error
+- `mp` - Mystery person silhouette
+- `identicon` - Geometric pattern based on hash
+- `monsterid` - Generated monster
+- `wavatar` - Generated faces
+- `retro` - 8-bit arcade-style
+- `robohash` - Generated robot
+- `blank` - Transparent PNG
+
+### Example Avatar URLs
+
+```bash
+# Basic avatar
+https://www.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109
+
+# With parameters
+https://www.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109?s=200&r=pg&d=identicon
+
+# Force default
+https://www.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109?f=y
+```
+
+## Data Formats
+
+Gravatar profiles can be requested in multiple formats:
+
+### JSON Format
+
+Append `.json` to profile URLs:
+
+```
+https://gravatar.com/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1.json
+```
+
+**JSONP Support**: Add a callback parameter:
+
+```
+https://gravatar.com/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1.json?callback=processProfile
+```
+
+### XML Format
+
+Append `.xml` to profile URLs:
+
+```
+https://gravatar.com/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1.xml
+```
+
+### PHP Serialized Format
+
+Append `.php` to profile URLs:
+
+```
+https://gravatar.com/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1.php
+```
+
+### VCF/vCard Format
+
+Append `.vcf` to profile URLs:
+
+```
+https://gravatar.com/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1.vcf
+```
+
+### Markdown Format
+
+Append `.md` to profile URLs:
+
+```
+https://gravatar.com/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1.md
+```
+
+## Rate Limiting
+
+### Default Rate Limits
+
+| Authentication | Requests per Hour |
+|----------------|-------------------|
+| API Key        | 1,000             |
+| Public         | Limited           |
+
+### Rate Limit Headers
+
+All API responses include rate limit information:
+
+- `X-RateLimit-Limit`: Total requests allowed in current period
+- `X-RateLimit-Remaining`: Remaining requests in current period
+- `X-RateLimit-Reset`: Unix timestamp when the limit resets
+
+### Handling Rate Limits
+
+```typescript
+// Check rate limits from response headers
+const response = await fetch('https://api.gravatar.com/v3/profiles/hash', {
+  headers: {
+    'Authorization': `Bearer ${apiKey}`
+  }
+});
+
+const rateLimit = {
+  limit: response.headers.get('X-RateLimit-Limit'),
+  remaining: response.headers.get('X-RateLimit-Remaining'),
+  reset: response.headers.get('X-RateLimit-Reset')
+};
+
+if (rateLimit.remaining === '0') {
+  const resetTime = parseInt(rateLimit.reset!) * 1000;
+  const waitTime = resetTime - Date.now();
+
+  if (waitTime > 0) {
+    console.log(`Rate limit reached. Waiting ${waitTime}ms...`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+}
+```
+
+## Error Handling
+
+### Error Response Format
+
+All API errors follow a consistent format:
+
+```json
+{
+  "error": "Error message description",
+  "code": "error_code"
+}
+```
+
+### Common Error Codes
+
+| HTTP Status | Error Code | Description | Solution |
+|-------------|------------|-------------|----------|
+| 400 | `uncropped_image` | Image is not square | Crop image to 1:1 ratio |
+| 400 | `unsupported_image` | File format not supported | Use JPG, PNG, or GIF |
+| 401 | - | Authentication failed | Check API key |
+| 403 | `insufficient_scope` | Token lacks permissions | Request proper scopes |
+| 404 | `disabled` | Profile is disabled | No solution |
+| 429 | `rate_limit_exceeded` | Too many requests | Implement backoff |
+| 500 | - | Server error | Retry with backoff |
+
+### Error Handling Best Practices
+
+```typescript
+import { GravatarError } from 'astro-gravatar';
+
+try {
+  const profile = await getProfile('user@example.com', { apiKey });
+  return profile;
+} catch (error) {
+  if (error instanceof GravatarError) {
+    switch (error.code) {
+      case 'rate_limit_exceeded':
+        // Implement exponential backoff
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        return getProfile('user@example.com', { apiKey });
+
+      case 'disabled':
+        // Profile is disabled, use fallback
+        return createFallbackProfile();
+
+      default:
+        console.error('Gravatar API Error:', error.message);
+        throw error;
+    }
+  }
+  throw error;
+}
+```
+
+## SDK and Tool Integration
+
+### astro-gravatar Integration
+
+```typescript
+import { getProfile, buildAvatarUrl } from 'astro-gravatar';
+
+// Get profile with API key
+const profile = await getProfile('user@example.com', {
+  apiKey: import.meta.env.GRAVATAR_API_KEY
+});
+
+// Build avatar URL
+const avatarUrl = buildAvatarUrl('user@example.com', {
+  size: 200,
+  rating: 'pg',
+  default: 'identicon'
+});
+```
+
+### OpenAPI Specification
+
+The complete API specification is available at:
+```
+https://api.gravatar.com/v3/openapi
+```
+
+### Useful Resources
+
+- **GitHub Repositories**: [https://github.com/Automattic/gravatar](https://github.com/Automattic/gravatar)
+- **Developer Dashboard**: [https://gravatar.com/developers](https://gravatar.com/developers)
+- **API Console**: [https://gravatar.com/developers/console](https://gravatar.com/developers/console)
+- **Status Page**: [https://automatticstatus.com/](https://automatticstatus.com/)
+
+## Security Best Practices
+
+1. **Never expose API keys** in client-side code
+2. **Store API keys** in environment variables
+3. **Use HTTPS** for all API requests
+4. **Implement rate limiting** on your side
+5. **Validate email addresses** before hashing
+6. **Cache responses** to reduce API calls
+7. **Use exponential backoff** for retries
+8. **Monitor rate limit headers** in responses
+
+## Next Steps
+
+- [Authentication Guide](/guides/authentication) - Set up API keys
+- [Component Reference](/reference/components) - Learn component APIs
+- [Performance Guide](/guides/performance) - Optimize API usage

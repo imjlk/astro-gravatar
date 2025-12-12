@@ -1,0 +1,266 @@
+---
+title: Basic Usage Examples
+description: Practical examples of using astro-gravatar components in different scenarios.
+---
+
+import GravatarAvatar from 'astro-gravatar';
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+import GravatarQR from 'astro-gravatar/GravatarQR';
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+This guide demonstrates how to use astro-gravatar components in common scenarios.
+
+## Simple Avatar Display
+
+Display individual user avatars with different styles and sizes.
+
+<div style="display: flex; gap: 2rem; align-items: center; margin: 2rem 0;">
+  <div style="text-align: center;">
+    <GravatarAvatar email="user@example.com" size={50} class="rounded-full" />
+    <p style="margin-top: 0.5rem; font-size: 0.875rem;">Small (50px)</p>
+  </div>
+  <div style="text-align: center;">
+    <GravatarAvatar email="user@example.com" size={80} class="rounded-full" />
+    <p style="margin-top: 0.5rem; font-size: 0.875rem;">Medium (80px)</p>
+  </div>
+  <div style="text-align: center;">
+    <GravatarAvatar email="user@example.com" size={120} class="rounded-full" />
+    <p style="margin-top: 0.5rem; font-size: 0.875rem;">Large (120px)</p>
+  </div>
+</div>
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<GravatarAvatar email="user@example.com" size={80} class="rounded-full" />
+```
+
+## Different Avatar Styles
+
+Explore different default avatar styles for users without Gravatars.
+
+<CardGrid>
+  <Card title="Mystery Person" icon="👤">
+    <GravatarAvatar email="nonexistent@example.com" default="mp" size={80} />
+    <p style="margin-top: 0.5rem; font-size: 0.875rem;">Default mystery person silhouette</p>
+  </Card>
+
+  <Card title="Geometric Pattern" icon="🔷">
+    <GravatarAvatar email="nonexistent@example.com" default="identicon" size={80} />
+    <p style="margin-top: 0.5rem; font-size: 0.875rem;">Unique pattern based on email hash</p>
+  </Card>
+
+  <Card title="Retro Style" icon="🕹️">
+    <GravatarAvatar email="nonexistent@example.com" default="retro" size={80} />
+    <p style="margin-top: 0.5rem; font-size: 0.875rem;">8-bit arcade-style avatar</p>
+  </Card>
+</CardGrid>
+
+```astro
+<GravatarAvatar
+  email="user@example.com"
+  default="identicon"
+  size={80}
+/>
+```
+
+## Profile Cards
+
+Display complete user profile cards with avatars and information.
+
+### Vertical Layout
+
+<GravatarProfileCard
+  email="hello@automattic.com"
+  layout="vertical"
+  avatarSize={100}
+  showName
+  showBio
+  template="default"
+/>
+
+### Horizontal Layout
+
+<GravatarProfileCard
+  email="hello@automattic.com"
+  layout="horizontal"
+  avatarSize={80}
+  showName
+  showBio
+  showVerified
+  maxLinks={3}
+/>
+
+```astro
+---
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+---
+
+<GravatarProfileCard
+  email="user@example.com"
+  layout="vertical"
+  avatarSize={100}
+  showName
+  showBio
+/>
+```
+
+## Custom Styling
+
+Apply custom CSS classes to match your design system.
+
+<div style="display: flex; gap: 2rem; align-items: center; margin: 2rem 0;">
+  <GravatarAvatar
+    email="user@example.com"
+    size={100}
+    style="border: 3px solid #3b82f6; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); transition: transform 0.2s ease; border-radius: 50%;"
+    class="custom-avatar"
+  />
+  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 1rem; padding: 1.5rem;">
+    <GravatarProfileCard
+      email="hello@automattic.com"
+      layout="card"
+      avatarSize={80}
+      showName
+      showBio
+      class="custom-card"
+    />
+  </div>
+</div>
+
+### CSS Example
+
+Create a separate CSS file for your custom styles:
+
+```css
+/* src/styles/gravatar.css */
+.custom-avatar {
+  border: 3px solid #3b82f6;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+  transition: transform 0.2s ease;
+  border-radius: 50%;
+}
+
+.custom-avatar:hover {
+  transform: scale(1.05);
+}
+
+.custom-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.custom-card .gravatar-profile-card__name-link,
+.custom-card .gravatar-profile-card__name-text {
+  color: white;
+}
+
+.custom-card .gravatar-profile-card__email {
+  color: #e0e7ff;
+}
+```
+
+Then import it in your Astro component:
+
+```astro
+---
+import '../styles/gravatar.css';
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<GravatarAvatar email="user@example.com" size={100} class="custom-avatar" />
+```
+
+## QR Code Generation
+
+Generate QR codes that link directly to user Gravatar profiles for easy mobile access.
+
+### Basic QR Code
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR email="user@example.com" size={100} />
+```
+
+<div style="display: flex; justify-content: center; margin: 2rem 0;">
+  <GravatarQR email="user@example.com" size={100} />
+</div>
+
+### QR Code with Custom Styling
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR
+  email="user@example.com"
+  size={150}
+  version={3}
+  type="gravatar"
+  class="qr-custom"
+/>
+```
+
+<div style="display: flex; justify-content: center; margin: 2rem 0;">
+  <GravatarQR
+    email="user@example.com"
+    size={150}
+    version={3}
+    type="gravatar"
+    class="qr-custom"
+  />
+</div>
+
+### QR Code Collection
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+
+const team = [
+  'alice@example.com',
+  'bob@example.com',
+  'charlie@example.com'
+];
+---
+
+<div style="display: flex; gap: 2rem; justify-content: center; margin: 2rem 0;">
+  {team.map(email => (
+    <div key={email} style="text-align: center;">
+      <GravatarQR
+        email={email}
+        size={100}
+        version={3}
+        type="user"
+      />
+      <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+        {email.split('@')[0]}
+      </p>
+    </div>
+  ))}
+</div>
+```
+
+## Best Practices
+
+1. **Always provide email addresses** - Gravatar requires valid email addresses to generate avatars and QR codes
+2. **Set reasonable sizes** - Keep avatar sizes between 32px and 200px, QR codes between 80-200px for optimal scanning
+3. **Choose appropriate defaults** - Use `identicon` for consistent patterns or `mp` for simple silhouettes
+4. **Handle missing profiles** - The profile card gracefully handles users without public Gravatar profiles
+5. **Consider lazy loading** - Use the `lazy` prop for avatars below the fold
+6. **Test QR codes** - Always test generated QR codes with mobile scanners before deployment
+
+## Further Reading
+
+- Read [about how-to guides](https://diataxis.fr/how-to-guides/) in the Diátaxis framework
+- [Quick Start Guide](/guides/quick-start) - Get started with astro-gravatar
+- [Component Reference](/reference/components) - Complete API documentation
+- [GravatarQR Reference](/reference/gravatar-qr) - QR code component documentation

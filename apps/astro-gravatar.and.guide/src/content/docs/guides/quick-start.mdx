@@ -1,0 +1,116 @@
+---
+title: Quick Start
+description: Get astro-gravatar running in minutes
+---
+
+import GravatarAvatar from 'astro-gravatar';
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+import GravatarQR from 'astro-gravatar/GravatarQR';
+
+Get astro-gravatar working in your Astro project in just a few minutes.
+
+## 1. Install
+
+```bash
+bun add astro-gravatar
+```
+
+## 2. Basic Avatar
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+---
+
+<GravatarAvatar
+  email="user@example.com"
+  size={80}
+  class="rounded-full"
+/>
+```
+
+## 3. Profile Card
+
+```astro
+---
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+---
+
+<GravatarProfileCard
+  email="user@example.com"
+  layout="card"
+  avatarSize={100}
+  showName
+  showBio
+/>
+```
+
+## 4. Multiple Users
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar';
+
+const team = [
+  'alice@example.com',
+  'bob@example.com',
+  'charlie@example.com'
+];
+---
+
+<div style="display: flex; gap: 1rem; align-items: center;">
+  {team.map(email => (
+    <GravatarAvatar
+      key={email}
+      email={email}
+      size={60}
+      default="identicon"
+      class="rounded-full"
+    />
+  ))}
+</div>
+```
+
+## 4. QR Code
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR
+  email="user@example.com"
+  size={100}
+  class="qr-code"
+/>
+```
+
+## Default Avatar Options
+
+- `identicon` - Geometric pattern
+- `mp` - Mystery person
+- `monsterid` - Generated monster
+- `retro` - 8-bit style
+
+```astro
+<GravatarAvatar
+  email="user@example.com"
+  default="identicon"
+  size={80}
+/>
+```
+
+## API Key (Optional)
+
+For enhanced profile data:
+
+```bash
+# .env
+GRAVATAR_API_KEY=your-key-here
+```
+
+## Next Steps
+
+- [Installation](/guides/installation) - Detailed setup guide
+- [Basic Usage](/guides/basic-usage) - More examples
+- [Component Reference](/reference/components) - Full API docs
