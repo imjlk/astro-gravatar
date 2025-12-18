@@ -1,8 +1,45 @@
 {
-  "name": "astro-gravatar-bun",
-  "module": "index.ts",
+  "name": "astro-gravatar-monorepo",
   "type": "module",
   "private": true,
+  "scripts": {
+    "build": "bun run build:package",
+    "build:package": "cd packages/astro-gravatar && bun run build",
+    "test": "cd packages/astro-gravatar && bun test",
+    "test:watch": "cd packages/astro-gravatar && bun test --watch",
+    "test:coverage": "cd packages/astro-gravatar && bun test --coverage",
+    "dev": "cd apps/astro-gravatar.and.guide && bun run dev",
+    "typecheck": "bun run typecheck:package",
+    "typecheck:package": "cd packages/astro-gravatar && bun run typecheck",
+    "publish": "bun run publish:package",
+    "publish:package": "cd packages/astro-gravatar && bun publish",
+    "publish:package:dry": "cd packages/astro-gravatar && bun publish --dry-run",
+    "publish:beta": "cd packages/astro-gravatar && bun publish --tag beta",
+    "publish:alpha": "cd packages/astro-gravatar && bun publish --tag alpha",
+    "version": "cd packages/astro-gravatar && bun pm version",
+    "version:patch": "cd packages/astro-gravatar && bun pm version patch",
+    "version:minor": "cd packages/astro-gravatar && bun pm version minor",
+    "version:major": "cd packages/astro-gravatar && bun pm version major",
+    "version:prerelease": "cd packages/astro-gravatar && bun pm version prerelease --preid beta",
+    "version:preminor": "cd packages/astro-gravatar && bun pm version preminor --preid beta",
+    "version:premajor": "cd packages/astro-gravatar && bun pm version premajor --preid beta",
+    "release:patch": "cd packages/astro-gravatar && bun pm version patch && bun publish",
+    "release:minor": "cd packages/astro-gravatar && bun pm version minor && bun publish",
+    "release:major": "cd packages/astro-gravatar && bun pm version major && bun publish",
+    "release:beta": "cd packages/astro-gravatar && bun pm version preminor --preid beta && bun publish --tag beta",
+    "release:alpha": "cd packages/astro-gravatar && bun pm version preminor --preid alpha && bun publish --tag alpha",
+    "pack": "cd packages/astro-gravatar && bun pm pack",
+    "pack:preview": "cd packages/astro-gravatar && bun pm pack --dry-run",
+    "pkg:get": "cd packages/astro-gravatar && bun pm pkg get",
+    "pkg:fix": "cd packages/astro-gravatar && bun pm pkg fix",
+    "pkg:version": "cd packages/astro-gravatar && bun pm version",
+    "pre-release": "bun run build && bun run test && bun run typecheck",
+    "release": "bun run pre-release && bun run release:patch",
+    "release:prepare": "bun run pre-release",
+
+    "clean": "bun run clean:all",
+    "clean:all": "rm -rf node_modules packages/*/node_modules apps/*/node_modules bun.lockb && bun install"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
@@ -12,5 +49,9 @@
   "workspaces": [
     "packages/*",
     "apps/*"
-  ]
+  ],
+  "catalog": {
+    "astro": "^5.16.5",
+    "@types/node": "^22.0.0"
+  }
 }

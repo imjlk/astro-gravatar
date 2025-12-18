@@ -16,22 +16,32 @@
       "version": "0.0.1",
       "dependencies": {
         "@astrojs/starlight": "^0.37.1",
-        "astro": "^5.6.1",
+        "astro": "catalog:",
         "astro-gravatar": "workspace:*",
         "sharp": "^0.34.2",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+        "@types/node": "catalog:",
+        "astro": "catalog:",
       },
     },
     "packages/astro-gravatar": {
       "name": "astro-gravatar",
       "version": "0.0.1",
       "devDependencies": {
-        "@types/node": "^20.0.0",
-        "astro": "^5.16.5",
+        "@types/bun": "latest",
+        "@types/node": "catalog:",
+        "astro": "catalog:",
       },
       "peerDependencies": {
         "astro": "^4.0.0 || ^5.0.0",
       },
     },
+  },
+  "catalog": {
+    "@types/node": "^22.0.0",
+    "astro": "^5.16.5",
   },
   "packages": {
     "@astrojs/compiler": ["@astrojs/compiler@2.13.0", "", {}, "sha512-mqVORhUJViA28fwHYaWmsXSzLO9osbdZ5ImUfxBarqsYdMlPbqAqGJCxsNzvppp1BEzc1mJNjOVvQqeDN8Vspw=="],
@@ -280,7 +290,7 @@
 
     "@types/nlcst": ["@types/nlcst@2.0.3", "", { "dependencies": { "@types/unist": "*" } }, "sha512-vSYNSDe6Ix3q+6Z7ri9lyWqgGhJTmzRjZRqyq15N0Z/1/UnVsno9G/N40NBijoYx2seFDIl0+B2mgAb9mezUCA=="],
 
-    "@types/node": ["@types/node@20.19.26", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-0l6cjgF0XnihUpndDhk+nyD3exio3iKaYROSgvh/qSevPXax3L8p5DBRFjbvalnwatGgHEQn2R88y2fA3g4irg=="],
+    "@types/node": ["@types/node@22.19.2", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-LPM2G3Syo1GLzXLGJAKdqoU35XvrWzGJ21/7sgZTUpbkBaOasTj8tjwn6w+hCkqaa1TfJ/w67rJSwYItlJ2mYw=="],
 
     "@types/sax": ["@types/sax@1.2.7", "", { "dependencies": { "@types/node": "*" } }, "sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A=="],
 

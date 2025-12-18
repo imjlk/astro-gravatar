@@ -1,0 +1,96 @@
+# Bun Configuration for astro-gravatar monorepo
+# This file configures Bun's behavior for development and production
+
+[install]
+# Enable lockfile for reproducible builds
+lockfile = true
+# Enable Bun's package cache for faster installs
+cache = true
+# Don't automatically update lockfile (require manual bun install)
+frozen-lockfile = false
+
+[test]
+# Preload test setup file for common test utilities
+preload = ["./packages/astro-gravatar/src/__tests__/setup.ts"]
+# Enable coverage reporting
+coverage = true
+# Output coverage reports to this directory
+coverage-dir = "./coverage"
+# Test file patterns (can be overridden in package-level config)
+testMatch = [
+  "**/__tests__/**/*.test.ts",
+  "**/*.test.ts",
+  "**/*.spec.ts",
+]
+# Ignore patterns for tests
+ignore = [
+  "**/node_modules/**",
+  "**/dist/**",
+  "**/coverage/**",
+]
+# Default timeout for each test (10 seconds)
+timeout = 10000
+# Run tests in parallel when possible
+concurrent = true
+
+[build]
+# Target Bun runtime for optimal performance
+target = "bun"
+# Enable minification for production builds
+minify = true
+# Generate source maps for debugging
+sourcemap = true
+# Set build environment
+env = "production"
+
+[run]
+# Use bash as the default shell for better compatibility
+shell = ["/bin/bash", "-c"]
+# Environment variables for development
+[run.env]
+# Disable Bun JSON warnings for cleaner output
+BUN_CONFIG_NO_JSON_WARNINGS = "1"
+# Enable debug mode for development (uncomment if needed)
+# DEBUG = "astro-gravatar:*"
+
+# Package manager specific settings
+[install.scopes]
+# Configure specific registries if needed
+# Example: "@company" = "https://npm.company.com"
+
+# Development server settings for documentation site
+[serve]
+# Default port for development (can be overridden)
+port = 3000
+# Enable hot module replacement
+hot = true
+# Show console output in development
+console = true
+
+# Lockfile configuration for monorepo
+[lockfile]
+# Print lockfile save summary
+print = "yarn"
+# Save exact versions for reproducibility
+save-prefix = ""
+
+# Performance optimizations
+[performance]
+# Enable Bun's experimental features when available
+experimental = true
+# Configure memory limit if needed (in MB)
+# max-memory = 4096
+
+# Security settings
+[security]
+# Prevent running potentially dangerous scripts
+allow-scripts = false
+# Configure allowed protocols for packages
+# allowed-protocols = ["https:", "git+https:", "git:", "file:"]
+
+# Logging configuration
+[log]
+# Set log level (debug, info, warn, error)
+level = "info"
+# Enable colorful output
+color = true
