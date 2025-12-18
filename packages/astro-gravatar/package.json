@@ -1,6 +1,6 @@
 {
   "name": "astro-gravatar",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "type": "module",
   "main": "./index.ts",
   "exports": {
@@ -39,33 +39,43 @@
     "component"
   ],
   "description": "Astro components for integrating Gravatar avatars and profiles",
-  "author": "",
+  "author": "imjlk",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/astro-gravatar.git"
+    "url": "https://github.com/imjlk/astro-gravatar.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/astro-gravatar/issues"
+    "url": "https://github.com/imjlk/astro-gravatar/issues"
   },
-  "homepage": "https://github.com/your-username/astro-gravatar#readme",
+  "homepage": "https://astro-gravatar.and.guide",
   "scripts": {
-    "build": "astro build",
-    "dev": "astro dev",
-    "preview": "astro preview",
-    "typecheck": "tsc --noEmit",
+    "build": "bun astro build",
+    "dev": "bun astro dev",
+    "preview": "bun astro preview",
+    "typecheck": "bun tsc --noEmit",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
     "test:unit": "bun test src/**/__tests__/*.test.ts",
     "test:integration": "bun test src/**/__tests__/*.integration.test.ts",
-    "test:components": "bun test src/components/**/__tests__/*.test.ts"
+    "test:components": "bun test src/components/**/__tests__/*.test.ts",
+    "prepublishOnly": "bun run build && bun test"
+  },
+  "engines": {
+    "bun": ">=1.0.0",
+    "node": ">=22.0.0"
   },
   "devDependencies": {
-    "astro": "^5.16.5",
-    "@types/node": "^20.0.0"
+    "astro": "catalog:",
+    "@types/node": "catalog:",
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "astro": "^4.0.0 || ^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

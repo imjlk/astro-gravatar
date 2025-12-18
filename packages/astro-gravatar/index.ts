@@ -5,7 +5,6 @@
 export { default as GravatarAvatar } from './src/components/GravatarAvatar.astro';
 export { default as GravatarProfileCard } from './src/components/GravatarProfileCard.astro';
 export { default as GravatarQR } from './src/components/GravatarQR.astro';
-export { default as MyComponent } from './src/MyComponent.astro';
 
 // Utilities
 export {

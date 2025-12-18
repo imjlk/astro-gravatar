@@ -9,14 +9,23 @@
  * ```astro
  * import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
  *
+ * // Default template with full profile information
  * <GravatarProfileCard email="user@example.com" />
  *
+ * // Compact template (avatar + name only)
  * <GravatarProfileCard
  *   email="user@example.com"
+ *   template="compact"
  *   layout="horizontal"
+ * />
+ *
+ * // Detailed template with all profile fields
+ * <GravatarProfileCard
+ *   email="user@example.com"
+ *   template="detailed"
  *   showVerified
  *   showLinks
- *   maxLinks={3}
+ *   maxLinks={5}
  * />
  * ```
  */
@@ -138,12 +147,12 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
       </div>
     )}
 
-    <!-- Bio/Description Section -->
-    {showBio && profile?.description && (
+    <!-- Bio/Description Section (only show for non-compact templates) -->
+    {showBio && profile?.description && template !== 'compact' && (
       <p class="gravatar-profile-card__bio">
-        {template === 'compact'
-          ? truncate(profile.description, 60)
-          : truncate(profile.description, 150)
+        {template === 'detailed'
+          ? truncate(profile.description, 150)
+          : truncate(profile.description, 100)
         }
       </p>
     )}
@@ -174,8 +183,8 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
       </div>
     )}
 
-    <!-- Verified Accounts -->
-    {showVerified && visibleVerifiedAccounts.length > 0 && (
+    <!-- Verified Accounts (hide for compact template) -->
+    {template !== 'compact' && showVerified && visibleVerifiedAccounts.length > 0 && (
       <div class="gravatar-profile-card__verified">
         <span class="gravatar-profile-card__verified-label">Verified:</span>
         <div class="gravatar-profile-card__verified-accounts">
@@ -206,8 +215,8 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
       </div>
     )}
 
-    <!-- Links -->
-    {showLinks && filteredLinks.length > 0 && (
+    <!-- Links (hide for compact template) -->
+    {template !== 'compact' && showLinks && filteredLinks.length > 0 && (
       <div class="gravatar-profile-card__links">
         {filteredLinks.map((link) => (
           <a
@@ -273,6 +282,41 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
     flex-direction: column;
     text-align: left;
     max-width: 320px;
+  }
+
+  /* Template Variants */
+  :global(.gravatar-profile-card--compact) {
+    padding: 0.75rem;
+    min-width: 0;
+    max-width: none;
+  }
+
+  :global(.gravatar-profile-card--compact.gravatar-profile-card--horizontal) {
+    gap: 0.75rem;
+  }
+
+  :global(.gravatar-profile-card--compact.gravatar-profile-card--vertical) {
+    max-width: 120px;
+  }
+
+  :global(.gravatar-profile-card--compact .gravatar-profile-card__avatar-img) {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  :global(.gravatar-profile-card--compact .gravatar-profile-card__name-link),
+  :global(.gravatar-profile-card--compact .gravatar-profile-card__name-text) {
+    font-size: 0.875rem;
+    margin: 0;
+  }
+
+  :global(.gravatar-profile-card--compact .gravatar-profile-card__email) {
+    font-size: 0.75rem;
+  }
+
+  :global(.gravatar-profile-card--detailed) {
+    padding: 1.25rem;
+    max-width: 400px;
   }
 
   /* Avatar Styles */

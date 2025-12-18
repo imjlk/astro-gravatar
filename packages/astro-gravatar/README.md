@@ -88,16 +88,41 @@ Display a Gravatar avatar with extensive customization:
 
 ### GravatarProfileCard
 
-Display a complete profile card with avatar and user information:
+Display a complete profile card with avatar and user information. Available in three template variations:
 
 ```astro
+<!-- Default template (balanced display) -->
 <GravatarProfileCard
   email="user@example.com"
+  template="default"
   layout="horizontal"
   avatarSize={100}
   showName
   showBio
   showVerified
+  showLinks
+/>
+
+<!-- Compact template (avatar + name only) -->
+<GravatarProfileCard
+  email="user@example.com"
+  template="compact"
+  layout="horizontal"
+  avatarSize={40}
+  clickable={true}
+/>
+
+<!-- Detailed template (full profile information) -->
+<GravatarProfileCard
+  email="user@example.com"
+  template="detailed"
+  layout="card"
+  avatarSize={120}
+  showName
+  showBio
+  showVerified
+  showLinks
+  maxLinks={5}
 />
 ```
 
