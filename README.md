@@ -1,15 +1,260 @@
-# astro-gravatar-bun
+# astro-gravatar
 
-To install dependencies:
+Modern, type-safe Astro components for Gravatar integration with Bun-powered performance optimizations.
+
+[![npm version](https://badge.fury.io/js/astro-gravatar.svg)](https://badge.fury.io/js/astro-gravatar)
+[![Bun](https://img.shields.io/badge/Bun-1.0%2B-black.svg)](https://bun.sh)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue.svg)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## 🚀 Features
+
+- **🎨 Three Component Types**: GravatarAvatar, GravatarProfileCard, and GravatarQR
+- **⚡ Bun-Powered**: Built with Bun for maximum performance
+- **🔒 Type-Safe**: Full TypeScript support with strict typing
+- **📱 Responsive**: Automatic responsive images and layouts
+- **🔄 Lazy Loading**: Built-in lazy loading with skeleton animations
+- **🎯 Flexible Templates**: Multiple display templates for profile cards
+- **🧪 Well-Tested**: 78.44% test coverage with 315 passing tests
+- **📖 Comprehensive Docs**: Full documentation site with examples
+
+## 📦 Installation
 
 ```bash
+# Using Bun (recommended)
+bun add astro-gravatar
+
+# Using npm
+npm install astro-gravatar
+
+# Using yarn
+yarn add astro-gravatar
+
+# Using pnpm
+pnpm add astro-gravatar
+```
+
+## 🎯 Quick Start
+
+### Basic Avatar
+
+```astro
+---
+import GravatarAvatar from 'astro-gravatar/GravatarAvatar';
+---
+
+<GravatarAvatar email="user@example.com" size={80} />
+```
+
+### Profile Card
+
+```astro
+---
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+---
+
+<GravatarProfileCard
+  email="developer@example.com"
+  template="detailed"
+  layout="card"
+  showVerified={true}
+  showLinks={true}
+/>
+```
+
+### QR Code
+
+```astro
+---
+import GravatarQR from 'astro-gravatar/GravatarQR';
+---
+
+<GravatarQR email="user@example.com" size={200} level="H" />
+```
+
+## 🏗️ Project Structure
+
+This is a monorepo with the following structure:
+
+```
+astro-gravatar-bun/
+├── packages/
+│   └── astro-gravatar/          # Main npm package
+│       ├── src/
+│       │   ├── components/      # Astro components
+│       │   ├── lib/            # Utilities and types
+│       │   └── __tests__/      # Test files
+│       ├── package.json
+│       └── README.md
+├── apps/
+│   └── astro-gravatar.and.guide/ # Documentation site
+├── scripts/                     # Build and deployment scripts
+├── _refs/                       # Reference documentation
+├── .github/workflows/           # CI/CD automation
+└── package.json                 # Monorepo configuration
+```
+
+## 🔧 Development
+
+### Prerequisites
+
+- **Bun**: v1.0.0+
+- **Node.js**: v22.0.0+ (for TypeScript types)
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/astro-gravatar-bun.git
+cd astro-gravatar-bun
+
+# Install dependencies
 bun install
+
+# Start development server (documentation site)
+bun run dev
+
+# Run tests
+bun run test
+
+# Type checking
+bun run typecheck
+
+# Build package
+bun run build
 ```
 
-To run:
+### Available Scripts
 
 ```bash
-bun run index.ts
+# Testing
+bun run test                    # Run all tests
+bun run test:watch              # Watch mode testing
+bun run test:coverage           # Run tests with coverage
+
+# Development
+bun run dev                     # Start documentation site
+bun run build                   # Build the package
+bun run typecheck               # Run TypeScript type checking
+
+# Package Management
+bun run pack:preview            # Preview package creation
+bun run pkg:get                 # Get package information
+bun run pkg:fix                 # Auto-fix package issues
+
+# Release Management
+bun run release:patch           # Patch release
+bun run release:minor           # Minor release
+bun run release:major           # Major release
+bun run release:beta            # Beta release
 ```
 
-This project was created using `bun init` in bun v1.3.4. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+## 📚 Documentation
+
+For comprehensive documentation, examples, and API reference, visit:
+
+**[📖 Documentation Site](https://astro-gravatar.and.guide)**
+
+### Key Documentation Sections
+
+- [Getting Started](https://astro-gravatar.and.guide/guides/quick-start)
+- [Component API](https://astro-gravatar.and.guide/reference/components)
+- [Performance Optimization](https://astro-gravatar.and.guide/guides/performance)
+- [Advanced Examples](https://astro-gravatar.and.guide/guides/advanced-examples)
+- [Troubleshooting](https://astro-gravatar.and.guide/guides/troubleshooting)
+
+## 🧪 Testing
+
+This project uses Bun's built-in test runner:
+
+```bash
+# Run all tests
+bun test
+
+# Run tests with coverage
+bun run test:coverage
+
+# Run tests in watch mode
+bun run test:watch
+```
+
+### Test Statistics
+
+- **Total Tests**: 315
+- **Coverage**: 78.44%
+- **Test Files**: 7
+- **Components Tested**: 3
+- **Utilities Tested**: 8
+
+## 🚀 Deployment
+
+### Package Publishing
+
+The project includes automated release scripts:
+
+```bash
+# Patch release (bug fixes)
+bun run release:patch
+
+# Minor release (new features)
+bun run release:minor
+
+# Major release (breaking changes)
+bun run release:major
+
+# Beta release (pre-release)
+bun run release:beta
+```
+
+### CI/CD
+
+- **GitHub Actions**: Automated testing and deployment
+- **Multi-Node Testing**: Tests on Node.js 18, 20, 22
+- **Coverage Reporting**: Codecov integration
+- **Automated Releases**: Git tag-based publishing
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](./_refs/개발_가이드라인_및_모범_사례.md) for details.
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass (`bun test`)
+6. Commit your changes
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
+
+### Code Standards
+
+- **TypeScript**: Strict mode enabled
+- **Testing**: All new features must include tests
+- **Documentation**: Update docs for API changes
+- **Bun First**: Use Bun for all development tasks
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- **[NPM Package](https://www.npmjs.com/package/astro-gravatar)**
+- **[Documentation](https://astro-gravatar.and.guide)**
+- **[GitHub Repository](https://github.com/your-username/astro-gravatar-bun)**
+- **[Issues & Feature Requests](https://github.com/your-username/astro-gravatar-bun/issues)**
+- **[Bun](https://bun.sh)** - JavaScript Runtime
+- **[Astro](https://astro.build)** - Web Framework
+
+## 🙏 Acknowledgments
+
+- [Gravatar](https://gravatar.com) for the avatar service
+- [Bun](https://bun.sh) for the amazing JavaScript runtime
+- [Astro](https://astro.build) for the web framework
+- The open source community for inspiration and tools
+
+---
+
+**Built with ❤️ using Bun and Astro**
