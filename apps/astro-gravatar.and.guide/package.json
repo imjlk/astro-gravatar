@@ -12,7 +12,12 @@
   "dependencies": {
     "@astrojs/starlight": "^0.37.1",
     "astro-gravatar": "workspace:*",
-    "astro": "^5.6.1",
+    "astro": "catalog:",
     "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "astro": "catalog:",
+    "@types/node": "catalog:",
+    "@types/bun": "latest"
   }
 }
