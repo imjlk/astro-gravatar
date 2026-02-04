@@ -47,6 +47,15 @@ export const DEFAULT_TIMEOUT = 10000;
  * @param email - Email address
  * @param options - Avatar configuration options
  * @returns Complete avatar URL
+ * @throws {GravatarError} If the avatar size is invalid
+ * @example
+ * ```ts
+ * const url = await buildAvatarUrl('user@example.com', {
+ *   size: 200,
+ *   rating: 'pg',
+ *   default: 'identicon'
+ * });
+ * ```
  */
 export async function buildAvatarUrl(
   email: string,
@@ -113,6 +122,7 @@ export async function buildProfileUrl(email: string, config: GravatarClientConfi
  * @param email - Email address
  * @param options - QR code configuration options
  * @returns QR code URL
+ * @throws {GravatarError} If the QR code size is invalid
  */
 export async function buildQRCodeUrl(
   email: string,
@@ -168,7 +178,7 @@ export async function buildQRCodeUrl(
 /**
  * Simple in-memory cache for API responses
  */
-const apiCache = new Map<string, { data: any; expires: number }>();
+const apiCache = new Map<string, { data: unknown; expires: number }>();
 
 /**
  * Gets rate limit information from response headers
@@ -197,6 +207,7 @@ function parseRateLimitHeaders(headers: Headers): RateLimitInfo | undefined {
  * @param config - Request configuration
  * @param cacheKey - Optional cache key
  * @returns Response data
+ * @throws {GravatarError} For network errors, timeouts, or API errors
  */
 async function makeRequest<T>(
   url: string,
@@ -207,7 +218,7 @@ async function makeRequest<T>(
   if (cacheKey && apiCache.has(cacheKey)) {
     const cached = apiCache.get(cacheKey)!;
     if (cached.expires > Date.now()) {
-      return { data: cached.data };
+      return { data: cached.data as T };
     } else {
       apiCache.delete(cacheKey);
     }
@@ -295,6 +306,18 @@ async function makeRequest<T>(
  * @param email - Email address
  * @param config - API client configuration
  * @returns Gravatar profile data
+ * @throws {GravatarError} If the request fails or no data is received
+ * @example
+ * ```ts
+ * try {
+ *   const profile = await getProfile('user@example.com');
+ *   console.log(`Hello, ${profile.display_name}!`);
+ * } catch (error) {
+ *   if (error instanceof GravatarError) {
+ *     console.error(`Gravatar error: ${error.message}`);
+ *   }
+ * }
+ * ```
  */
 export async function getProfile(
   email: string,
@@ -321,6 +344,7 @@ export async function getProfile(
  * @param emails - Array of email addresses
  * @param config - API client configuration
  * @returns Array of profile data
+ * @throws {GravatarError} If all profile requests fail
  */
 export async function getProfiles(
   emails: string[],
@@ -382,7 +406,7 @@ export function getApiCacheStats(): {
  * Validates avatar parameters
  * @param size - Avatar size
  * @param rating - Avatar rating
- * @throws GravatarError if parameters are invalid
+ * @throws {GravatarError} If parameters are invalid
  */
 export function validateAvatarParams(size?: number, rating?: AvatarRating): void {
   if (size !== undefined) {

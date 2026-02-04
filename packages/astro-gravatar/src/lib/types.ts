@@ -268,7 +268,7 @@ export interface GravatarClientConfig {
 }
 
 /** API response wrapper */
-export interface GravatarApiResponse<T = any> {
+export interface GravatarApiResponse<T = unknown> {
   /** Response data */
   data?: T;
   /** Error message if request failed */
@@ -294,7 +294,7 @@ export interface RateLimitInfo {
 // ============================================================================
 
 /** Cache entry with expiration */
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = unknown> {
   /** Cached data */
   data: T;
   /** Expiration timestamp */
