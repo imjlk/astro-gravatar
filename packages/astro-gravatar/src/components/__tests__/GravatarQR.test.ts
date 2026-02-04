@@ -3,7 +3,7 @@
  * Tests all props combinations, HTML output, responsive features, QR code generation, and error handling
  */
 
-import { test, expect, describe } from 'bun:test';
+import { test, expect, describe, beforeAll } from 'bun:test';
 import { buildQRCodeUrl } from '../../lib/gravatar';
 import { hashEmailWithCache } from '../../utils/hash';
 import type { QRCodeVersion, QRCodeIcon } from '../../lib/types';
@@ -12,7 +12,7 @@ import { GravatarError, GRAVATAR_ERROR_CODES } from '../../lib/types';
 // Mock DOM environment for testing
 const mockDocument = {
   createElement: () => ({
-    setAttribute: () => {},
+    setAttribute: () => { },
     className: '',
     style: {},
   }),
@@ -23,7 +23,11 @@ const mockDocument = {
 
 describe('GravatarQR Component Tests', () => {
   const testEmail = 'test@example.com';
-  const testEmailHash = hashEmailWithCache(testEmail);
+  let testEmailHash: string;
+
+  beforeAll(async () => {
+    testEmailHash = await hashEmailWithCache(testEmail);
+  });
 
   // Helper function to simulate component rendering
   async function renderGravatarQR(props: any) {
@@ -77,7 +81,7 @@ describe('GravatarQR Component Tests', () => {
 
     try {
       // Build QR code URL
-      const qrCodeUrl = buildQRCodeUrl(email, {
+      const qrCodeUrl = await buildQRCodeUrl(email, {
         size,
         version,
         type,
@@ -95,29 +99,27 @@ describe('GravatarQR Component Tests', () => {
       ].filter(Boolean).join(' ');
 
       // Simulate srcset generation
-      const generateSrcset = (baseSize: number) => {
+      const generateSrcset = async (baseSize: number) => {
         const scales = [1, 1.5, 2];
-        return scales
-          .map(scale => {
-            const scaledSize = Math.round(baseSize * scale);
-            const maxSize = 1000;
-            if (scaledSize > maxSize) return null;
+        const promises = scales.map(async scale => {
+          const scaledSize = Math.round(baseSize * scale);
+          const maxSize = 1000;
+          if (scaledSize > maxSize) return null;
 
-            const scaledUrl = buildQRCodeUrl(email, {
-              size: scaledSize,
-              version,
-              type,
-              utmMedium,
-              utmCampaign,
-            });
+          const scaledUrl = await buildQRCodeUrl(email, {
+            size: scaledSize,
+            version,
+            type,
+            utmMedium,
+            utmCampaign,
+          });
 
-            return `${scaledUrl} ${scale}x`;
-          })
-          .filter(Boolean)
-          .join(', ');
+          return `${scaledUrl} ${scale}x`;
+        });
+        return (await Promise.all(promises)).filter(Boolean).join(', ');
       };
 
-      const srcset = props.size ? generateSrcset(size) : undefined;
+      const srcset = props.size ? await generateSrcset(size) : undefined;
       const sizes = props.size ? `(max-width: 768px) ${Math.min(size, 120)}px, ${size}px` : undefined;
 
       return {
@@ -625,7 +627,7 @@ describe('GravatarQR Component Tests', () => {
         expect(attributes.title).toBe(`Scan QR code to view ${email}'s Gravatar profile`);
 
         // All should generate different hashes
-        const hash = hashEmailWithCache(email.toLowerCase().trim());
+        const hash = await hashEmailWithCache(email.toLowerCase().trim());
         expect(attributes.src).toContain(hash);
       }
     });

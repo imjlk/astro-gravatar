@@ -11,13 +11,6 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
-name: CI
-
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   test:

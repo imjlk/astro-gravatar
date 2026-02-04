@@ -3,7 +3,7 @@
  * Tests layouts, templates, API integration, conditional features, and error handling
  */
 
-import { test, expect, describe, beforeEach, afterEach } from 'bun:test';
+import { test, expect, describe, beforeEach, afterEach, beforeAll } from 'bun:test';
 import { buildAvatarUrl, getProfile } from '../../lib/gravatar';
 import { hashEmailWithCache } from '../../utils/hash';
 import type { GravatarProfile } from '../../lib/types';
@@ -29,8 +29,12 @@ setupMockDOM();
 
 describe('GravatarProfileCard Component Tests', () => {
   const testEmail = 'test@example.com';
-  const testEmailHash = hashEmailWithCache(testEmail);
+  let testEmailHash: string;
   let mockFetchCleanup: (() => void) | null = null;
+
+  beforeAll(async () => {
+    testEmailHash = await hashEmailWithCache(testEmail);
+  });
 
   beforeEach(() => {
     // Reset any previous mocks
@@ -63,7 +67,7 @@ describe('GravatarProfileCard Component Tests', () => {
       const profile = profileData || await getProfile(props.email);
 
       // Generate avatar URL
-      const avatarUrl = buildAvatarUrl(props.email, { size: props.avatarSize || 80 });
+      const avatarUrl = await buildAvatarUrl(props.email, { size: props.avatarSize || 80 });
 
       // Generate CSS classes
       const cssClasses = [
@@ -103,7 +107,7 @@ describe('GravatarProfileCard Component Tests', () => {
       return {
         profile: null,
         profileError: error,
-        avatarUrl: buildAvatarUrl(props.email, { size: props.avatarSize || 80 }),
+        avatarUrl: await buildAvatarUrl(props.email, { size: props.avatarSize || 80 }),
         cssClasses: [
           'gravatar-profile-card',
           `gravatar-profile-card--${props.layout || 'card'}`,

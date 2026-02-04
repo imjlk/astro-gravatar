@@ -95,7 +95,7 @@ try {
   }
 
   // Build QR code URL
-  qrCodeUrl = buildQRCodeUrl(email, {
+  qrCodeUrl = await buildQRCodeUrl(email, {
     size,
     version,
     type,
@@ -117,7 +117,7 @@ try {
   ].filter(Boolean).join(' ');
 
   // Generate srcset for responsive QR codes
-  const generateSrcset = (baseSize: number) => {
+  const generateSrcset = async (baseSize: number) => {
     if (error) return ''; // Don't generate srcset if there's an error
 
     const scales = [1, 1.5, 2];
@@ -127,7 +127,7 @@ try {
         const maxSize = 1000;
         if (scaledSize > maxSize) return null;
 
-        const scaledUrl = buildQRCodeUrl(email, {
+        const scaledUrl = await buildQRCodeUrl(email, {
           size: scaledSize,
           version,
           type,
@@ -141,7 +141,7 @@ try {
       .join(', ');
   };
 
-  const srcset = generateSrcset(size);
+  const srcset = await generateSrcset(size);
 
   // Generate sizes attribute for responsive images
   const sizes = `(max-width: 768px) ${Math.min(size, 120)}px, ${size}px`;

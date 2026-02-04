@@ -155,7 +155,7 @@ Creates a SHA256 hash of an email address for Gravatar API usage.
 ```ts
 import { hashEmail } from 'astro-gravatar';
 
-const hash = hashEmail('user@example.com');
+const hash = await hashEmail('user@example.com');
 console.log(hash); // '27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109'
 ```
 
@@ -177,7 +177,7 @@ Batch hash multiple email addresses.
 ```ts
 import { hashEmails } from 'astro-gravatar';
 
-const hashes = hashEmails([
+const hashes = await hashEmails([
   'user1@example.com',
   'user2@example.com'
 ]);
@@ -194,7 +194,7 @@ Builds a complete Gravatar avatar URL.
 ```ts
 import { buildAvatarUrl } from 'astro-gravatar';
 
-const url = buildAvatarUrl('user@example.com', {
+const url = await buildAvatarUrl('user@example.com', {
   size: 200,
   rating: 'pg',
   default: 'identicon'
@@ -208,7 +208,7 @@ Builds a Gravatar profile API URL.
 ```ts
 import { buildProfileUrl } from 'astro-gravatar';
 
-const url = buildProfileUrl('user@example.com', {
+const url = await buildProfileUrl('user@example.com', {
   apiKey: 'your-api-key'
 });
 ```
@@ -220,7 +220,7 @@ Builds a QR code URL for a Gravatar profile.
 ```ts
 import { buildQRCodeUrl } from 'astro-gravatar';
 
-const url = buildQRCodeUrl('user@example.com', {
+const url = await buildQRCodeUrl('user@example.com', {
   size: 300,
   version: 3,
   type: 'user'
@@ -400,7 +400,7 @@ const url = gravatar.url('user@example.com', { s: 200, r: 'pg', d: 'identicon' }
 
 // After (astro-gravatar)
 import { buildAvatarUrl } from 'astro-gravatar';
-const url = buildAvatarUrl('user@example.com', { size: 200, rating: 'pg', default: 'identicon' });
+const url = await buildAvatarUrl('user@example.com', { size: 200, rating: 'pg', default: 'identicon' });
 ```
 
 ### From react-gravatar

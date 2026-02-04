@@ -200,7 +200,7 @@ export class GravatarClient {
     options: Partial<GravatarClientOptions> = {}
   ): Promise<GravatarProfile> {
     const mergedConfig = { ...this.config, ...options };
-    const cacheKey = this.getCacheKey(email, mergedConfig);
+    const cacheKey = await this.getCacheKey(email, mergedConfig);
 
     // Check cache first
     if (mergedConfig.cache.enabled) {
@@ -210,7 +210,7 @@ export class GravatarClient {
       }
     }
 
-    const url = buildProfileUrl(email, mergedConfig);
+    const url = await buildProfileUrl(email, mergedConfig);
 
     try {
       const response = await this.makeRequestWithRetry<GravatarProfile>(
@@ -271,9 +271,9 @@ export class GravatarClient {
           const gravatarError = error instanceof GravatarError
             ? error
             : new GravatarError(
-                `Failed to fetch profile for ${email}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                GRAVATAR_ERROR_CODES.API_ERROR
-              );
+              `Failed to fetch profile for ${email}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              GRAVATAR_ERROR_CODES.API_ERROR
+            );
 
           if (failFast) {
             throw gravatarError;
@@ -301,9 +301,9 @@ export class GravatarClient {
               error: result.reason instanceof GravatarError
                 ? result.reason
                 : new GravatarError(
-                    `Unexpected error for ${email}`,
-                    GRAVATAR_ERROR_CODES.API_ERROR
-                  )
+                  `Unexpected error for ${email}`,
+                  GRAVATAR_ERROR_CODES.API_ERROR
+                )
             });
           }
         });
@@ -456,8 +456,8 @@ export class GravatarClient {
 
         // Handle rate limits
         if (lastError.code === GRAVATAR_ERROR_CODES.RATE_LIMITED &&
-            lastError.rateLimit &&
-            config.rateLimit.autoHandle) {
+          lastError.rateLimit &&
+          config.rateLimit.autoHandle) {
           const rateLimitDelay = this.calculateRateLimitDelay(lastError.rateLimit, config);
           await this.delay(Math.max(delay, rateLimitDelay));
         } else {
@@ -530,9 +530,9 @@ export class GravatarClient {
         throw new GravatarError(
           errorMessage,
           response.status === 429 ? GRAVATAR_ERROR_CODES.RATE_LIMITED :
-          response.status === 401 ? GRAVATAR_ERROR_CODES.AUTH_ERROR :
-          response.status === 404 ? GRAVATAR_ERROR_CODES.NOT_FOUND :
-          GRAVATAR_ERROR_CODES.API_ERROR,
+            response.status === 401 ? GRAVATAR_ERROR_CODES.AUTH_ERROR :
+              response.status === 404 ? GRAVATAR_ERROR_CODES.NOT_FOUND :
+                GRAVATAR_ERROR_CODES.API_ERROR,
           response.status,
           rateLimit
         );
@@ -607,7 +607,7 @@ export class GravatarClient {
 
     // Retry on network errors and API errors
     if (error.code === GRAVATAR_ERROR_CODES.NETWORK_ERROR ||
-        error.code === GRAVATAR_ERROR_CODES.API_ERROR) {
+      error.code === GRAVATAR_ERROR_CODES.API_ERROR) {
       return true;
     }
 
@@ -684,8 +684,8 @@ export class GravatarClient {
    * @param config - Request configuration
    * @returns Cache key
    */
-  private getCacheKey(email: string, config: Required<GravatarClientOptions>): string {
-    const emailHash = hashEmailWithCache(email);
+  private async getCacheKey(email: string, config: Required<GravatarClientOptions>): Promise<string> {
+    const emailHash = await hashEmailWithCache(email);
     const configHash = this.hashConfig(config);
     return `${emailHash}:${configHash}`;
   }

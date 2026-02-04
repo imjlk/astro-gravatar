@@ -3,7 +3,7 @@
  * Tests all props combinations, HTML output, responsive features, and error handling
  */
 
-import { test, expect, describe } from 'bun:test';
+import { test, expect, describe, beforeAll } from 'bun:test';
 import { buildAvatarUrl, validateAvatarParams } from '../../lib/gravatar';
 import { hashEmailWithCache } from '../../utils/hash';
 import type { AvatarRating, DefaultAvatar } from '../../lib/types';
@@ -25,13 +25,17 @@ setupMockDOM();
 
 describe('GravatarAvatar Component Tests', () => {
   const testEmail = 'test@example.com';
-  const testEmailHash = hashEmailWithCache(testEmail);
+  let testEmailHash: string;
+
+  beforeAll(async () => {
+    testEmailHash = await hashEmailWithCache(testEmail);
+  });
 
   // Helper function to simulate component rendering
   async function renderGravatarAvatar(props: any) {
     // In a real Astro test environment, this would use astro:test
     // For now, we'll test the URL generation and validate expected behavior
-    const url = buildAvatarUrl(props.email, {
+    const url = await buildAvatarUrl(props.email, {
       size: props.size,
       rating: props.rating,
       default: props.default,
@@ -123,19 +127,18 @@ describe('GravatarAvatar Component Tests', () => {
       // Simulate srcset generation logic from the component
       const baseSize = props.size;
       const sizes = [1, 1.5, 2];
-      const srcsetEntries = sizes
-        .map(scale => {
-          const scaledSize = Math.round(baseSize * scale);
-          if (scaledSize > 2048) return null;
-          const scaledUrl = buildAvatarUrl(testEmail, {
-            size: scaledSize,
-            rating: props.rating,
-            default: props.default,
-            forceDefault: props.forceDefault,
-          });
-          return `${scaledUrl} ${scale}x`;
-        })
-        .filter(Boolean);
+      const srcsetPromises = sizes.map(async scale => {
+        const scaledSize = Math.round(baseSize * scale);
+        if (scaledSize > 2048) return null;
+        const scaledUrl = await buildAvatarUrl(testEmail, {
+          size: scaledSize,
+          rating: props.rating,
+          default: props.default,
+          forceDefault: props.forceDefault,
+        });
+        return `${scaledUrl} ${scale}x`;
+      });
+      const srcsetEntries = (await Promise.all(srcsetPromises)).filter(Boolean);
 
       const expectedSrcset = srcsetEntries.join(', ');
 
@@ -154,13 +157,12 @@ describe('GravatarAvatar Component Tests', () => {
       // Simulate srcset generation
       const baseSize = props.size;
       const sizes = [1, 1.5, 2];
-      const srcsetEntries = sizes
-        .map(scale => {
-          const scaledSize = Math.round(baseSize * scale);
-          if (scaledSize > 2048) return null;
-          return `${buildAvatarUrl(testEmail, { size: scaledSize })} ${scale}x`;
-        })
-        .filter(Boolean);
+      const srcsetPromises = sizes.map(async scale => {
+        const scaledSize = Math.round(baseSize * scale);
+        if (scaledSize > 2048) return null;
+        return `${await buildAvatarUrl(testEmail, { size: scaledSize })} ${scale}x`;
+      });
+      const srcsetEntries = (await Promise.all(srcsetPromises)).filter(Boolean);
 
       const srcset = srcsetEntries.join(', ');
 
@@ -403,13 +405,11 @@ describe('GravatarAvatar Component Tests', () => {
       }
     });
 
-    test('should handle valid edge case sizes', () => {
+    test('should handle valid edge case sizes', async () => {
       const validSizes = [1, 2048];
 
       for (const size of validSizes) {
-        expect(() => {
-          buildAvatarUrl(testEmail, { size });
-        }).not.toThrow();
+        await expect(buildAvatarUrl(testEmail, { size })).resolves.toBeDefined();
       }
     });
 
@@ -480,7 +480,7 @@ describe('GravatarAvatar Component Tests', () => {
         expect(attributes.alt).toBe(`Avatar for ${email}`);
 
         // All should generate different hashes
-        const hash = hashEmailWithCache(email.toLowerCase().trim());
+        const hash = await hashEmailWithCache(email.toLowerCase().trim());
         expect(attributes.src).toContain(hash);
       }
     });
@@ -530,7 +530,7 @@ describe('GravatarAvatar Component Tests', () => {
       for (const scale of scales) {
         const scaledSize = Math.round(baseSize * scale);
         if (scaledSize <= 2048) {
-          const scaledUrl = buildAvatarUrl(testEmail, { size: scaledSize });
+          const scaledUrl = await buildAvatarUrl(testEmail, { size: scaledSize });
           expect(scaledUrl).toContain(`s=${scaledSize}`);
         }
       }

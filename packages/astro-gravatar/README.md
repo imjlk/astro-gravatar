@@ -151,10 +151,10 @@ Access the underlying utilities for custom implementations:
 import { buildAvatarUrl, buildQRCodeUrl, getProfile } from 'astro-gravatar';
 
 // Build custom avatar URL
-const avatarUrl = buildAvatarUrl('user@example.com', { size: 200 });
+const avatarUrl = await buildAvatarUrl('user@example.com', { size: 200 });
 
 // Build QR code URL
-const qrUrl = buildQRCodeUrl('user@example.com', { size: 150, version: 3 });
+const qrUrl = await buildQRCodeUrl('user@example.com', { size: 150, version: 3 });
 
 // Fetch profile data
 const profile = await getProfile('user@example.com');
