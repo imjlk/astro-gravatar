@@ -2,6 +2,8 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*' # Trigger on version tags (v1.0.0, v1.0.1, etc.)
   workflow_dispatch:
@@ -27,6 +29,7 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'chore(release):')"
     permissions:
       contents: write
       id-token: write
@@ -60,153 +63,174 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Extract version from tag
+      - name: Determine Version Bump
+        id: bump
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No tags found, defaulting to patch"
+            echo "type=patch" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Latest tag: $LATEST_TAG"
+          
+          # Get commits since latest tag
+          COMMITS=$(git log $LATEST_TAG..HEAD --pretty=format:"%s")
+          echo "Commits since last tag:"
+          echo "$COMMITS"
+          
+          # Logic for semantic versioning
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
+            echo "Detected BREAKING CHANGE"
+            echo "type=major" >> $GITHUB_OUTPUT
+          elif echo "$COMMITS" | grep -q "^feat"; then
+            echo "Detected feature"
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif echo "$COMMITS" | grep -q "^fix"; then
+            echo "Detected fix"
+            echo "type=patch" >> $GITHUB_OUTPUT
+          else
+            echo "No significant changes detected"
+            echo "type=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract or Calculate Version
         id: version
         run: |
           if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            # Extract version from git tag (refs/tags/v1.2.3 -> 1.2.3)
+            # Tag triggering
             VERSION="${{ github.ref_name }}"
-            VERSION=${VERSION#v} # Remove 'v' prefix
-          else
-            # Use manual input for workflow_dispatch
+            VERSION=${VERSION#v}
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "skipped=false" >> $GITHUB_OUTPUT
+            
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Manual dispatch
             VERSION_TYPE="${{ github.event.inputs.version_type }}"
-
-            # Get current version and bump it
-            CURRENT_VERSION=$(cd packages/astro-gravatar && cat package.json | jq -r '.version')
-            echo "Current version: $CURRENT_VERSION"
-
-            # Calculate new version
             if [[ "$VERSION_TYPE" == "major" ]]; then
               VERSION=$(cd packages/astro-gravatar && bun pm version major --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
             elif [[ "$VERSION_TYPE" == "minor" ]]; then
               VERSION=$(cd packages/astro-gravatar && bun pm version minor --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
             elif [[ "$VERSION_TYPE" == "patch" ]]; then
               VERSION=$(cd packages/astro-gravatar && bun pm version patch --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\+[0-9]\+')
-            elif [[ "$VERSION_TYPE" == "beta" ]]; then
-              VERSION=$(cd packages/astro-gravatar && bun pm version preminor --preid beta --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\.[0-9]\+-beta.[0-9]\+')
-            elif [[ "$VERSION_TYPE" == "alpha" ]]; then
-              VERSION=$(cd packages/astro-gravatar && bun pm version preminor --preid alpha --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\.[0-9]\+-alpha.[0-9]\+')
             else
-              VERSION=$(cd packages/astro-gravatar && bun pm version prerelease --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\.[0-9]\+-[0-9]\+')
+              # Handle pre-releases
+               VERSION=$(cd packages/astro-gravatar && bun pm version $VERSION_TYPE --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9a-zA-Z.]\+')
             fi
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "skipped=false" >> $GITHUB_OUTPUT
+            
+          else
+             # Push to main
+             BUMP_TYPE="${{ steps.bump.outputs.type }}"
+             
+             if [[ "$BUMP_TYPE" == "none" ]]; then
+               echo "Skipping release"
+               echo "skipped=true" >> $GITHUB_OUTPUT
+             else
+               VERSION=$(cd packages/astro-gravatar && bun pm version $BUMP_TYPE --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+               echo "version=$VERSION" >> $GITHUB_OUTPUT
+               echo "skipped=false" >> $GITHUB_OUTPUT
+             fi
           fi
 
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=${{ github.event.inputs.tag || latest }}" >> $GITHUB_OUTPUT
-
       - name: Update package.json version
+        if: steps.version.outputs.skipped == 'false'
         run: |
-          cd packages/astro-gravatar
-          echo "Setting version to ${{ steps.version.outputs.version }}"
-          bun pm pkg set version="${{ steps.version.outputs.version }}"
-          echo "Updated package.json version to $(cat package.json | jq -r '.version')"
+           cd packages/astro-gravatar
+           bun pm pkg set version="${{ steps.version.outputs.version }}"
 
       - name: Determine release tag
+        if: steps.version.outputs.skipped == 'false'
         id: release_tag
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-
           if [[ "$VERSION" == *"beta"* ]]; then
             RELEASE_TAG="beta"
           elif [[ "$VERSION" == *"alpha"* ]]; then
             RELEASE_TAG="alpha"
-          elif [[ "$VERSION" == *"rc"* ]]; then
-            RELEASE_TAG="next"
           else
             RELEASE_TAG="latest"
           fi
-
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
       - name: Create git tag and commit
-        if: ${{ github.ref_type != 'tag' }}
+        if: steps.version.outputs.skipped == 'false' && github.ref_type != 'tag'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           git add packages/astro-gravatar/package.json
-          git commit -m "chore(release): bump version to $VERSION"
+          git commit -m "chore(release): v$VERSION"
           git tag -a "v$VERSION" -m "Release v$VERSION"
           git push origin main --follow-tags
 
       - name: Generate changelog
+        if: steps.version.outputs.skipped == 'false'
         id: changelog
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-
-          # Get previous tag
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-
-          # Generate changelog
-          if [ -n "$PREV_TAG" ]; then
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD)
-          else
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)")
-          fi
-
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+           # Safely determine previous tag range
+           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+           if [ -n "$PREV_TAG" ]; then
+             CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD)
+           else
+             CHANGELOG=$(git log --pretty=format:"- %s (%h)")
+           fi
+           
+           echo "changelog<<EOF" >> $GITHUB_OUTPUT
+           echo "$CHANGELOG" >> $GITHUB_OUTPUT
+           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Publish to npm
-        id: publish
+        if: steps.version.outputs.skipped == 'false'
         run: |
           cd packages/astro-gravatar
-
-          echo "Publishing with tag: ${{ steps.release_tag.outputs.release_tag }}"
-
-          if [[ "${{ steps.release_tag.outputs.release_tag }}" == "latest" ]]; then
-            bun publish
+          TAG="${{ steps.release_tag.outputs.release_tag }}"
+          
+          echo "Publishing with tag: $TAG"
+          
+          if [[ "$TAG" == "latest" ]]; then
+            npm publish --provenance --access public
           else
-            bun publish --tag ${{ steps.release_tag.outputs.release_tag }}
+            npm publish --tag $TAG --provenance --access public
           fi
-
+          
           echo "Published successfully!"
 
       - name: Create GitHub Release
+        if: steps.version.outputs.skipped == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
           body: |
             ## Changes in v${{ steps.version.outputs.version }}
-
+            
             ${{ steps.changelog.outputs.changelog }}
-
+            
             ### Installation
-            \```bash
+            \`\`\`bash
             bun add astro-gravatar
-            # or
-            npm install astro-gravatar
-            \```
-
-            ### Documentation
-            Visit [astro-gravatar.and.guide](https://astro-gravatar.and.guide) for full documentation.
+            \`\`\`
           draft: false
           prerelease: ${{ steps.release_tag.outputs.release_tag != 'latest' }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update CHANGELOG.md
+        if: steps.version.outputs.skipped == 'false'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           CHANGELOG="${{ steps.changelog.outputs.changelog }}"
           TODAY=$(date +%Y-%m-%d)
-
-          # Update CHANGELOG.md
+          
           if [ -f CHANGELOG.md ]; then
-            # Insert after the header
             awk -v entry="## [$VERSION] - $TODAY\n\n$CHANGELOG\n\n" '/^# Changelog$/ {print; print entry; next} 1' CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
           else
-            # Create new changelog
             echo -e "# Changelog\n\n## [$VERSION] - $TODAY\n\n$CHANGELOG\n" > CHANGELOG.md
           fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
           git add CHANGELOG.md
           git commit -m "docs: update changelog for v$VERSION"
           git push origin main
-
-      - name: Trigger documentation update (if public release)
-        if: steps.release_tag.outputs.release_tag == 'latest'
-        run: |
-          # This would trigger a separate workflow to update the documentation site
-          echo "Public release v${{ steps.version.outputs.version }} - documentation update can be triggered here"

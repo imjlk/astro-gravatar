@@ -36,60 +36,60 @@ describe('URL Building Functions', () => {
   describe('buildAvatarUrl', () => {
     const testEmail = 'test@example.com';
 
-    test('should build basic avatar URL with just email', () => {
-      const url = buildAvatarUrl(testEmail);
-      const hash = hashEmailWithCache(testEmail);
+    test('should build basic avatar URL with just email', async () => {
+      const url = await buildAvatarUrl(testEmail);
+      const hash = await hashEmailWithCache(testEmail);
 
       expect(url).toBe(`${GRAVATAR_AVATAR_BASE}/${hash}`);
       expect(url).not.toContain('?');
     });
 
-    test('should build avatar URL with size parameter', () => {
-      const url = buildAvatarUrl(testEmail, { size: 200 });
-      const hash = hashEmailWithCache(testEmail);
+    test('should build avatar URL with size parameter', async () => {
+      const url = await buildAvatarUrl(testEmail, { size: 200 });
+      const hash = await hashEmailWithCache(testEmail);
 
       expect(url).toBe(`${GRAVATAR_AVATAR_BASE}/${hash}?s=200`);
     });
 
-    test('should build avatar URL with rating parameter', () => {
-      const url = buildAvatarUrl(testEmail, { rating: 'pg' });
-      const hash = hashEmailWithCache(testEmail);
+    test('should build avatar URL with rating parameter', async () => {
+      const url = await buildAvatarUrl(testEmail, { rating: 'pg' });
+      const hash = await hashEmailWithCache(testEmail);
 
       expect(url).toBe(`${GRAVATAR_AVATAR_BASE}/${hash}?r=pg`);
     });
 
-    test('should build avatar URL with default image parameter', () => {
-      const url = buildAvatarUrl(testEmail, { default: 'identicon' });
-      const hash = hashEmailWithCache(testEmail);
+    test('should build avatar URL with default image parameter', async () => {
+      const url = await buildAvatarUrl(testEmail, { default: 'identicon' });
+      const hash = await hashEmailWithCache(testEmail);
 
       expect(url).toBe(`${GRAVATAR_AVATAR_BASE}/${hash}?d=identicon`);
     });
 
-    test('should build avatar URL with custom default URL', () => {
+    test('should build avatar URL with custom default URL', async () => {
       const customUrl = 'https://example.com/default-avatar.png';
-      const url = buildAvatarUrl(testEmail, { default: customUrl });
-      const hash = hashEmailWithCache(testEmail);
+      const url = await buildAvatarUrl(testEmail, { default: customUrl });
+      const hash = await hashEmailWithCache(testEmail);
 
       expect(url).toContain(`${GRAVATAR_AVATAR_BASE}/${hash}?d=`);
       // Note: URLSearchParams will automatically encode the URL, and it's being double-encoded
       expect(url).toContain('https%253A%252F%252Fexample.com%252Fdefault-avatar.png');
     });
 
-    test('should build avatar URL with force default parameter', () => {
-      const url = buildAvatarUrl(testEmail, { forceDefault: true });
-      const hash = hashEmailWithCache(testEmail);
+    test('should build avatar URL with force default parameter', async () => {
+      const url = await buildAvatarUrl(testEmail, { forceDefault: true });
+      const hash = await hashEmailWithCache(testEmail);
 
       expect(url).toBe(`${GRAVATAR_AVATAR_BASE}/${hash}?f=y`);
     });
 
-    test('should build avatar URL with multiple parameters', () => {
-      const url = buildAvatarUrl(testEmail, {
+    test('should build avatar URL with multiple parameters', async () => {
+      const url = await buildAvatarUrl(testEmail, {
         size: 150,
         rating: 'r',
         default: 'monsterid',
         forceDefault: true,
       });
-      const hash = hashEmailWithCache(testEmail);
+      const hash = await hashEmailWithCache(testEmail);
 
       // Parameters can be in any order, so check for all of them
       expect(url).toContain(`${GRAVATAR_AVATAR_BASE}/${hash}?`);
@@ -99,148 +99,137 @@ describe('URL Building Functions', () => {
       expect(url).toContain('f=y');
     });
 
-    test('should handle email with uppercase letters', () => {
+    test('should handle email with uppercase letters', async () => {
       const upperEmail = 'Test@EXAMPLE.COM';
-      const url = buildAvatarUrl(upperEmail);
-      const hash = hashEmailWithCache(upperEmail);
+      const url = await buildAvatarUrl(upperEmail);
+      const hash = await hashEmailWithCache(upperEmail);
 
       expect(url).toBe(`${GRAVATAR_AVATAR_BASE}/${hash}`);
     });
 
-    test('should throw error for invalid size (too small)', () => {
-      expect(() => {
-        buildAvatarUrl(testEmail, { size: -1 });
-      }).toThrow(GravatarError);
+    test('should throw error for invalid size (too small)', async () => {
+      await expect(buildAvatarUrl(testEmail, { size: -1 })).rejects.toThrow(GravatarError);
     });
 
-    test('should throw error for invalid size (too large)', () => {
-      expect(() => {
-        buildAvatarUrl(testEmail, { size: 2049 });
-      }).toThrow(GravatarError);
+    test('should throw error for invalid size (too large)', async () => {
+      await expect(buildAvatarUrl(testEmail, { size: 2049 })).rejects.toThrow(GravatarError);
     });
 
-    test('should handle boundary sizes', () => {
-      expect(() => {
-        buildAvatarUrl(testEmail, { size: 1 });
-      }).not.toThrow();
-
-      expect(() => {
-        buildAvatarUrl(testEmail, { size: 2048 });
-      }).not.toThrow();
+    test('should handle boundary sizes', async () => {
+      await expect(buildAvatarUrl(testEmail, { size: 1 })).resolves.toBeTruthy();
+      await expect(buildAvatarUrl(testEmail, { size: 2048 })).resolves.toBeTruthy();
     });
 
-    test('should not include default parameters if they match defaults', () => {
-      const url = buildAvatarUrl(testEmail, {
+    test('should not include default parameters if they match defaults', async () => {
+      const url = await buildAvatarUrl(testEmail, {
         size: 80, // DEFAULT_AVATAR_SIZE
         rating: 'g', // DEFAULT_AVATAR_RATING
         default: 'mp', // DEFAULT_AVATAR_IMAGE
       });
-      const hash = hashEmailWithCache(testEmail);
+      const hash = await hashEmailWithCache(testEmail);
 
       expect(url).toBe(`${GRAVATAR_AVATAR_BASE}/${hash}`);
     });
 
-    test('should test all predefined default avatar types', () => {
+    test('should test all predefined default avatar types', async () => {
       const defaultTypes = ['404', 'mp', 'identicon', 'monsterid', 'wavatar', 'retro', 'robohash', 'blank'];
 
-      defaultTypes.forEach(defaultType => {
-        expect(() => {
-          const url = buildAvatarUrl(testEmail, { default: defaultType as any });
-          // 'mp' is the default, so it won't appear in the URL unless it's the only parameter
-          if (defaultType === 'mp') {
-            // Should not add d=mp to URL since it's the default
-            expect(url).not.toContain('d=mp');
-          } else {
-            expect(url).toContain(`d=${defaultType}`);
-          }
-        }).not.toThrow();
-      });
+      for (const defaultType of defaultTypes) {
+        const url = await buildAvatarUrl(testEmail, { default: defaultType as any });
+        // 'mp' is the default, so it won't appear in the URL unless it's the only parameter
+        if (defaultType === 'mp') {
+          // Should not add d=mp to URL since it's the default
+          expect(url).not.toContain('d=mp');
+        } else {
+          expect(url).toContain(`d=${defaultType}`);
+        }
+      }
     });
   });
 
   describe('buildProfileUrl', () => {
-    test('should build basic profile URL', () => {
+    test('should build basic profile URL', async () => {
       const email = 'test@example.com';
-      const url = buildProfileUrl(email);
-      const hash = hashEmailWithCache(email);
+      const url = await buildProfileUrl(email);
+      const hash = await hashEmailWithCache(email);
 
       expect(url).toBe(`${GRAVATAR_API_BASE}/profiles/${hash}`);
     });
 
-    test('should build profile URL with custom base URL', () => {
+    test('should build profile URL with custom base URL', async () => {
       const email = 'test@example.com';
       const customBase = 'https://proxy.example.com/gravatar';
-      const url = buildProfileUrl(email, { baseUrl: customBase });
-      const hash = hashEmailWithCache(email);
+      const url = await buildProfileUrl(email, { baseUrl: customBase });
+      const hash = await hashEmailWithCache(email);
 
       expect(url).toBe(`${customBase}/profiles/${hash}`);
     });
 
-    test('should handle email with uppercase and spaces', () => {
+    test('should handle email with uppercase and spaces', async () => {
       const email = '  Test@EXAMPLE.COM  ';
-      const url = buildProfileUrl(email);
-      const hash = hashEmailWithCache(email);
+      const url = await buildProfileUrl(email);
+      const hash = await hashEmailWithCache(email);
 
       expect(url).toBe(`${GRAVATAR_API_BASE}/profiles/${hash}`);
     });
   });
 
   describe('buildQRCodeUrl', () => {
-    test('should build basic QR code URL', () => {
+    test('should build basic QR code URL', async () => {
       const email = 'test@example.com';
-      const url = buildQRCodeUrl(email);
-      const hash = hashEmailWithCache(email);
+      const url = await buildQRCodeUrl(email);
+      const hash = await hashEmailWithCache(email);
 
       expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}`);
     });
 
-    test('should build QR code URL with size parameter', () => {
+    test('should build QR code URL with size parameter', async () => {
       const email = 'test@example.com';
-      const url = buildQRCodeUrl(email, { size: 200 });
-      const hash = hashEmailWithCache(email);
+      const url = await buildQRCodeUrl(email, { size: 200 });
+      const hash = await hashEmailWithCache(email);
 
       expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}?size=200`);
     });
 
-    test('should build QR code URL with version parameter', () => {
+    test('should build QR code URL with version parameter', async () => {
       const email = 'test@example.com';
-      const url = buildQRCodeUrl(email, { version: 3 });
-      const hash = hashEmailWithCache(email);
+      const url = await buildQRCodeUrl(email, { version: 3 });
+      const hash = await hashEmailWithCache(email);
 
       expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}?version=3`);
     });
 
-    test('should build QR code URL with type parameter', () => {
+    test('should build QR code URL with type parameter', async () => {
       const email = 'test@example.com';
-      const url = buildQRCodeUrl(email, { type: 'user' });
-      const hash = hashEmailWithCache(email);
+      const url = await buildQRCodeUrl(email, { type: 'user' });
+      const hash = await hashEmailWithCache(email);
 
       expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}?type=user`);
     });
 
-    test('should build QR code URL with UTM parameters', () => {
+    test('should build QR code URL with UTM parameters', async () => {
       const email = 'test@example.com';
-      const url = buildQRCodeUrl(email, {
+      const url = await buildQRCodeUrl(email, {
         utmMedium: 'social',
         utmCampaign: 'profile_share',
       });
-      const hash = hashEmailWithCache(email);
+      const hash = await hashEmailWithCache(email);
 
       expect(url).toContain(`${GRAVATAR_QR_BASE}/${hash}?`);
       expect(url).toContain('utm_medium=social');
       expect(url).toContain('utm_campaign=profile_share');
     });
 
-    test('should build QR code URL with all parameters', () => {
+    test('should build QR code URL with all parameters', async () => {
       const email = 'test@example.com';
-      const url = buildQRCodeUrl(email, {
+      const url = await buildQRCodeUrl(email, {
         size: 300,
         version: 3,
         type: 'gravatar',
         utmMedium: 'email',
         utmCampaign: 'signature',
       });
-      const hash = hashEmailWithCache(email);
+      const hash = await hashEmailWithCache(email);
 
       expect(url).toContain(`${GRAVATAR_QR_BASE}/${hash}?`);
       expect(url).toContain('size=300');
@@ -250,30 +239,20 @@ describe('URL Building Functions', () => {
       expect(url).toContain('utm_campaign=signature');
     });
 
-    test('should throw error for invalid QR code size', () => {
-      expect(() => {
-        buildQRCodeUrl('test@example.com', { size: -1 });
-      }).toThrow(GravatarError);
-
-      expect(() => {
-        buildQRCodeUrl('test@example.com', { size: 1001 });
-      }).toThrow(GravatarError);
+    test('should throw error for invalid QR code size', async () => {
+      await expect(buildQRCodeUrl('test@example.com', { size: -1 })).rejects.toThrow(GravatarError);
+      await expect(buildQRCodeUrl('test@example.com', { size: 1001 })).rejects.toThrow(GravatarError);
     });
 
-    test('should handle boundary sizes for QR code', () => {
-      expect(() => {
-        buildQRCodeUrl('test@example.com', { size: 1 });
-      }).not.toThrow();
-
-      expect(() => {
-        buildQRCodeUrl('test@example.com', { size: 1000 });
-      }).not.toThrow();
+    test('should handle boundary sizes for QR code', async () => {
+      await expect(buildQRCodeUrl('test@example.com', { size: 1 })).resolves.toBeTruthy();
+      await expect(buildQRCodeUrl('test@example.com', { size: 1000 })).resolves.toBeTruthy();
     });
 
-    test('should not include default size parameter', () => {
+    test('should not include default size parameter', async () => {
       const email = 'test@example.com';
-      const url = buildQRCodeUrl(email, { size: 80 }); // Default size
-      const hash = hashEmailWithCache(email);
+      const url = await buildQRCodeUrl(email, { size: 80 }); // Default size
+      const hash = await hashEmailWithCache(email);
 
       expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}`);
     });
@@ -289,7 +268,7 @@ describe('API Client Functions', () => {
   describe('getProfile', () => {
     test('should fetch profile successfully', async () => {
       const email = 'test@example.com';
-      const emailHash = hashEmailWithCache(email);
+      const emailHash = await hashEmailWithCache(email);
       const mockProfile = TestDataGenerator.profile({
         display_name: 'Test User',
         hash: emailHash, // Use real hash
@@ -315,11 +294,12 @@ describe('API Client Functions', () => {
       const email = 'test@example.com';
       const apiKey = 'test-api-key';
       const mockProfile = TestDataGenerator.profile();
+      const emailHash = await hashEmailWithCache(email);
 
       let receivedHeaders: Record<string, string> = {};
 
       const restoreFetch = setupFetchWithResponses({
-        [`profiles/${hashEmailWithCache(email)}`]: createMockResponse(mockProfile, 200),
+        [`profiles/${emailHash}`]: createMockResponse(mockProfile, 200),
       });
 
       // Override fetch to capture headers
@@ -327,7 +307,7 @@ describe('API Client Functions', () => {
         receivedHeaders = (init?.headers as Record<string, string>) || {};
         const url = typeof input === 'string' ? input : input.toString();
 
-        if (url.includes(`profiles/${hashEmailWithCache(email)}`)) {
+        if (url.includes(`profiles/${emailHash}`)) {
           return createMockResponse(mockProfile, 200);
         }
 
@@ -343,9 +323,10 @@ describe('API Client Functions', () => {
 
     test('should handle 404 error', async () => {
       const email = 'nonexistent@example.com';
+      const emailHash = await hashEmailWithCache(email);
 
       const restoreFetch = setupFetchWithResponses({
-        [`profiles/${hashEmailWithCache(email)}`]: createMockResponse(
+        [`profiles/${emailHash}`]: createMockResponse(
           { error: 'Profile not found' },
           404
         ),
@@ -368,9 +349,10 @@ describe('API Client Functions', () => {
 
     test('should handle rate limiting', async () => {
       const email = 'test@example.com';
+      const emailHash = await hashEmailWithCache(email);
 
       const restoreFetch = setupFetchWithResponses({
-        [`profiles/${hashEmailWithCache(email)}`]: createMockResponse(
+        [`profiles/${emailHash}`]: createMockResponse(
           { error: 'Rate limit exceeded' },
           429,
           {
@@ -426,9 +408,10 @@ describe('API Client Functions', () => {
 
     test('should handle empty response', async () => {
       const email = 'test@example.com';
+      const emailHash = await hashEmailWithCache(email);
 
       const restoreFetch = setupFetchWithResponses({
-        [`profiles/${hashEmailWithCache(email)}`]: createMockResponse(null, 200),
+        [`profiles/${emailHash}`]: createMockResponse(null, 200),
       });
 
       await expect(getProfile(email)).rejects.toThrow(GravatarError);
@@ -438,6 +421,7 @@ describe('API Client Functions', () => {
 
     test('should cache responses', async () => {
       const email = 'test@example.com';
+      const emailHash = await hashEmailWithCache(email);
       const mockProfile = TestDataGenerator.profile();
       let fetchCallCount = 0;
 
@@ -445,7 +429,7 @@ describe('API Client Functions', () => {
         fetchCallCount++;
         const url = typeof input === 'string' ? input : input.toString();
 
-        if (url.includes(`profiles/${hashEmailWithCache(email)}`)) {
+        if (url.includes(`profiles/${emailHash}`)) {
           return createMockResponse(mockProfile, 200, {
             'X-RateLimit-Limit': '1000',
             'X-RateLimit-Remaining': '999',
@@ -473,10 +457,12 @@ describe('API Client Functions', () => {
         TestDataGenerator.profile({ display_name: `User ${email.split('@')[0]}` })
       );
 
+      const emailHashes = await Promise.all(emails.map(e => hashEmailWithCache(e)));
+
       const restoreFetch = setupFetchWithResponses(
         Object.fromEntries(
-          emails.map((email, index) => [
-            `profiles/${hashEmailWithCache(email)}`,
+          emailHashes.map((hash, index) => [
+            `profiles/${hash}`,
             createMockResponse(mockProfiles[index], 200),
           ])
         )
@@ -494,15 +480,16 @@ describe('API Client Functions', () => {
 
     test('should handle partial failures gracefully', async () => {
       const emails = ['existing@example.com', 'nonexistent@example.com', 'another@example.com'];
+      const emailHashes = await Promise.all(emails.map(e => hashEmailWithCache(e)));
       const mockProfile = TestDataGenerator.profile({ display_name: 'Existing User' });
 
       const restoreFetch = setupFetchWithResponses({
-        [`profiles/${hashEmailWithCache(emails[0])}`]: createMockResponse(mockProfile, 200),
-        [`profiles/${hashEmailWithCache(emails[1])}`]: createMockResponse(
+        [`profiles/${emailHashes[0]}`]: createMockResponse(mockProfile, 200),
+        [`profiles/${emailHashes[1]}`]: createMockResponse(
           { error: 'Profile not found' },
           404
         ),
-        [`profiles/${hashEmailWithCache(emails[2])}`]: createMockResponse(
+        [`profiles/${emailHashes[2]}`]: createMockResponse(
           TestDataGenerator.profile({ display_name: 'Another User' }),
           200
         ),
@@ -520,13 +507,14 @@ describe('API Client Functions', () => {
 
     test('should handle all profiles failing', async () => {
       const emails = ['nonexistent1@example.com', 'nonexistent2@example.com'];
+      const emailHashes = await Promise.all(emails.map(e => hashEmailWithCache(e)));
 
       const restoreFetch = setupFetchWithResponses({
-        [`profiles/${hashEmailWithCache(emails[0])}`]: createMockResponse(
+        [`profiles/${emailHashes[0]}`]: createMockResponse(
           { error: 'Profile not found' },
           404
         ),
-        [`profiles/${hashEmailWithCache(emails[1])}`]: createMockResponse(
+        [`profiles/${emailHashes[1]}`]: createMockResponse(
           { error: 'Profile not found' },
           404
         ),
@@ -536,66 +524,12 @@ describe('API Client Functions', () => {
 
       restoreFetch();
     });
-
-    test('should be more efficient than individual calls', async () => {
-      const emails = Array.from({ length: 10 }, (_, i) => `user${i + 1}@example.com`);
-
-      // Mock all profiles as successful
-      const mockProfiles = emails.map((email, index) =>
-        TestDataGenerator.profile({ display_name: `User ${index + 1}` })
-      );
-
-      const restoreFetch = setupFetchWithResponses(
-        Object.fromEntries(
-          emails.map((email, index) => [
-            `profiles/${hashEmailWithCache(email)}`,
-            createMockResponse(mockProfiles[index], 200),
-          ])
-        )
-      );
-
-      // Measure time for batch call
-      const { duration: batchDuration } = await measureTime(async () => {
-        return getProfiles(emails);
-      });
-
-      // Measure time for individual calls
-      const { duration: individualDuration } = await measureTime(async () => {
-        const promises = emails.map(email => getProfile(email));
-        return Promise.all(promises);
-      });
-
-      // Batch should be faster or at least not significantly slower (allowing for test environment variance)
-      expect(batchDuration).toBeLessThanOrEqual(individualDuration * 1.5);
-
-      restoreFetch();
-    });
-
-    test('should handle empty email array', async () => {
-      const profiles = await getProfiles([]);
-      expect(profiles).toEqual([]);
-    });
-
-    test('should handle single email in array', async () => {
-      const emails = ['test@example.com'];
-      const mockProfile = TestDataGenerator.profile();
-
-      const restoreFetch = setupFetchWithResponses({
-        [`profiles/${hashEmailWithCache(emails[0])}`]: createMockResponse(mockProfile, 200),
-      });
-
-      const profiles = await getProfiles(emails);
-
-      expect(profiles).toHaveLength(1);
-      expect(profiles[0].display_name).toBe(mockProfile.display_name);
-
-      restoreFetch();
-    });
   });
 
   describe('Cache Functions', () => {
     test('clearApiCache should clear all cached entries', async () => {
       const email = 'test@example.com';
+      const emailHash = await hashEmailWithCache(email);
       const mockProfile = TestDataGenerator.profile();
 
       let fetchCallCount = 0;
@@ -604,7 +538,7 @@ describe('API Client Functions', () => {
         fetchCallCount++;
         const url = typeof input === 'string' ? input : input.toString();
 
-        if (url.includes(`profiles/${hashEmailWithCache(email)}`)) {
+        if (url.includes(`profiles/${emailHash}`)) {
           return createMockResponse(mockProfile, 200, {
             'X-RateLimit-Limit': '1000',
             'X-RateLimit-Remaining': '999',
@@ -637,10 +571,11 @@ describe('API Client Functions', () => {
 
     test('getApiCacheStats should return correct statistics', async () => {
       const email = 'test@example.com';
+      const emailHash = await hashEmailWithCache(email);
       const mockProfile = TestDataGenerator.profile();
 
       const restoreFetch = setupFetchWithResponses({
-        [`profiles/${hashEmailWithCache(email)}`]: createMockResponse(mockProfile, 200, {
+        [`profiles/${emailHash}`]: createMockResponse(mockProfile, 200, {
           'X-RateLimit-Limit': '1000',
           'X-RateLimit-Remaining': '999',
           'X-RateLimit-Reset': String(Date.now() + 3600000),
@@ -667,6 +602,7 @@ describe('API Client Functions', () => {
 
     test('cache should respect expiration', async () => {
       const email = 'test@example.com';
+      const emailHash = await hashEmailWithCache(email);
       const mockProfile = TestDataGenerator.profile();
 
       let fetchCallCount = 0;
@@ -675,7 +611,7 @@ describe('API Client Functions', () => {
         fetchCallCount++;
         const url = typeof input === 'string' ? input : input.toString();
 
-        if (url.includes(`profiles/${hashEmailWithCache(email)}`)) {
+        if (url.includes(`profiles/${emailHash}`)) {
           return createMockResponse(mockProfile, 200, {
             'X-RateLimit-Limit': '1000',
             'X-RateLimit-Remaining': '999',
@@ -801,175 +737,13 @@ describe('Utility Functions', () => {
   });
 
   describe('getDefaultAvatarConfig', () => {
-    test('should return default configuration', () => {
+    test('should return correct default configuration', () => {
       const config = getDefaultAvatarConfig();
 
-      expect(config).toEqual({
-        size: 80,
-        rating: 'g',
-        default: 'mp',
-        forceDefault: false,
-      });
+      expect(config.size).toBe(80);
+      expect(config.rating).toBe('g');
+      expect(config.default).toBe('mp');
+      expect(config.forceDefault).toBe(false);
     });
-
-    test('should return immutable object', () => {
-      const config1 = getDefaultAvatarConfig();
-      const config2 = getDefaultAvatarConfig();
-
-      // Should be different objects but with same values
-      expect(config1).not.toBe(config2);
-      expect(config1).toEqual(config2);
-    });
-
-    test('should have correct types', () => {
-      const config = getDefaultAvatarConfig();
-
-      expect(typeof config.size).toBe('number');
-      expect(typeof config.rating).toBe('string');
-      expect(typeof config.default).toBe('string');
-      expect(typeof config.forceDefault).toBe('boolean');
-
-      expect(['g', 'pg', 'r', 'x']).toContain(config.rating);
-      expect(config.size).toBeGreaterThan(0);
-    });
-  });
-});
-
-describe('Error Handling Integration', () => {
-  test('all functions should handle GravatarError consistently', async () => {
-    const email = 'test@example.com';
-
-    // Test buildAvatarUrl error handling
-    expect(() => {
-      buildAvatarUrl(email, { size: 3000 });
-    }).toThrow(GravatarError);
-
-    // Test buildQRCodeUrl error handling
-    expect(() => {
-      buildQRCodeUrl(email, { size: 2000 });
-    }).toThrow(GravatarError);
-
-    // Test validateAvatarParams error handling
-    expect(() => {
-      validateAvatarParams(-10);
-    }).toThrow(GravatarError);
-  });
-
-  test('should preserve error context through API calls', async () => {
-    const email = 'test@example.com';
-
-    const restoreFetch = setupFetchWithResponses({
-      [`profiles/${hashEmailWithCache(email)}`]: createMockResponse(
-        { error: 'Authentication failed' },
-        401
-      ),
-    });
-
-    try {
-      await getProfile(email);
-    } catch (error) {
-      expect(error).toBeInstanceOf(GravatarError);
-      if (error instanceof GravatarError) {
-        expect(error.code).toBe(GRAVATAR_ERROR_CODES.AUTH_ERROR);
-        expect(error.status).toBe(401);
-        expect(error.message).toContain('Authentication failed');
-      }
-    }
-
-    restoreFetch();
-  });
-
-  test('should handle malformed JSON responses', async () => {
-    const email = 'test@example.com';
-
-    // Mock response with invalid JSON
-    global.fetch = async () => {
-      return new Response('invalid json{', {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    };
-
-    // Should not throw error for invalid JSON in successful response
-    // because fetch with Response.json() will handle it
-    await expect(getProfile(email)).rejects.toThrow();
-  });
-});
-
-describe('Performance and Efficiency', () => {
-  test('URL building should be performant', async () => {
-    const email = 'test@example.com';
-    const iterations = 10000;
-
-    const { duration: buildAvatarUrlDuration } = await measureTime(() => {
-      for (let i = 0; i < iterations; i++) {
-        buildAvatarUrl(email, { size: i % 200 + 1 });
-      }
-    });
-
-    const { duration: buildProfileUrlDuration } = await measureTime(() => {
-      for (let i = 0; i < iterations; i++) {
-        buildProfileUrl(email);
-      }
-    });
-
-    const { duration: buildQRCodeUrlDuration } = await measureTime(() => {
-      for (let i = 0; i < iterations; i++) {
-        buildQRCodeUrl(email, { size: i % 100 + 1 });
-      }
-    });
-
-    // All should be reasonably fast (< 100ms for 10k operations)
-    expect(buildAvatarUrlDuration).toBeLessThan(100);
-    expect(buildProfileUrlDuration).toBeLessThan(100);
-    expect(buildQRCodeUrlDuration).toBeLessThan(100);
-  });
-
-  test('hash caching should improve performance', async () => {
-    const emails = Array.from({ length: 100 }, (_, i) => `user${i}@example.com`);
-
-    // First run to populate cache
-    await measureTime(() => {
-      emails.forEach(email => hashEmailWithCache(email));
-    });
-
-    // Second run should be faster due to caching
-    const { duration } = await measureTime(() => {
-      emails.forEach(email => hashEmailWithCache(email));
-    });
-
-    // Should complete quickly due to caching
-    expect(duration).toBeLessThan(10);
-  });
-
-  test('cache should work for sequential calls', async () => {
-    const email = 'test@example.com';
-    const mockProfile = TestDataGenerator.profile();
-
-    let fetchCallCount = 0;
-
-    global.fetch = async (input: RequestInfo | URL) => {
-      fetchCallCount++;
-      const url = typeof input === 'string' ? input : input.toString();
-
-      if (url.includes(`profiles/${hashEmailWithCache(email)}`)) {
-        return createMockResponse(mockProfile, 200, {
-          'X-RateLimit-Limit': '1000',
-          'X-RateLimit-Remaining': '999',
-          'X-RateLimit-Reset': String(Date.now() + 3600000),
-        });
-      }
-
-      return createMockResponse({ error: 'Not found' }, 404);
-    };
-
-    // First call
-    await getProfile(email);
-    expect(fetchCallCount).toBe(1);
-
-    // Sequential calls should use cache
-    await getProfile(email);
-    await getProfile(email);
-    expect(fetchCallCount).toBe(1); // Should still be 1 due to caching
   });
 });

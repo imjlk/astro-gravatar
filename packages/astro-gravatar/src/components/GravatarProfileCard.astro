@@ -31,7 +31,7 @@
  */
 
 import { getProfile, buildAvatarUrl } from '../lib/gravatar.js';
-import type { GravatarProfile, GravatarProfileCardProps } from '../lib/types.js';
+import type { GravatarProfile } from '../lib/types.js';
 
 interface Props {
   /** Email address to display profile for */
@@ -73,7 +73,7 @@ const {
 }: Props = Astro.props;
 
 // Generate avatar URL
-const avatarUrl = buildAvatarUrl(email, { size: avatarSize });
+const avatarUrl = await buildAvatarUrl(email, { size: avatarSize });
 
 // Try to fetch profile data (with error handling)
 let profile: GravatarProfile | null = null;
@@ -87,13 +87,13 @@ try {
 }
 
 // Generate CSS classes
-const cssClasses = [
+const cardClasses = [
   'gravatar-profile-card',
   `gravatar-profile-card--${layout}`,
   `gravatar-profile-card--${template}`,
   clickable ? 'gravatar-profile-card--clickable' : '',
   className || '',
-].filter(Boolean).join(' ');
+];
 
 // Helper to truncate text
 const truncate = (text: string, maxLength: number = 100) => {
@@ -109,7 +109,7 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
 ) || [];
 ---
 
-<article class={cssClasses}>
+<article class:list={cardClasses}>
   <!-- Avatar Section -->
   <div class="gravatar-profile-card__avatar">
     <img
@@ -255,7 +255,7 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
 </article>
 
 <style>
-  :global(.gravatar-profile-card) {
+  .gravatar-profile-card {
     display: flex;
     gap: 1rem;
     padding: 1rem;
@@ -268,78 +268,78 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
   }
 
   /* Layout Variants */
-  :global(.gravatar-profile-card--horizontal) {
+  .gravatar-profile-card--horizontal {
     align-items: center;
   }
 
-  :global(.gravatar-profile-card--vertical) {
+  .gravatar-profile-card--vertical {
     flex-direction: column;
     text-align: center;
     max-width: 200px;
   }
 
-  :global(.gravatar-profile-card--card) {
+  .gravatar-profile-card--card {
     flex-direction: column;
     text-align: left;
     max-width: 320px;
   }
 
   /* Template Variants */
-  :global(.gravatar-profile-card--compact) {
+  .gravatar-profile-card--compact {
     padding: 0.75rem;
     min-width: 0;
     max-width: none;
   }
 
-  :global(.gravatar-profile-card--compact.gravatar-profile-card--horizontal) {
+  .gravatar-profile-card--compact.gravatar-profile-card--horizontal {
     gap: 0.75rem;
   }
 
-  :global(.gravatar-profile-card--compact.gravatar-profile-card--vertical) {
+  .gravatar-profile-card--compact.gravatar-profile-card--vertical {
     max-width: 120px;
   }
 
-  :global(.gravatar-profile-card--compact .gravatar-profile-card__avatar-img) {
+  .gravatar-profile-card--compact .gravatar-profile-card__avatar-img {
     width: 40px !important;
     height: 40px !important;
   }
 
-  :global(.gravatar-profile-card--compact .gravatar-profile-card__name-link),
-  :global(.gravatar-profile-card--compact .gravatar-profile-card__name-text) {
+  .gravatar-profile-card--compact .gravatar-profile-card__name-link,
+  .gravatar-profile-card--compact .gravatar-profile-card__name-text {
     font-size: 0.875rem;
     margin: 0;
   }
 
-  :global(.gravatar-profile-card--compact .gravatar-profile-card__email) {
+  .gravatar-profile-card--compact .gravatar-profile-card__email {
     font-size: 0.75rem;
   }
 
-  :global(.gravatar-profile-card--detailed) {
+  .gravatar-profile-card--detailed {
     padding: 1.25rem;
     max-width: 400px;
   }
 
   /* Avatar Styles */
-  :global(.gravatar-profile-card__avatar-img) {
+  .gravatar-profile-card__avatar-img {
     border-radius: 50%;
     object-fit: cover;
     background-color: #f3f4f6;
   }
 
-  :global(.gravatar-profile-card--vertical .gravatar-profile-card__avatar-img),
-  :global(.gravatar-profile-card--card .gravatar-profile-card__avatar-img) {
+  .gravatar-profile-card--vertical .gravatar-profile-card__avatar-img,
+  .gravatar-profile-card--card .gravatar-profile-card__avatar-img {
     margin: 0 auto;
   }
 
   /* Content Styles */
-  :global(.gravatar-profile-card__content) {
+  .gravatar-profile-card__content {
     flex: 1;
     min-width: 0;
   }
 
   /* Name Styles */
-  :global(.gravatar-profile-card__name-link),
-  :global(.gravatar-profile-card__name-text) {
+  .gravatar-profile-card__name-link,
+  .gravatar-profile-card__name-text {
     font-size: 1.125rem;
     font-weight: 600;
     color: #1f2937;
@@ -348,18 +348,18 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
     display: block;
   }
 
-  :global(.gravatar-profile-card__name-link:hover) {
+  .gravatar-profile-card__name-link:hover {
     color: #3b82f6;
   }
 
-  :global(.gravatar-profile-card__email) {
+  .gravatar-profile-card__email {
     font-size: 0.875rem;
     color: #6b7280;
     font-weight: 500;
   }
 
   /* Bio Styles */
-  :global(.gravatar-profile-card__bio) {
+  .gravatar-profile-card__bio {
     color: #4b5563;
     font-size: 0.875rem;
     line-height: 1.5;
@@ -367,31 +367,31 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
   }
 
   /* Detail Styles (for detailed template) */
-  :global(.gravatar-profile-card__details) {
+  .gravatar-profile-card__details {
     margin: 0.75rem 0;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
   }
 
-  :global(.gravatar-profile-card__detail) {
+  .gravatar-profile-card__detail {
     display: flex;
     font-size: 0.75rem;
   }
 
-  :global(.gravatar-profile-card__detail-label) {
+  .gravatar-profile-card__detail-label {
     color: #6b7280;
     min-width: 60px;
     font-weight: 500;
   }
 
-  :global(.gravatar-profile-card__detail-value) {
+  .gravatar-profile-card__detail-value {
     color: #374151;
     flex: 1;
   }
 
   /* Verified Accounts */
-  :global(.gravatar-profile-card__verified) {
+  .gravatar-profile-card__verified {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -399,18 +399,18 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
     font-size: 0.75rem;
   }
 
-  :global(.gravatar-profile-card__verified-label) {
+  .gravatar-profile-card__verified-label {
     color: #6b7280;
     font-weight: 500;
   }
 
-  :global(.gravatar-profile-card__verified-accounts) {
+  .gravatar-profile-card__verified-accounts {
     display: flex;
     align-items: center;
     gap: 0.25rem;
   }
 
-  :global(.gravatar-profile-card__verified-account) {
+  .gravatar-profile-card__verified-account {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -421,28 +421,28 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
     transition: transform 0.2s ease;
   }
 
-  :global(.gravatar-profile-card__verified-account:hover) {
+  .gravatar-profile-card__verified-account:hover {
     transform: scale(1.1);
   }
 
-  :global(.gravatar-profile-card__verified-icon) {
+  .gravatar-profile-card__verified-icon {
     border-radius: 50%;
   }
 
-  :global(.gravatar-profile-card__verified-more) {
+  .gravatar-profile-card__verified-more {
     color: #6b7280;
     font-size: 0.625rem;
   }
 
   /* Links */
-  :global(.gravatar-profile-card__links) {
+  .gravatar-profile-card__links {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.75rem;
   }
 
-  :global(.gravatar-profile-card__link) {
+  .gravatar-profile-card__link {
     font-size: 0.75rem;
     color: #3b82f6;
     text-decoration: none;
@@ -452,39 +452,39 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
     transition: all 0.2s ease;
   }
 
-  :global(.gravatar-profile-card__link:hover) {
+  .gravatar-profile-card__link:hover {
     background-color: #dbeafe;
     color: #2563eb;
   }
 
   /* Error State */
-  :global(.gravatar-profile-card__error) {
+  .gravatar-profile-card__error {
     margin-top: 0.5rem;
   }
 
-  :global(.gravatar-profile-card__error-text) {
+  .gravatar-profile-card__error-text {
     font-size: 0.75rem;
     color: #9ca3af;
     font-style: italic;
   }
 
   /* Clickable Overlay */
-  :global(.gravatar-profile-card--clickable) {
+  .gravatar-profile-card--clickable {
     cursor: pointer;
   }
 
-  :global(.gravatar-profile-card--clickable:hover) {
+  .gravatar-profile-card--clickable:hover {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     transform: translateY(-1px);
   }
 
-  :global(.gravatar-profile-card__overlay) {
+  .gravatar-profile-card__overlay {
     position: absolute;
     inset: 0;
     z-index: 1;
   }
 
-  :global(.gravatar-profile-card__overlay:focus-visible) {
+  .gravatar-profile-card__overlay:focus-visible {
     outline: 2px solid #3b82f6;
     outline-offset: 2px;
     border-radius: 0.5rem;
@@ -492,46 +492,46 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
 
   /* Dark Mode Support */
   @media (prefers-color-scheme: dark) {
-    :global(.gravatar-profile-card) {
+    .gravatar-profile-card {
       background: #1f2937;
       border-color: #374151;
     }
 
-    :global(.gravatar-profile-card__name-link),
-    :global(.gravatar-profile-card__name-text) {
+    .gravatar-profile-card__name-link,
+    .gravatar-profile-card__name-text {
       color: #f9fafb;
     }
 
-    :global(.gravatar-profile-card__email) {
+    .gravatar-profile-card__email {
       color: #9ca3af;
     }
 
-    :global(.gravatar-profile-card__bio) {
+    .gravatar-profile-card__bio {
       color: #d1d5db;
     }
 
-    :global(.gravatar-profile-card__detail-label) {
+    .gravatar-profile-card__detail-label {
       color: #9ca3af;
     }
 
-    :global(.gravatar-profile-card__detail-value) {
+    .gravatar-profile-card__detail-value {
       color: #e5e7eb;
     }
 
-    :global(.gravatar-profile-card__verified-label) {
+    .gravatar-profile-card__verified-label {
       color: #9ca3af;
     }
 
-    :global(.gravatar-profile-card__verified-account) {
+    .gravatar-profile-card__verified-account {
       background-color: #374151;
     }
 
-    :global(.gravatar-profile-card__link) {
+    .gravatar-profile-card__link {
       background-color: #1e3a8a;
       color: #60a5fa;
     }
 
-    :global(.gravatar-profile-card__link:hover) {
+    .gravatar-profile-card__link:hover {
       background-color: #1e40af;
       color: #3b82f6;
     }
@@ -539,10 +539,10 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
 
   /* Reduced Motion Support */
   @media (prefers-reduced-motion: reduce) {
-    :global(.gravatar-profile-card),
-    :global(.gravatar-profile-card__verified-account),
-    :global(.gravatar-profile-card__link),
-    :global(.gravatar-profile-card--clickable) {
+    .gravatar-profile-card,
+    .gravatar-profile-card__verified-account,
+    .gravatar-profile-card__link,
+    .gravatar-profile-card--clickable {
       transition: none;
     }
   }

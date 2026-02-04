@@ -44,6 +44,6 @@ declare global {
 }
 
 // Export common test utilities
-export * from '../test-utils/test-helpers';
+export * from '../../test-utils/test-helpers';
 export * from './mocks';
 export * from './fixtures';

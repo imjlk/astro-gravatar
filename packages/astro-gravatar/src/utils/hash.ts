@@ -3,7 +3,6 @@
  * Uses SHA256 as recommended by the Gravatar API
  */
 
-import { createHash } from 'node:crypto';
 import { GravatarError, GRAVATAR_ERROR_CODES } from '../lib/types.js';
 
 /**
@@ -59,10 +58,14 @@ export function normalizeEmail(email: string): string {
  * @returns SHA256 hash of the normalized email
  * @throws GravatarError if email is invalid
  */
-export function hashEmail(email: string): string {
+export async function hashEmail(email: string): Promise<string> {
   try {
     const normalizedEmail = normalizeEmail(email);
-    return createHash('sha256').update(normalizedEmail).digest('hex');
+    const encoder = new TextEncoder();
+    const data = encoder.encode(normalizedEmail);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   } catch (error) {
     if (error instanceof GravatarError) {
       throw error;
@@ -81,7 +84,7 @@ export function hashEmail(email: string): string {
  * @returns Array of SHA256 hashes
  * @throws GravatarError if any email is invalid
  */
-export function hashEmails(emails: string[]): string[] {
+export async function hashEmails(emails: string[]): Promise<string[]> {
   if (!Array.isArray(emails)) {
     throw new GravatarError(
       'Emails must be provided as an array',
@@ -89,7 +92,7 @@ export function hashEmails(emails: string[]): string[] {
     );
   }
 
-  return emails.map(email => hashEmail(email));
+  return Promise.all(emails.map(email => hashEmail(email)));
 }
 
 /**
@@ -107,7 +110,7 @@ export function isValidGravatarHash(hash: string): boolean {
  * @param input - Email address, hash, or profile URL
  * @returns SHA256 hash of the email
  */
-export function extractHash(input: string): string {
+export async function extractHash(input: string): Promise<string> {
   if (!input || typeof input !== 'string') {
     throw new GravatarError(
       'Input must be a non-empty string',
@@ -145,7 +148,7 @@ const CACHE_MAX_SIZE = 1000;
  * @param useCache - Whether to use caching (default: true)
  * @returns SHA256 hash of the normalized email
  */
-export function hashEmailWithCache(email: string, useCache: boolean = true): string {
+export async function hashEmailWithCache(email: string, useCache: boolean = true): Promise<string> {
   if (!useCache) {
     return hashEmail(email);
   }
@@ -160,7 +163,7 @@ export function hashEmailWithCache(email: string, useCache: boolean = true): str
   }
 
   // Generate new hash
-  const hash = hashEmail(email);
+  const hash = await hashEmail(email);
 
   // Update cache (cleanup if too large)
   if (emailHashCache.size >= CACHE_MAX_SIZE) {

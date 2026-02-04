@@ -45,7 +45,7 @@ env = "production"
 
 [run]
 # Use bash as the default shell for better compatibility
-shell = ["/bin/bash", "-c"]
+shell = "system"
 # Environment variables for development
 [run.env]
 # Disable Bun JSON warnings for cleaner output

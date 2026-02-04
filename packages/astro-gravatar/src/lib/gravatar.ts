@@ -49,7 +49,7 @@ export const DEFAULT_TIMEOUT = 10000;
  * @param options - Avatar configuration options
  * @returns Complete avatar URL
  */
-export function buildAvatarUrl(
+export async function buildAvatarUrl(
   email: string,
   options: {
     size?: number;
@@ -57,8 +57,8 @@ export function buildAvatarUrl(
     default?: DefaultAvatar;
     forceDefault?: boolean;
   } = {}
-): string {
-  const hash = hashEmailWithCache(email);
+): Promise<string> {
+  const hash = await hashEmailWithCache(email);
   const params = new URLSearchParams();
 
   // Add size parameter (1-2048 pixels)
@@ -103,8 +103,8 @@ export function buildAvatarUrl(
  * @param config - API client configuration
  * @returns Profile API URL
  */
-export function buildProfileUrl(email: string, config: GravatarClientConfig = {}): string {
-  const hash = hashEmailWithCache(email);
+export async function buildProfileUrl(email: string, config: GravatarClientConfig = {}): Promise<string> {
+  const hash = await hashEmailWithCache(email);
   const baseUrl = config.baseUrl || GRAVATAR_API_BASE;
   return `${baseUrl}/profiles/${hash}`;
 }
@@ -115,7 +115,7 @@ export function buildProfileUrl(email: string, config: GravatarClientConfig = {}
  * @param options - QR code configuration options
  * @returns QR code URL
  */
-export function buildQRCodeUrl(
+export async function buildQRCodeUrl(
   email: string,
   options: {
     size?: number;
@@ -124,8 +124,8 @@ export function buildQRCodeUrl(
     utmMedium?: string;
     utmCampaign?: string;
   } = {}
-): string {
-  const hash = hashEmailWithCache(email);
+): Promise<string> {
+  const hash = await hashEmailWithCache(email);
   const params = new URLSearchParams();
 
   // Add size parameter
@@ -252,9 +252,9 @@ async function makeRequest<T>(
       throw new GravatarError(
         errorMessage,
         response.status === 429 ? GRAVATAR_ERROR_CODES.RATE_LIMITED :
-        response.status === 401 ? GRAVATAR_ERROR_CODES.AUTH_ERROR :
-        response.status === 404 ? GRAVATAR_ERROR_CODES.NOT_FOUND :
-        GRAVATAR_ERROR_CODES.API_ERROR,
+          response.status === 401 ? GRAVATAR_ERROR_CODES.AUTH_ERROR :
+            response.status === 404 ? GRAVATAR_ERROR_CODES.NOT_FOUND :
+              GRAVATAR_ERROR_CODES.API_ERROR,
         response.status,
         rateLimit
       );
@@ -301,8 +301,9 @@ export async function getProfile(
   email: string,
   config: GravatarClientConfig = {}
 ): Promise<GravatarProfile> {
-  const url = buildProfileUrl(email, config);
-  const cacheKey = `profile:${hashEmailWithCache(email)}:${config.apiKey ? 'auth' : 'public'}`;
+  const url = await buildProfileUrl(email, config);
+  const emailHash = await hashEmailWithCache(email);
+  const cacheKey = `profile:${emailHash}:${config.apiKey ? 'auth' : 'public'}`;
 
   const response = await makeRequest<GravatarProfile>(url, config, cacheKey);
 

@@ -14,7 +14,7 @@ Hash an email address for Gravatar API requests using SHA256.
 ```typescript
 import { hashEmail } from 'astro-gravatar';
 
-const hash = hashEmail('user@example.com');
+const hash = await hashEmail('user@example.com');
 // Returns: '27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109'
 ```
 
@@ -22,13 +22,13 @@ const hash = hashEmail('user@example.com');
 - `email` (string): Email address to hash
 
 **Returns:**
-- `string`: 64-character SHA256 hash
+- `Promise<string>`: 64-character SHA256 hash
 
 **Example:**
 ```typescript
 // Direct use in avatar URL
 const email = 'user@example.com';
-const hash = hashEmail(email);
+const hash = await hashEmail(email);
 const avatarUrl = `https://www.gravatar.com/avatar/${hash}?s=200`;
 ```
 
@@ -39,7 +39,7 @@ Build a complete Gravatar avatar URL with parameters.
 ```typescript
 import { buildAvatarUrl } from 'astro-gravatar';
 
-const url = buildAvatarUrl('user@example.com', {
+const url = await buildAvatarUrl('user@example.com', {
   size: 200,
   rating: 'pg',
   default: 'identicon',
@@ -61,7 +61,7 @@ const url = buildAvatarUrl('user@example.com', {
 | `forceDefault` | `boolean` | `false` | Force default image |
 
 **Returns:**
-- `string`: Complete Gravatar avatar URL
+- `Promise<string>`: Complete Gravatar avatar URL
 
 ### getProfile
 
