@@ -26,9 +26,9 @@ import type { GravatarAvatarProps, AvatarRating, DefaultAvatar } from '../lib/ty
 interface Props {
   /** Email address to generate avatar for */
   email: string;
-  /** Avatar size in pixels (1-2048) */
+  /** Avatar size in pixels (1-2048) @default 80 */
   size?: number;
-  /** Maximum rating level allowed (g, pg, r, x) */
+  /** Maximum rating level allowed (g, pg, r, x) @default 'g' */
   rating?: AvatarRating;
   /** Default image to use when no avatar is found */
   default?: DefaultAvatar;
@@ -38,7 +38,7 @@ interface Props {
   class?: string;
   /** Alt text for the image */
   alt?: string;
-  /** Whether to enable lazy loading */
+  /** Whether to enable lazy loading @default false */
   lazy?: boolean;
 }
 
