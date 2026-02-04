@@ -183,8 +183,17 @@ jobs:
            echo "$CHANGELOG" >> $GITHUB_OUTPUT
            echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Setup Node.js for publishing
+        if: steps.version.outputs.skipped == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
       - name: Publish to npm
         if: steps.version.outputs.skipped == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           cd packages/astro-gravatar
           TAG="${{ steps.release_tag.outputs.release_tag }}"
