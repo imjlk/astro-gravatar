@@ -751,16 +751,19 @@ export class GravatarClient {
 
     const entry = this.cache.get(key);
     if (!entry) {
+      this.stats.cacheMisses++;
       return undefined;
     }
 
     const now = Date.now();
     if (now > entry.expires) {
       this.cache.delete(key);
+      this.stats.cacheMisses++;
       return undefined;
     }
 
     // Update access statistics
+    this.stats.cacheHits++;
     entry.accessCount++;
     entry.lastAccess = now;
 
@@ -774,7 +777,7 @@ export class GravatarClient {
    */
   private setCache<T>(key: string, data: T): void {
     const now = Date.now();
-    const ttl = (this.config.cache?.ttl ?? 3600000); // Convert to milliseconds (ensure default)
+    const ttl = (this.config.cache?.ttl ?? 300) * 1000; // Convert to milliseconds (ensure default)
 
     // Remove old entries if cache is full
     // Prune if too large

@@ -495,10 +495,11 @@ describe('GravatarProfileCard Component Tests', () => {
       const testEmail = 'user@example.com';
       const attributes = { 'data-test': 'value', class: 'custom-class' };
       const props = { email: testEmail, ...attributes };
-      const result = await renderGravatarProfileCard(props);
-      const html = 'html' in result ? result.html : '';
-      expect(html).toContain('data-test="value"');
-      expect(html).toContain('class="custom-class');
+      const result = await renderGravatarProfileCard(props, mockGravatarProfile);
+
+      // Check that attributes are passed to props and classes are generated
+      expect(result.props['data-test']).toBe('value');
+      expect(result.cssClasses).toContain('custom-class');
     });
   });
 

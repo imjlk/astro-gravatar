@@ -58,7 +58,7 @@ describe('GravatarClient', () => {
     expect(config.baseUrl).toBe('https://api.gravatar.com/v3');
     expect(config.timeout).toBe(10000);
     expect((defaultClient as any).config.cache?.enabled).toBe(true);
-    expect((defaultClient as any).config.cache?.ttl).toBe(300000); // 5 minutes default
+    expect((defaultClient as any).config.cache?.ttl).toBe(300); // 5 minutes default
     expect((defaultClient as any).config.cache?.maxSize).toBe(100);
     expect((defaultClient as any).config.retry?.maxAttempts).toBe(3);
   });
@@ -84,7 +84,7 @@ describe('GravatarClient', () => {
     expect(config.baseUrl).toBe('https://custom.example.com');
     expect(config.timeout).toBe(15000);
     expect(config.headers?.['X-Custom-Header']).toBe('test-value');
-    expect((customClient as any).config.cache?.ttl).toBe(600000); // 10 minutes
+    expect((customClient as any).config.cache?.ttl).toBe(600); // 10 minutes
     expect((customClient as any).config.cache?.maxSize).toBe(50);
     expect((customClient as any).config.retry?.maxAttempts).toBe(5);
   });
@@ -147,7 +147,7 @@ describe('GravatarClient', () => {
     // First request
     const result1 = await client.getProfile('test@example.com');
     expect(result1).toEqual(mockProfile);
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
 
     // Second request should use cache
     const result2 = await client.getProfile('test@example.com');
