@@ -23,7 +23,7 @@
     ],
     "types": [
       "node",
-      "bun-types"
+      "bun"
     ],
     "skipLibCheck": true
   }
