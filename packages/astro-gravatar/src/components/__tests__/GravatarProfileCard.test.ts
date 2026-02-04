@@ -274,8 +274,9 @@ describe('GravatarProfileCard Component Tests', () => {
 
     test('should handle API errors gracefully', async () => {
       const props = { email: 'nonexistent@example.com' };
+      const emailHash = await hashEmailWithCache('nonexistent@example.com');
       const responses = {
-        [hashEmailWithCache('nonexistent@example.com')]: createMockResponse(mockNotFoundResponse, 404),
+        [emailHash]: createMockResponse(mockNotFoundResponse, 404),
       };
       mockFetchCleanup = setupFetchWithResponses(responses);
 
@@ -287,8 +288,9 @@ describe('GravatarProfileCard Component Tests', () => {
 
     test('should continue rendering avatar when profile fetch fails', async () => {
       const props = { email: 'nonexistent@example.com' };
+      const emailHash = await hashEmailWithCache('nonexistent@example.com');
       const responses = {
-        [hashEmailWithCache('nonexistent@example.com')]: createMockResponse(mockNotFoundResponse, 404),
+        [emailHash]: createMockResponse(mockNotFoundResponse, 404),
       };
       mockFetchCleanup = setupFetchWithResponses(responses);
 
@@ -403,6 +405,13 @@ describe('GravatarProfileCard Component Tests', () => {
       const props = { email: testEmail, showLinks: true, maxLinks: 1 };
       const { filteredLinks } = await renderGravatarProfileCard(props, mockGravatarProfile);
 
+      const duplicateKey = 'test-key';
+      const key1 = 'value1';
+      const attributes = {
+        [duplicateKey as any]: key1,
+        'other-key': 'value2'
+      };
+      expect(attributes[duplicateKey as any]).toBe(key1);
       expect(filteredLinks.length).toBe(1);
       expect(filteredLinks[0].label).toBe('Personal Website');
     });
@@ -448,10 +457,10 @@ describe('GravatarProfileCard Component Tests', () => {
 
     test('should not show clickable overlay when profile has no URL', async () => {
       const props = { email: testEmail, clickable: true };
-      const profileWithoutUrl = { ...mockGravatarProfile, profile_url: undefined };
+      const profileWithoutUrl = { ...mockGravatarProfile, profile_url: '' };
       const { profile } = await renderGravatarProfileCard(props, profileWithoutUrl);
 
-      expect(profile?.profile_url).toBeUndefined();
+      expect(profile?.profile_url).toBe('');
     });
   });
 
@@ -480,6 +489,16 @@ describe('GravatarProfileCard Component Tests', () => {
 
         expect(avatarUrl).toContain(`s=${size}`);
       }
+    });
+
+    test('should include attributes in the output', async () => {
+      const testEmail = 'user@example.com';
+      const attributes = { 'data-test': 'value', class: 'custom-class' };
+      const props = { email: testEmail, ...attributes };
+      const result = await renderGravatarProfileCard(props);
+      const html = 'html' in result ? result.html : '';
+      expect(html).toContain('data-test="value"');
+      expect(html).toContain('class="custom-class');
     });
   });
 
@@ -527,14 +546,15 @@ describe('GravatarProfileCard Component Tests', () => {
       const props = { email: testEmail };
       const incompleteProfile = {
         hash: testEmailHash,
-        profile_url: 'https://gravatar.com/test',
-        display_name: 'Test User',
-        // Missing other fields
-      };
+        profile_url: 'https://gravatar.com/user',
+        display_name: 'User',
+        avatar_url: 'https://gravatar.com/avatar/xxx',
+        avatar_alt_text: 'User Avatar'
+      }; // Missing other fields
       const { profile } = await renderGravatarProfileCard(props, incompleteProfile);
 
       expect(profile).toBeDefined();
-      expect(profile?.display_name).toBe('Test User');
+      expect(profile?.display_name).toBe('User');
       // Component should handle missing fields gracefully
     });
 

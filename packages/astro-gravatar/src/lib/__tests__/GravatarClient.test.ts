@@ -2,12 +2,13 @@
  * Tests for GravatarClient advanced features
  */
 
-import { describe, test, expect, beforeEach, afterEach, jest } from 'bun:test';
+import { describe, test, expect, beforeEach, afterEach, jest, type Mock } from 'bun:test';
 import { GravatarClient } from '../GravatarClient.js';
-import { GravatarError, GRAVATAR_ERROR_CODES, GravatarProfile } from '../types.js';
+import { GravatarError, GRAVATAR_ERROR_CODES } from '../types.js';
+import type { GravatarProfile } from '../types';
 
 // Mock fetch for testing
-global.fetch = jest.fn();
+global.fetch = jest.fn() as any;
 
 // Mock console methods to avoid noise in tests
 const originalConsoleError = console.error;
@@ -15,11 +16,11 @@ const originalConsoleWarn = console.warn;
 
 describe('GravatarClient', () => {
   let client: GravatarClient;
-  let mockFetch: jest.MockedFunction<typeof fetch>;
+  let fetchMock: Mock<any>;
 
   beforeEach(() => {
-    mockFetch = fetch as jest.MockedFunction<typeof fetch>;
-    mockFetch.mockClear();
+    fetchMock = global.fetch as unknown as Mock<any>;
+    fetchMock.mockClear();
 
     // Reset console methods
     console.error = jest.fn();
@@ -56,10 +57,10 @@ describe('GravatarClient', () => {
 
     expect(config.baseUrl).toBe('https://api.gravatar.com/v3');
     expect(config.timeout).toBe(10000);
-    expect(config.cache.enabled).toBe(true);
-    expect(config.cache.ttl).toBe(300);
-    expect(config.cache.maxSize).toBe(100);
-    expect(config.retry.maxAttempts).toBe(3);
+    expect((defaultClient as any).config.cache?.enabled).toBe(true);
+    expect((defaultClient as any).config.cache?.ttl).toBe(300000); // 5 minutes default
+    expect((defaultClient as any).config.cache?.maxSize).toBe(100);
+    expect((defaultClient as any).config.retry?.maxAttempts).toBe(3);
   });
 
   test('should merge configuration properly', () => {
@@ -82,10 +83,10 @@ describe('GravatarClient', () => {
     const config = customClient.getConfig();
     expect(config.baseUrl).toBe('https://custom.example.com');
     expect(config.timeout).toBe(15000);
-    expect(config.headers['X-Custom-Header']).toBe('test-value');
-    expect(config.cache.ttl).toBe(600);
-    expect(config.cache.maxSize).toBe(50);
-    expect(config.retry.maxAttempts).toBe(5);
+    expect(config.headers?.['X-Custom-Header']).toBe('test-value');
+    expect((customClient as any).config.cache?.ttl).toBe(600000); // 10 minutes
+    expect((customClient as any).config.cache?.maxSize).toBe(50);
+    expect((customClient as any).config.retry?.maxAttempts).toBe(5);
   });
 
   test('should update configuration', () => {
@@ -98,7 +99,7 @@ describe('GravatarClient', () => {
 
     const config = client.getConfig();
     expect(config.timeout).toBe(20000);
-    expect(config.headers['X-New-Header']).toBe('new-value');
+    expect(config.headers?.['X-New-Header']).toBe('new-value');
   });
 
   // ============================================================================
@@ -114,18 +115,13 @@ describe('GravatarClient', () => {
       display_name: 'Test User',
     };
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => mockProfile,
-      headers: new Headers(),
-    } as Response);
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify(mockProfile)));
 
     const result = await client.getProfile('test@example.com');
 
     expect(result).toEqual(mockProfile);
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/profiles/'),
       expect.objectContaining({
         method: 'GET',
@@ -146,12 +142,7 @@ describe('GravatarClient', () => {
       display_name: 'Test User',
     };
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => mockProfile,
-      headers: new Headers(),
-    } as Response);
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify(mockProfile)));
 
     // First request
     const result1 = await client.getProfile('test@example.com');
@@ -161,7 +152,7 @@ describe('GravatarClient', () => {
     // Second request should use cache
     const result2 = await client.getProfile('test@example.com');
     expect(result2).toEqual(mockProfile);
-    expect(mockFetch).toHaveBeenCalledTimes(1); // Should not increase
+    expect(fetchMock).toHaveBeenCalledTimes(1); // Should not increase
 
     // Check cache stats
     const cacheStats = client.getCacheStats();
@@ -174,19 +165,16 @@ describe('GravatarClient', () => {
   // ============================================================================
 
   test('should handle API errors properly', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
+    fetchMock.mockImplementation(async () => new Response('Profile not found', {
       status: 404,
       statusText: 'Not Found',
-      text: async () => 'Profile not found',
-      headers: new Headers(),
-    } as Response);
+    }));
 
     await expect(client.getProfile('nonexistent@example.com')).rejects.toThrow(GravatarError);
   });
 
   test('should handle network timeouts', async () => {
-    mockFetch.mockImplementationOnce(() => {
+    fetchMock.mockImplementation(() => {
       return new Promise((_, reject) => {
         setTimeout(() => reject(new Error('AbortError')), 100);
       });
@@ -212,8 +200,8 @@ describe('GravatarClient', () => {
     };
 
     // First call fails, second succeeds
-    mockFetch
-      .mockRejectedValueOnce(new Error('Network error'))
+    fetchMock
+      .mockImplementationOnce(async () => Promise.reject(new Error('Network error')))
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -223,30 +211,27 @@ describe('GravatarClient', () => {
 
     const result = await client.getProfile('test@example.com');
     expect(result).toEqual(mockProfile);
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
 
     const stats = client.getRequestStats();
     expect(stats.totalRetries).toBe(1);
   });
 
   test('should respect maximum retry attempts', async () => {
-    mockFetch.mockRejectedValue(new Error('Persistent network error'));
+    fetchMock.mockImplementation(async () => Promise.reject(new Error('Persistent network error')));
 
     await expect(client.getProfile('test@example.com')).rejects.toThrow(GravatarError);
-    expect(mockFetch).toHaveBeenCalledTimes(2); // 1 initial + 1 retry
+    expect(fetchMock).toHaveBeenCalledTimes(2); // 1 initial + 1 retry
   });
 
   test('should not retry on authentication errors', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
+    fetchMock.mockImplementation(async () => new Response('Invalid API key', {
       status: 401,
       statusText: 'Unauthorized',
-      text: async () => 'Invalid API key',
-      headers: new Headers(),
-    } as Response);
+    }));
 
     await expect(client.getProfile('test@example.com')).rejects.toThrow(GravatarError);
-    expect(mockFetch).toHaveBeenCalledTimes(1); // Should not retry
+    expect(fetchMock).toHaveBeenCalledTimes(1); // Should not retry
   });
 
   // ============================================================================
@@ -268,7 +253,7 @@ describe('GravatarClient', () => {
       'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) + 1),
     });
 
-    mockFetch
+    fetchMock
       .mockResolvedValueOnce({
         ok: false,
         status: 429,
@@ -285,7 +270,7 @@ describe('GravatarClient', () => {
 
     const result = await client.getProfile('test@example.com');
     expect(result).toEqual(mockProfile);
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   // ============================================================================
@@ -310,7 +295,7 @@ describe('GravatarClient', () => {
       },
     ];
 
-    mockFetch
+    fetchMock
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -329,7 +314,7 @@ describe('GravatarClient', () => {
     expect(results).toHaveLength(2);
     expect(results[0].profile).toEqual(mockProfiles[0]);
     expect(results[1].profile).toEqual(mockProfiles[1]);
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   test('should handle mixed success and failure in batch', async () => {
@@ -341,7 +326,7 @@ describe('GravatarClient', () => {
       display_name: 'Test User',
     };
 
-    mockFetch
+    fetchMock
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -384,7 +369,7 @@ describe('GravatarClient', () => {
     let concurrentCount = 0;
     let maxConcurrent = 0;
 
-    mockFetch.mockImplementation(async () => {
+    fetchMock.mockImplementation(async () => {
       concurrentCount++;
       maxConcurrent = Math.max(maxConcurrent, concurrentCount);
       await new Promise(resolve => setTimeout(resolve, 50));
@@ -424,7 +409,7 @@ describe('GravatarClient', () => {
       },
     });
 
-    mockFetch.mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => mockProfile,
@@ -451,7 +436,7 @@ describe('GravatarClient', () => {
       display_name: 'Test User',
     };
 
-    mockFetch.mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => mockProfile,
@@ -474,7 +459,7 @@ describe('GravatarClient', () => {
       display_name: 'Test User',
     };
 
-    mockFetch.mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => mockProfile,
@@ -497,7 +482,7 @@ describe('GravatarClient', () => {
 
     // Should make new request
     await shortTtlClient.getProfile('test@example.com');
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   // ============================================================================
@@ -513,19 +498,14 @@ describe('GravatarClient', () => {
       display_name: 'Test User',
     };
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => mockProfile,
-      headers: new Headers(),
-    } as Response);
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify(mockProfile)));
 
     await client.getProfile('test@example.com');
     await client.getProfile('test2@example.com');
 
     // Simulate a failure - client will retry once, so expect 2 requests
-    mockFetch.mockReset();
-    mockFetch.mockRejectedValue(new Error('Network error'));
+    fetchMock.mockReset();
+    fetchMock.mockImplementation(async () => Promise.reject(new Error('Network error')));
     try {
       await client.getProfile('fail@example.com');
     } catch {
@@ -548,12 +528,7 @@ describe('GravatarClient', () => {
       display_name: 'Test User',
     };
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => mockProfile,
-      headers: new Headers(),
-    } as Response);
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify(mockProfile)));
 
     await client.getProfile('test@example.com');
     await client.getProfile('test@example.com'); // From cache
@@ -581,16 +556,11 @@ describe('GravatarClient', () => {
       },
     });
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({}),
-      headers: new Headers(),
-    } as Response);
+    fetchMock.mockImplementation(async () => new Response('{}'));
 
     await customClient.getProfile('test@example.com');
 
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
         headers: expect.objectContaining({
@@ -618,17 +588,12 @@ describe('GravatarClient', () => {
       display_name: 'Test User',
     };
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => mockProfile,
-      headers: new Headers(),
-    } as Response);
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify(mockProfile)));
 
     await noCacheClient.getProfile('test@example.com');
     await noCacheClient.getProfile('test@example.com');
 
-    expect(mockFetch).toHaveBeenCalledTimes(2); // Should not use cache
+    expect(fetchMock).toHaveBeenCalledTimes(2); // Should not use cache
     expect(noCacheClient.getCacheStats().size).toBe(0);
   });
 });

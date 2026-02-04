@@ -3,15 +3,17 @@
  * Provides configurable API client with caching, retry logic, and rate limiting
  */
 
-import {
+import type {
   GravatarProfile,
   GravatarClientConfig,
   GravatarApiResponse,
   RateLimitInfo,
-  GravatarError,
-  GRAVATAR_ERROR_CODES,
+} from './types.js'; // Import types
+import { GravatarError, GRAVATAR_ERROR_CODES } from './types.js'; // Import values
+
+import type {
   CacheEntry,
-  CacheOptions
+  CacheOptions,
 } from './types.js';
 import { hashEmailWithCache } from '../utils/hash.js';
 import {
@@ -54,6 +56,8 @@ export interface GravatarClientOptions extends GravatarClientConfig {
     autoHandle?: boolean;
     /** Additional buffer to add to rate limits (default: 0.1 = 10%) */
     safetyBuffer?: number;
+    /** Maximum concurrent requests (default: 10) */
+    maxConcurrent?: number;
   };
 }
 
@@ -98,6 +102,12 @@ export interface ClientRequestStats {
   successfulRequests: number;
   /** Number of failed requests */
   failedRequests: number;
+  /** Number of cache hits */
+  cacheHits: number;
+  /** Number of cache misses */
+  cacheMisses: number;
+  /** Average response time in milliseconds */
+  averageResponseTime: number;
   /** Number of retries attempted */
   totalRetries: number;
   /** Current rate limit information */
@@ -124,6 +134,7 @@ export class GravatarClient {
   private config: Required<GravatarClientOptions>;
   private cache: Map<string, CacheEntry>;
   private stats: ClientRequestStats;
+  private currentRequests: number = 0; // Track concurrent requests
 
   // Default configuration
   private static readonly DEFAULTS: Required<GravatarClientOptions> = {
@@ -146,6 +157,7 @@ export class GravatarClient {
     rateLimit: {
       autoHandle: true,
       safetyBuffer: 0.1, // 10% safety buffer
+      maxConcurrent: 10,
     },
   };
 
@@ -181,6 +193,9 @@ export class GravatarClient {
       totalRequests: 0,
       successfulRequests: 0,
       failedRequests: 0,
+      cacheHits: 0,
+      cacheMisses: 0,
+      averageResponseTime: 0,
       totalRetries: 0,
     };
   }
@@ -203,7 +218,7 @@ export class GravatarClient {
     const cacheKey = await this.getCacheKey(email, mergedConfig);
 
     // Check cache first
-    if (mergedConfig.cache.enabled) {
+    if (mergedConfig.cache?.enabled) {
       const cached = this.getFromCache<GravatarProfile>(cacheKey);
       if (cached) {
         return cached;
@@ -213,6 +228,7 @@ export class GravatarClient {
     const url = await buildProfileUrl(email, mergedConfig);
 
     try {
+      this.currentRequests++;
       const response = await this.makeRequestWithRetry<GravatarProfile>(
         url,
         mergedConfig,
@@ -229,6 +245,8 @@ export class GravatarClient {
       return response.data;
     } catch (error) {
       throw error;
+    } finally {
+      this.currentRequests--;
     }
   }
 
@@ -265,6 +283,17 @@ export class GravatarClient {
 
       const batchPromises = batch.map(async (email) => {
         try {
+          // Wait for a slot to free up if maxConcurrent is exceeded
+          if (this.currentRequests >= (this.config.rateLimit?.maxConcurrent ?? 10)) {
+            await new Promise<void>(resolve => {
+              const interval = setInterval(() => {
+                if (this.currentRequests < (this.config.rateLimit?.maxConcurrent ?? 10)) {
+                  clearInterval(interval);
+                  resolve();
+                }
+              }, 50);
+            });
+          }
           const profile = await this.getProfile(email, clientOptions);
           return { email, profile };
         } catch (error) {
@@ -350,9 +379,9 @@ export class GravatarClient {
 
     return {
       size: this.cache.size,
-      maxSize: this.config.cache.maxSize,
-      ttl: this.config.cache.ttl,
-      hits: cacheHits,
+      ttl: (this.config.cache?.ttl ?? 3600000),
+      maxSize: (this.config.cache?.maxSize ?? 100),
+      hits: this.stats.cacheHits,
       misses: cacheMisses,
       hitRatio,
       entries,
@@ -378,10 +407,6 @@ export class GravatarClient {
       headers: {
         ...this.config.headers,
         ...options.headers,
-      },
-      cache: {
-        ...this.config.cache,
-        ...options.cache,
       },
       retry: {
         ...this.config.retry,
@@ -421,7 +446,7 @@ export class GravatarClient {
   ): Promise<GravatarApiResponse<T>> {
     let lastError: GravatarError | null = null;
     let attempt = 0;
-    const maxAttempts = config.retry.maxAttempts;
+    const maxAttempts = config.retry?.maxAttempts ?? 3;
 
     while (attempt < maxAttempts) {
       try {
@@ -429,7 +454,7 @@ export class GravatarClient {
         const response = await this.makeRequest<T>(url, config);
 
         // Cache successful response
-        if (cacheKey && config.cache.enabled) {
+        if (cacheKey && config.cache?.enabled) {
           this.setCache(cacheKey, response.data);
         }
 
@@ -457,7 +482,7 @@ export class GravatarClient {
         // Handle rate limits
         if (lastError.code === GRAVATAR_ERROR_CODES.RATE_LIMITED &&
           lastError.rateLimit &&
-          config.rateLimit.autoHandle) {
+          config.rateLimit?.autoHandle) {
           const rateLimitDelay = this.calculateRateLimitDelay(lastError.rateLimit, config);
           await this.delay(Math.max(delay, rateLimitDelay));
         } else {
@@ -602,7 +627,7 @@ export class GravatarClient {
 
     // Retry on rate limit errors if configured
     if (error.code === GRAVATAR_ERROR_CODES.RATE_LIMITED) {
-      return config.retry.retryOnRateLimit;
+      return config.retry?.retryOnRateLimit ?? true;
     }
 
     // Retry on network errors and API errors
@@ -625,15 +650,19 @@ export class GravatarClient {
     attempt: number,
     config: Required<GravatarClientOptions>
   ): number {
-    const exponentialDelay = config.retry.baseDelay *
-      Math.pow(config.retry.backoffFactor, attempt - 1);
+    const retryConfig = config.retry ?? GravatarClient.DEFAULTS.retry;
+    const baseDelay = retryConfig.baseDelay ?? GravatarClient.DEFAULTS.retry.baseDelay ?? 1000;
+    const backoffFactor = retryConfig.backoffFactor ?? GravatarClient.DEFAULTS.retry.backoffFactor ?? 2;
+    const maxDelay = retryConfig.maxDelay ?? GravatarClient.DEFAULTS.retry.maxDelay ?? 10000;
+
+    const exponentialDelay = baseDelay * Math.pow(backoffFactor, attempt - 1);
 
     // Add jitter to prevent thundering herd
     const jitter = Math.random() * 0.1 * exponentialDelay;
 
     return Math.min(
       exponentialDelay + jitter,
-      config.retry.maxDelay
+      maxDelay
     );
   }
 
@@ -647,12 +676,13 @@ export class GravatarClient {
     rateLimit: RateLimitInfo,
     config: Required<GravatarClientOptions>
   ): number {
-    const now = Date.now() / 1000; // Convert to seconds
+    const now = Date.now(); // Current time in milliseconds
     const resetTime = rateLimit.reset * 1000; // Convert to milliseconds
 
-    // Add safety buffer
-    const bufferAmount = (resetTime - Date.now()) * config.rateLimit.safetyBuffer;
-    const delayUntilReset = Math.max(0, resetTime - Date.now() + bufferAmount);
+    const safetyBuffer = (config.rateLimit?.safetyBuffer ?? 0.1);
+    const bufferAmount = (resetTime - now) * safetyBuffer;
+
+    const delayUntilReset = Math.max(0, resetTime - now + bufferAmount);
 
     return delayUntilReset;
   }
@@ -714,6 +744,11 @@ export class GravatarClient {
    * @returns Cached data or undefined
    */
   private getFromCache<T>(key: string): T | undefined {
+    const isCacheEnabled = this.config.cache?.enabled ?? true;
+    if (!isCacheEnabled) {
+      return undefined;
+    }
+
     const entry = this.cache.get(key);
     if (!entry) {
       return undefined;
@@ -739,10 +774,12 @@ export class GravatarClient {
    */
   private setCache<T>(key: string, data: T): void {
     const now = Date.now();
-    const ttl = this.config.cache.ttl * 1000; // Convert to milliseconds
+    const ttl = (this.config.cache?.ttl ?? 3600000); // Convert to milliseconds (ensure default)
 
     // Remove old entries if cache is full
-    if (this.cache.size >= this.config.cache.maxSize) {
+    // Prune if too large
+    const maxSize = this.config.cache?.maxSize ?? 100;
+    if (this.cache.size >= maxSize) {
       this.evictOldestEntries();
     }
 
@@ -767,7 +804,8 @@ export class GravatarClient {
     entries.sort(([, a], [, b]) => a.lastAccess - b.lastAccess);
 
     // Remove enough entries to maintain maxSize
-    const toRemove = entries.length - this.config.cache.maxSize + 1;
+    const maxSize = this.config.cache?.maxSize ?? 100;
+    const toRemove = entries.length - maxSize + 1;
     for (let i = 0; i < toRemove; i++) {
       this.cache.delete(entries[i][0]);
     }

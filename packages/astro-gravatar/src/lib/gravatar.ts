@@ -2,16 +2,15 @@
  * Core Gravatar utilities including URL building and API client
  */
 
-import {
+import type {
   GravatarProfile,
   GravatarClientConfig,
   GravatarApiResponse,
   RateLimitInfo,
-  GravatarError,
-  GRAVATAR_ERROR_CODES,
   AvatarRating,
   DefaultAvatar
-} from './types.js';
+} from './types.js'; // Import types
+import { GravatarError, GRAVATAR_ERROR_CODES } from './types.js'; // Import values
 import { hashEmailWithCache } from '../utils/hash.js';
 
 // ============================================================================

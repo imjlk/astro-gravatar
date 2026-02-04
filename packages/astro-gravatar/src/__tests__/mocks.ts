@@ -190,8 +190,8 @@ export const mockNetworkErrorResponse: GravatarApiResponse = {
 /**
  * Creates a mock fetch function that simulates Gravatar API responses
  */
-export function createMockFetch(responseMap: Record<string, Response>): typeof fetch {
-  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+export function createMockFetch(responseMap: Record<string, Response>): any {
+  return (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = typeof input === 'string' ? input : input.toString();
 
     // Find matching mock response
@@ -206,7 +206,7 @@ export function createMockFetch(responseMap: Record<string, Response>): typeof f
       status: 404,
       headers: { 'Content-Type': 'application/json' },
     });
-  };
+  }) as any;
 }
 
 /**

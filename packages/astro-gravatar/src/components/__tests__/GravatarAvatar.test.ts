@@ -132,9 +132,9 @@ describe('GravatarAvatar Component Tests', () => {
         if (scaledSize > 2048) return null;
         const scaledUrl = await buildAvatarUrl(testEmail, {
           size: scaledSize,
-          rating: props.rating,
-          default: props.default,
-          forceDefault: props.forceDefault,
+          rating: 'rating' in props ? (props as any).rating : undefined,
+          default: 'default' in props ? (props as any).default : undefined,
+          forceDefault: 'forceDefault' in props ? (props as any).forceDefault : undefined,
         });
         return `${scaledUrl} ${scale}x`;
       });
@@ -185,7 +185,7 @@ describe('GravatarAvatar Component Tests', () => {
       const props = { email: testEmail };
       const rendered = await renderGravatarAvatar(props);
 
-      expect(props.size).toBeUndefined();
+      expect((props as any).size).toBeUndefined();
     });
   });
 

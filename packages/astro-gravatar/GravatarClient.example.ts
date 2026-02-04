@@ -78,7 +78,7 @@ async function advancedExample() {
       if (profile) {
         console.log(`${email}: ${profile.display_name}`);
       } else {
-        console.error(`${email}: Failed - ${error?.message}`);
+        console.error(`${email}: Failed - ${(error as Error)?.message}`);
       }
     });
 
@@ -157,11 +157,12 @@ async function errorHandlingExample() {
     const profile = await client.getProfile('nonexistent@example.com');
     console.log('Profile:', profile);
   } catch (error) {
-    console.log('Expected error occurred:', error.message);
+    console.log('Expected error occurred:', (error as Error).message);
+    const err = error as any;
 
     // Check if it was a rate limit error
-    if (error.code === 'RATE_LIMITED' && error.rateLimit) {
-      console.log(`Rate limited. Reset at: ${new Date(error.rateLimit.reset * 1000)}`);
+    if (err.code === 'RATE_LIMITED' && err.rateLimit) {
+      console.log(`Rate limited. Reset at: ${new Date(err.rateLimit.reset * 1000)}`);
     }
   }
 }

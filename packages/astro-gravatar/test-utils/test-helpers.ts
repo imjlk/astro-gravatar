@@ -18,12 +18,12 @@ export function setupTestEnvironment() {
 
   beforeAll(() => {
     // Mock fetch by default
-    global.fetch = mockDefaultFetch;
+    global.fetch = mockDefaultFetch as any;
   });
 
   afterEach(() => {
     // Reset any test-specific mocks
-    global.fetch = mockDefaultFetch;
+    global.fetch = mockDefaultFetch as any;
   });
 
   afterAll(() => {
@@ -90,9 +90,9 @@ export function createFetchMock(responses: Record<string, Response>) {
  */
 export function setupFetchWithResponses(responses: Record<string, Response>) {
   const mockFetch = createFetchMock(responses);
-  global.fetch = mockFetch;
+  global.fetch = mockFetch as any;
   return () => {
-    global.fetch = mockDefaultFetch;
+    global.fetch = mockDefaultFetch as any;
   };
 }
 
@@ -330,12 +330,12 @@ export function setupMockDOM() {
         tagName: tag.toUpperCase(),
         className: '',
         innerHTML: '',
-        setAttribute: () => {},
+        setAttribute: () => { },
         getAttribute: () => null,
-        appendChild: () => {},
+        appendChild: () => { },
       }),
       body: {
-        appendChild: () => {},
+        appendChild: () => { },
       },
     };
   }

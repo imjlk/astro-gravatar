@@ -297,13 +297,12 @@ describe('API Client Functions', () => {
       const emailHash = await hashEmailWithCache(email);
 
       let receivedHeaders: Record<string, string> = {};
-
       const restoreFetch = setupFetchWithResponses({
         [`profiles/${emailHash}`]: createMockResponse(mockProfile, 200),
       });
 
       // Override fetch to capture headers
-      global.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      global.fetch = (async (input: RequestInfo | URL, init?: RequestInit | BunFetchRequestInit) => {
         receivedHeaders = (init?.headers as Record<string, string>) || {};
         const url = typeof input === 'string' ? input : input.toString();
 
@@ -312,7 +311,7 @@ describe('API Client Functions', () => {
         }
 
         return createMockResponse({ error: 'Not found' }, 404);
-      };
+      }) as any;
 
       await getProfile(email, { apiKey });
 
@@ -382,7 +381,7 @@ describe('API Client Functions', () => {
       const email = 'test@example.com';
 
       // Mock fetch that returns an abort error when signal is aborted
-      global.fetch = async (_, init) => {
+      global.fetch = (async (_: unknown, init?: RequestInit | BunFetchRequestInit) => {
         return new Promise((_, reject) => {
           const signal = init?.signal as AbortSignal;
 
@@ -392,7 +391,7 @@ describe('API Client Functions', () => {
             });
           }
         });
-      };
+      }) as any;
 
       try {
         await getProfile(email, { timeout: 100 }); // 100ms timeout
@@ -425,7 +424,7 @@ describe('API Client Functions', () => {
       const mockProfile = TestDataGenerator.profile();
       let fetchCallCount = 0;
 
-      global.fetch = async (input: RequestInfo | URL) => {
+      global.fetch = (async (input: RequestInfo | URL) => {
         fetchCallCount++;
         const url = typeof input === 'string' ? input : input.toString();
 
@@ -438,7 +437,7 @@ describe('API Client Functions', () => {
         }
 
         return createMockResponse({ error: 'Not found' }, 404);
-      };
+      }) as any;
 
       // First call
       await getProfile(email);
@@ -534,7 +533,7 @@ describe('API Client Functions', () => {
 
       let fetchCallCount = 0;
 
-      global.fetch = async (input: RequestInfo | URL) => {
+      global.fetch = (async (input: RequestInfo | URL) => {
         fetchCallCount++;
         const url = typeof input === 'string' ? input : input.toString();
 
@@ -547,7 +546,7 @@ describe('API Client Functions', () => {
         }
 
         return createMockResponse({ error: 'Not found' }, 404);
-      };
+      }) as any;
 
       // First call to populate cache
       await getProfile(email);
@@ -607,7 +606,7 @@ describe('API Client Functions', () => {
 
       let fetchCallCount = 0;
 
-      global.fetch = async (input: RequestInfo | URL) => {
+      global.fetch = (async (input: RequestInfo | URL) => {
         fetchCallCount++;
         const url = typeof input === 'string' ? input : input.toString();
 
@@ -620,7 +619,7 @@ describe('API Client Functions', () => {
         }
 
         return createMockResponse({ error: 'Not found' }, 404);
-      };
+      }) as any;
 
       // First call
       await getProfile(email);

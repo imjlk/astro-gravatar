@@ -716,7 +716,7 @@ describe('Performance Tests', () => {
     const emails = TestDataGenerator.emails(100); // 100 unique emails
 
     // Stress test with caching
-    const { duration } = await benchmark(async () => {
+    const result = await benchmark(async () => {
       const email = emails[Math.floor(Math.random() * emails.length)];
       return hashEmailWithCache(email);
     }, iterations);
