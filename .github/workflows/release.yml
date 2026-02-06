@@ -194,9 +194,13 @@ jobs:
         run: |
           node -v
           npm -v
+          npm whoami || echo "Not logged in"
+          npm config list
           echo "Repository: ${{ github.repository }}"
           echo "Workflow: ${{ github.workflow }}"
           echo "Event: ${{ github.event_name }}"
+          find . -name ".npmrc"
+          ls -la ~/.npmrc || echo "No global .npmrc"
 
       - name: Fix package.json errors
         if: steps.version.outputs.skipped == 'false'
@@ -210,6 +214,10 @@ jobs:
           cd packages/astro-gravatar
           TAG="${{ steps.release_tag.outputs.release_tag }}"
           echo "Publishing with tag: $TAG"
+          
+          # Force OIDC auth for npm registry
+          echo "//registry.npmjs.org/:token_type=oidc" > .npmrc
+          
           npm publish --tag "$TAG" --provenance --access public
 
       - name: Create GitHub Release
