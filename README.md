@@ -143,10 +143,9 @@ bun run pkg:get                 # Get package information
 bun run pkg:fix                 # Auto-fix package issues
 
 # Release Management
-bun run release:patch           # Patch release
-bun run release:minor           # Minor release
-bun run release:major           # Major release
-bun run release:beta            # Beta release
+bun run changeset               # Create a new changeset
+bun run changeset:pre           # Enter/exit pre-release mode
+bun run release:prepare         # Prepare release (dry run)
 ```
 
 ## 📚 Documentation
@@ -186,32 +185,40 @@ bun run test:watch
 - **Components Tested**: 3
 - **Utilities Tested**: 8
 
-## 🚀 Deployment
+## 🚀 Deployment & Release Workflow
 
-### Package Publishing
+This project uses **[Sampo](https://github.com/bruits/sampo)** for automated versioning, changelog generation, and publishing.
 
-The project includes automated release scripts:
+### 1. Creating Changesets
+
+All PRs that affect the published package should include a changeset file. This file describes the changes and the type of version bump (patch, minor, major).
 
 ```bash
-# Patch release (bug fixes)
-bun run release:patch
-
-# Minor release (new features)
-bun run release:minor
-
-# Major release (breaking changes)
-bun run release:major
-
-# Beta release (pre-release)
-bun run release:beta
+# Run this command and follow the interactive prompts
+bun run changeset
 ```
+
+Alternatively, you can install the [Sampo GitHub App](https://github.com/apps/sampo) to get reminders on your PRs.
+
+### 2. Release Process (Automated)
+
+1.  When a PR with a changeset is merged to `main`, Sampo automatically creates a **"Release PR"**.
+2.  This Release PR accumulates changesets and updates the `CHANGELOG.md` and version numbers.
+3.  **Review and Merge** the Release PR when you are ready to publish.
+4.  Upon merging the Release PR, the CI workflow triggers `sampo release` and publishes the package to npm.
+
+### 3. Pre-releases
+
+Pre-releases are managed via branches:
+- Push/Merge to `beta` branch → Automatically publishes a `beta` release.
+- Push/Merge to `alpha` branch → Automatically publishes an `alpha` release.
 
 ### CI/CD
 
-- **GitHub Actions**: Automated testing and deployment
+- **GitHub Actions**: Automated testing and deployment via `.github/workflows/release.yml`
 - **Multi-Node Testing**: Tests on Node.js 18, 20, 22
 - **Coverage Reporting**: Codecov integration
-- **Automated Releases**: Git tag-based publishing
+- **Automated Releases**: Sampo-driven release workflow
 
 ## 🤝 Contributing
 
