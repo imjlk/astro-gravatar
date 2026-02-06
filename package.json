@@ -35,7 +35,9 @@
     "pkg:version": "cd packages/astro-gravatar && bun pm version",
     "pre-release": "bun run build && bun run test && bun run typecheck",
     "release": "bun run pre-release && bun run release:patch",
-    "release:prepare": "bun run pre-release",
+    "release:prepare": "sampo release",
+    "changeset": "sampo add",
+    "changeset:pre": "sampo pre",
 
     "clean": "bun run clean:all",
     "clean:all": "rm -rf node_modules packages/*/node_modules apps/*/node_modules bun.lockb && bun install"

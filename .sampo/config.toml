@@ -1,0 +1,17 @@
+version = 1
+
+[git]
+default_branch = "main"
+release_branches = ["beta", "alpha"]
+
+[github]
+repository = "imjlk/astro-gravatar"
+
+[packages]
+ignore_unpublished = true
+ignore = ["apps/astro-gravatar.and.guide"]
+
+[changelog]
+show_commit_hash = true
+show_acknowledgments = true
+
