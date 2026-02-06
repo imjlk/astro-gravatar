@@ -188,7 +188,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Debug Environment
         if: steps.version.outputs.skipped == 'false'
@@ -199,18 +198,19 @@ jobs:
           echo "Workflow: ${{ github.workflow }}"
           echo "Event: ${{ github.event_name }}"
 
+      - name: Fix package.json errors
+        if: steps.version.outputs.skipped == 'false'
+        run: |
+          cd packages/astro-gravatar
+          npm pkg fix
+
       - name: Publish to npm
         if: steps.version.outputs.skipped == 'false'
         run: |
           cd packages/astro-gravatar
           TAG="${{ steps.release_tag.outputs.release_tag }}"
-          
           echo "Publishing with tag: $TAG"
-          
-          # Ensure we are using the correct registry and no stale tokens
-          npm publish --tag "$TAG" --provenance --access public --registry https://registry.npmjs.org/
-          
-          echo "Published successfully!"
+          npm publish --tag "$TAG" --provenance --access public
 
       - name: Create GitHub Release
         if: steps.version.outputs.skipped == 'false'
