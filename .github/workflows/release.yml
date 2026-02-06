@@ -203,6 +203,13 @@ jobs:
           find . -name ".npmrc"
           ls -la ~/.npmrc || echo "No global .npmrc"
 
+      - name: Fix package.json and Configure OIDC
+        if: steps.version.outputs.skipped == 'false'
+        run: |
+          cd packages/astro-gravatar
+          npm pkg fix
+          npm config set //registry.npmjs.org/:token_type oidc
+
       - name: Publish to npm
         if: steps.version.outputs.skipped == 'false'
         run: |
@@ -210,8 +217,7 @@ jobs:
           TAG="${{ steps.release_tag.outputs.release_tag }}"
           echo "Attempting to publish with tag: $TAG"
           
-          # Pure Trusted Publishing (OIDC)
-          # No manual .npmrc or tokens needed
+          # Trusted Publishing (OIDC) via provenance
           npm publish --tag "$TAG" --provenance --access public
 
       - name: Create GitHub Release
