@@ -187,7 +187,17 @@ jobs:
         if: steps.version.outputs.skipped == 'false'
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Debug Environment
+        if: steps.version.outputs.skipped == 'false'
+        run: |
+          node -v
+          npm -v
+          echo "Repository: ${{ github.repository }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Event: ${{ github.event_name }}"
 
       - name: Publish to npm
         if: steps.version.outputs.skipped == 'false'
@@ -197,11 +207,8 @@ jobs:
           
           echo "Publishing with tag: $TAG"
           
-          if [[ "$TAG" == "latest" ]]; then
-            npm publish --provenance --access public
-          else
-            npm publish --tag $TAG --provenance --access public
-          fi
+          # Ensure we are using the correct registry and no stale tokens
+          npm publish --tag "$TAG" --provenance --access public --registry https://registry.npmjs.org/
           
           echo "Published successfully!"
 
