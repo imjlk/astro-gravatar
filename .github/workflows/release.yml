@@ -194,30 +194,24 @@ jobs:
         run: |
           node -v
           npm -v
-          npm whoami || echo "Not logged in"
+          npm whoami || echo "Not logged in (Expected for OIDC before publish)"
           npm config list
-          echo "Repository: ${{ github.repository }}"
-          echo "Workflow: ${{ github.workflow }}"
-          echo "Event: ${{ github.event_name }}"
+          echo "GitHub Repository: $GITHUB_REPOSITORY"
+          echo "GitHub Workflow: $GITHUB_WORKFLOW"
+          echo "GitHub Job: $GITHUB_JOB"
+          echo "GitHub Ref: $GITHUB_REF"
           find . -name ".npmrc"
           ls -la ~/.npmrc || echo "No global .npmrc"
-
-      - name: Fix package.json errors
-        if: steps.version.outputs.skipped == 'false'
-        run: |
-          cd packages/astro-gravatar
-          npm pkg fix
 
       - name: Publish to npm
         if: steps.version.outputs.skipped == 'false'
         run: |
           cd packages/astro-gravatar
           TAG="${{ steps.release_tag.outputs.release_tag }}"
-          echo "Publishing with tag: $TAG"
+          echo "Attempting to publish with tag: $TAG"
           
-          # Force OIDC auth for npm registry
-          echo "//registry.npmjs.org/:token_type=oidc" > .npmrc
-          
+          # Pure Trusted Publishing (OIDC)
+          # No manual .npmrc or tokens needed
           npm publish --tag "$TAG" --provenance --access public
 
       - name: Create GitHub Release
