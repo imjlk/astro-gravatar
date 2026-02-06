@@ -3,39 +3,27 @@ name: Release
 on:
   push:
     branches:
+      - beta
+      - alpha
+  pull_request:
+    types: [closed]
+    branches:
       - main
-    tags:
-      - 'v*' # Trigger on version tags (v1.0.0, v1.0.1, etc.)
-  workflow_dispatch:
-    inputs:
-      version_type:
-        description: 'Type of version bump'
-        required: true
-        default: 'patch'
-        type: choice
-        options:
-        - patch
-        - minor
-        - major
-        - prerelease
-        - beta
-        - alpha
-      tag:
-        description: 'Release tag (optional)'
-        required: false
-        type: string
+
+permissions:
+  contents: write
+  id-token: write
 
 jobs:
   release:
-    name: Create Release
+    name: Release
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'chore(release):')"
-    permissions:
-      contents: write
-      id-token: write
-
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/beta' || github.ref == 'refs/heads/alpha')) ||
+      (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main')
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -63,191 +51,56 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Determine Version Bump
-        id: bump
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          # Get the latest tag
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
-          if [ -z "$LATEST_TAG" ]; then
-            echo "No tags found, defaulting to patch"
-            echo "type=patch" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "Latest tag: $LATEST_TAG"
-          
-          # Get commits since latest tag
-          COMMITS=$(git log $LATEST_TAG..HEAD --pretty=format:"%s")
-          echo "Commits since last tag:"
-          echo "$COMMITS"
-          
-          # Logic for semantic versioning
-          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
-            echo "Detected BREAKING CHANGE"
-            echo "type=major" >> $GITHUB_OUTPUT
-          elif echo "$COMMITS" | grep -q "^feat"; then
-            echo "Detected feature"
-            echo "type=minor" >> $GITHUB_OUTPUT
-          elif echo "$COMMITS" | grep -q "^fix"; then
-            echo "Detected fix"
-            echo "type=patch" >> $GITHUB_OUTPUT
-          else
-            echo "No significant changes detected"
-            echo "type=none" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Extract or Calculate Version
-        id: version
-        run: |
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            # Tag triggering
-            VERSION="${{ github.ref_name }}"
-            VERSION=${VERSION#v}
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "skipped=false" >> $GITHUB_OUTPUT
-            
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            # Manual dispatch
-            VERSION_TYPE="${{ github.event.inputs.version_type }}"
-            if [[ "$VERSION_TYPE" == "major" ]]; then
-              VERSION=$(cd packages/astro-gravatar && bun pm version major --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
-            elif [[ "$VERSION_TYPE" == "minor" ]]; then
-              VERSION=$(cd packages/astro-gravatar && bun pm version minor --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
-            elif [[ "$VERSION_TYPE" == "patch" ]]; then
-              VERSION=$(cd packages/astro-gravatar && bun pm version patch --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\+[0-9]\+')
-            else
-              # Handle pre-releases
-               VERSION=$(cd packages/astro-gravatar && bun pm version $VERSION_TYPE --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+-[0-9a-zA-Z.]\+')
-            fi
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "skipped=false" >> $GITHUB_OUTPUT
-            
-          else
-             # Push to main
-             BUMP_TYPE="${{ steps.bump.outputs.type }}"
-             
-             if [[ "$BUMP_TYPE" == "none" ]]; then
-               echo "Skipping release"
-               echo "skipped=true" >> $GITHUB_OUTPUT
-             else
-               VERSION=$(cd packages/astro-gravatar && bun pm version $BUMP_TYPE --no-git-tag-version | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
-               echo "version=$VERSION" >> $GITHUB_OUTPUT
-               echo "skipped=false" >> $GITHUB_OUTPUT
-             fi
-          fi
-
-      - name: Update package.json version
-        if: steps.version.outputs.skipped == 'false'
-        run: |
-           cd packages/astro-gravatar
-           bun pm pkg set version="${{ steps.version.outputs.version }}"
-
-      - name: Determine release tag
-        if: steps.version.outputs.skipped == 'false'
-        id: release_tag
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          if [[ "$VERSION" == *"beta"* ]]; then
-            RELEASE_TAG="beta"
-          elif [[ "$VERSION" == *"alpha"* ]]; then
-            RELEASE_TAG="alpha"
-          else
-            RELEASE_TAG="latest"
-          fi
-          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
-
-      - name: Create git tag and commit
-        if: steps.version.outputs.skipped == 'false' && github.ref_type != 'tag'
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          git add packages/astro-gravatar/package.json
-          git commit -m "chore(release): v$VERSION"
-          git tag -a "v$VERSION" -m "Release v$VERSION"
-          git push origin main --follow-tags
-
-      - name: Generate changelog
-        if: steps.version.outputs.skipped == 'false'
-        id: changelog
-        run: |
-           # Safely determine previous tag range
-           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-           if [ -n "$PREV_TAG" ]; then
-             CHANGELOG=$(git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD)
-           else
-             CHANGELOG=$(git log --pretty=format:"- %s (%h)")
-           fi
-           
-           echo "changelog<<EOF" >> $GITHUB_OUTPUT
-           echo "$CHANGELOG" >> $GITHUB_OUTPUT
-           echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Setup Node.js for publishing
-        if: steps.version.outputs.skipped == 'false'
-        uses: actions/setup-node@v4
+      - name: Sampo Release
+        uses: bruits/sampo-github-action@v1
         with:
-          node-version: '22'
+          command: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug Environment
-        if: steps.version.outputs.skipped == 'false'
+      - name: Check for changes
+        id: changes
         run: |
-          node -v
-          npm -v
-          npm whoami || echo "Not logged in (Expected for OIDC before publish)"
-          npm config list
-          echo "GitHub Repository: $GITHUB_REPOSITORY"
-          echo "GitHub Workflow: $GITHUB_WORKFLOW"
-          echo "GitHub Job: $GITHUB_JOB"
-          echo "GitHub Ref: $GITHUB_REF"
-          find . -name ".npmrc"
-          ls -la ~/.npmrc || echo "No global .npmrc"
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit Changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git add .
+          git commit -m "chore(release): publish [skip ci]"
 
       - name: Publish to npm
-        if: steps.version.outputs.skipped == 'false'
+        if: steps.changes.outputs.changed == 'true'
         run: |
-          TAG="${{ steps.release_tag.outputs.release_tag }}"
-          echo "Attempting to publish with tag: $TAG"
-          
-          # Force OIDC in global config for the runner
+          # Configure OIDC
           echo "//registry.npmjs.org/:token_type=oidc" >> ~/.npmrc
           
-          # Use workspace-aware publish from root
-          # --ignore-scripts to avoid redundant prepublishOnly build/test loop
-          npm publish -w packages/astro-gravatar --tag "$TAG" --provenance --access public --ignore-scripts
+          # Publish with npm (for provenance support which Bun lacks)
+          npm publish -w packages/astro-gravatar --provenance --access public --ignore-scripts
+
+      - name: Tag and Push
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          VERSION=$(jq -r .version packages/astro-gravatar/package.json)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          # Push to the ref that triggered the workflow (e.g. main, beta)
+          git push origin HEAD:${{ github.ref_name || 'main' }} --follow-tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
-        if: steps.version.outputs.skipped == 'false'
+        if: steps.changes.outputs.changed == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: Release v${{ steps.version.outputs.version }}
-          body: |
-            ## Changes in v${{ steps.version.outputs.version }}
-            
-            ${{ steps.changelog.outputs.changelog }}
-            
-            ### Installation
-            \`\`\`bash
-            bun add astro-gravatar
-            \`\`\`
+          tag_name: v${{ env.VERSION }}
+          generate_release_notes: true
           draft: false
-          prerelease: ${{ steps.release_tag.outputs.release_tag != 'latest' }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update CHANGELOG.md
-        if: steps.version.outputs.skipped == 'false'
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          CHANGELOG="${{ steps.changelog.outputs.changelog }}"
-          TODAY=$(date +%Y-%m-%d)
-          
-          if [ -f CHANGELOG.md ]; then
-            awk -v entry="## [$VERSION] - $TODAY\n\n$CHANGELOG\n\n" '/^# Changelog$/ {print; print entry; next} 1' CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
-          else
-            echo -e "# Changelog\n\n## [$VERSION] - $TODAY\n\n$CHANGELOG\n" > CHANGELOG.md
-          fi
-          
-          git add CHANGELOG.md
-          git commit -m "docs: update changelog for v$VERSION"
-          git push origin main
+          prerelease: ${{ contains(env.VERSION, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
