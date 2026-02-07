@@ -53,6 +53,8 @@ jobs:
       - name: Configure .npmrc
         run: |
           echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Sampo Release & Publish
         id: sampo
@@ -63,4 +65,12 @@ jobs:
           args: --access public --ignore-scripts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish with Bun
+        if: steps.sampo.outputs.published == 'true' && failure()
+        working-directory: packages/astro-gravatar
+        run: |
+          bun publish --token $NPM_TOKEN --access public --ignore-scripts
+        env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
