@@ -50,6 +50,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Configure .npmrc
+        run: |
+          echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" >> ~/.npmrc
+
       - name: Sampo Release & Publish
         id: sampo
         uses: bruits/sampo/crates/sampo-github-action@main
