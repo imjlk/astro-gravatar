@@ -50,6 +50,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Configure OIDC for npm
+        run: |
+          echo "//registry.npmjs.org/:token_type=oidc" >> ~/.npmrc
+
       - name: Sampo Release & Publish
         id: sampo
         uses: bruits/sampo/crates/sampo-github-action@main
