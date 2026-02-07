@@ -35,9 +35,8 @@ jobs:
         run: bun test
 
       - name: Build package
-        run: bun run build
-        working-directory: packages/astro-gravatar
+        run: cd packages/astro-gravatar && bun run build
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: cd packages/astro-gravatar && npm publish --access public
         working-directory: packages/astro-gravatar

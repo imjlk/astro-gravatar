@@ -49,7 +49,7 @@ jobs:
         id: sampo
         uses: bruits/sampo/crates/sampo-github-action@main
         with:
-          command: auto
+          command: release
           create-github-release: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
