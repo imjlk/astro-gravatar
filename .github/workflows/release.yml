@@ -57,6 +57,6 @@ jobs:
           command: auto
           create-github-release: true
           args: --access public --ignore-scripts
-          npm-token: ${{ secrets.NPM_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
