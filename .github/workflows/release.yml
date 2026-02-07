@@ -53,56 +53,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Sampo Release
-        uses: bruits/sampo-github-action@v1
+      - name: Sampo Release & Publish
+        id: sampo
+        uses: bruits/sampo/crates/sampo-github-action@main
         with:
-          command: release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check for changes
-        id: changes
-        run: |
-          if [[ -n $(git status --porcelain) ]]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit Changes
-        if: steps.changes.outputs.changed == 'true'
-        run: |
-          git add .
-          git commit -m "chore(release): publish [skip ci]"
-
-      - name: Publish to npm
-        if: steps.changes.outputs.changed == 'true'
-        run: |
-          # Configure OIDC
-          echo "//registry.npmjs.org/:token_type=oidc" >> ~/.npmrc
-          
-          # Publish with npm (for provenance support which Bun lacks)
-          npm publish -w packages/astro-gravatar --provenance --access public --ignore-scripts
-
-      - name: Tag and Push
-        if: steps.changes.outputs.changed == 'true'
-        run: |
-          VERSION=$(jq -r .version packages/astro-gravatar/package.json)
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          
-          git tag -a "v$VERSION" -m "Release v$VERSION"
-          # Push to the ref that triggered the workflow (e.g. main, beta)
-          git push origin HEAD:${{ github.ref_name || 'main' }} --follow-tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create GitHub Release
-        if: steps.changes.outputs.changed == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ env.VERSION }}
-          generate_release_notes: true
-          draft: false
-          prerelease: ${{ contains(env.VERSION, '-') }}
+          command: auto
+          create-github-release: true
+          args: --provenance
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
