@@ -15,7 +15,7 @@ Modern, type-safe Astro components for Gravatar integration with Bun-powered per
 - **📱 Responsive**: Automatic responsive images and layouts
 - **🔄 Lazy Loading**: Built-in lazy loading with skeleton animations
 - **🎯 Flexible Templates**: Multiple display templates for profile cards
-- **🧪 Well-Tested**: 78.44% test coverage with 315 passing tests
+- **🧪 Well-Tested**: >95% test coverage with 475+ passing tests
 - **📖 Comprehensive Docs**: Full documentation site with examples
 
 ## 📦 Installation
@@ -199,9 +199,9 @@ bun run test:watch
 
 ### Test Statistics
 
-- **Total Tests**: 315
-- **Coverage**: 78.44%
-- **Test Files**: 7
+- **Total Tests**: 475+
+- **Coverage**: >95%
+- **Test Files**: 9
 - **Components Tested**: 3
 - **Utilities Tested**: 8
 

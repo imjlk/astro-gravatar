@@ -252,6 +252,25 @@ Common error codes include `INVALID_EMAIL`, `INVALID_RESPONSE`, `RATE_LIMITED`, 
 - Progressive enhancement for JavaScript-disabled environments
 - Responsive design with accessibility features
 
+## 🧪 Testing
+
+This package is extensively tested using Bun's built-in test runner.
+
+### Test Statistics
+
+- **Total Tests**: 475+
+- **Line Coverage**: 97.69%
+- **Function Coverage**: 95.83%
+- **Overall Coverage**: >95%
+
+```bash
+# Run all tests
+bun test
+
+# Run tests with coverage
+bun run test:coverage
+```
+
 ## 🧞 Commands
 
 All commands are run from the root of the project, from a terminal:
