@@ -71,8 +71,8 @@ describe('URL Building Functions', () => {
       const hash = await hashEmailWithCache(testEmail);
 
       expect(url).toContain(`${GRAVATAR_AVATAR_BASE}/${hash}?d=`);
-      // Note: URLSearchParams will automatically encode the URL, and it's being double-encoded
-      expect(url).toContain('https%253A%252F%252Fexample.com%252Fdefault-avatar.png');
+      // Note: URLSearchParams will automatically encode the URL
+      expect(url).toContain('https%3A%2F%2Fexample.com%2Fdefault-avatar.png');
     });
 
     test('should build avatar URL with force default parameter', async () => {

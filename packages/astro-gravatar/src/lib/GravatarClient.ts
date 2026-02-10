@@ -315,7 +315,7 @@ export class GravatarClient {
       try {
         const batchResults = await Promise.allSettled(batchPromises);
 
-        batchResults.forEach((result) => {
+        batchResults.forEach((result, index) => {
           if (result.status === 'fulfilled') {
             results.push(result.value);
           } else {
@@ -323,8 +323,7 @@ export class GravatarClient {
               throw result.reason;
             }
             // Extract email from the batch to maintain order
-            const emailIndex = results.length;
-            const email = batch[emailIndex] || 'unknown';
+            const email = batch[index] || 'unknown';
             results.push({
               email,
               error: result.reason instanceof GravatarError

@@ -91,8 +91,8 @@ export async function buildAvatarUrl(
       // It's a predefined default type
       params.set('d', options.default);
     } else {
-      // It's a URL, encode it
-      params.set('d', encodeURIComponent(options.default));
+      // It's a URL, let URLSearchParams handle the encoding
+      params.set('d', options.default);
     }
   }
 
