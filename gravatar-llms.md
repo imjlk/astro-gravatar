@@ -548,11 +548,13 @@ All API errors follow a consistent format:
 HTTP Status	Error Code	Description	Solution
 400	uncropped_image	Image is not square	Crop image to 1:1 ratio before uploading
 400	unsupported_image	File format not supported	Use JPG, PNG, or GIF formats
+400	INVALID_EMAIL	Invalid email format	Verify email format before request
 401	N/A	Authentication failed	Check API key or OAuth token
 403	insufficient_scope	Token lacks permissions	Request proper scopes during OAuth
 404	disabled	Profile is disabled	No solution – user has disabled profile
 429	rate_limit_exceeded	Too many requests	Implement rate limiting, use exponential backoff
 500	N/A	Server error	Retry with exponential backoff
+502	INVALID_RESPONSE	Invalid API response	Retry request or check API status
 12.3 Troubleshooting Guide
 12.3.1 Avatar Not Loading
 Verify the email hash is correct (trim whitespace, lowercase)

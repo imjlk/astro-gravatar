@@ -162,6 +162,26 @@ For comprehensive documentation, examples, and API reference, visit:
 - [Advanced Examples](https://astro-gravatar.and.guide/guides/advanced-examples)
 - [Troubleshooting](https://astro-gravatar.and.guide/guides/troubleshooting)
 
+## ⚠️ Error Handling
+
+The library provides robust error handling through the `GravatarError` class and `GRAVATAR_ERROR_CODES` constant.
+
+```typescript
+import { GravatarError, GRAVATAR_ERROR_CODES } from 'astro-gravatar';
+
+try {
+  const profile = await getProfile('invalid-email');
+} catch (error) {
+  if (error instanceof GravatarError) {
+    if (error.code === GRAVATAR_ERROR_CODES.INVALID_EMAIL) {
+      console.error('The provided email is invalid');
+    }
+  }
+}
+```
+
+For more details on error codes like `INVALID_EMAIL` and `INVALID_RESPONSE`, see the [Component Reference](https://astro-gravatar.and.guide/reference/components#error-handling).
+
 ## 🧪 Testing
 
 This project uses Bun's built-in test runner:

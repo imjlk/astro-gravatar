@@ -154,7 +154,7 @@ The test infrastructure includes comprehensive mock data:
 
 ### Email Fixtures
 - `VALID_EMAILS` - Array of valid email formats
-- `INVALID_EMAILS` - Array of invalid email formats
+- `INVALID_EMAILS` - Array of invalid email formats (used to trigger `GRAVATAR_ERROR_CODES.INVALID_EMAIL`)
 - `EDGE_CASE_EMAILS` - Edge case emails (empty, whitespace, etc.)
 
 ### Props Fixtures

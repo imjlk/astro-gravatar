@@ -216,6 +216,29 @@ import type { GravatarProfile, GravatarAvatarProps } from 'astro-gravatar';
 const profile: GravatarProfile = await getProfile('user@example.com');
 ```
 
+## ⚠️ Error Handling
+
+The library provides robust error handling through the `GravatarError` class and `GRAVATAR_ERROR_CODES` constant.
+
+```typescript
+import { GravatarError, GRAVATAR_ERROR_CODES } from 'astro-gravatar';
+
+try {
+  const profile = await getProfile('invalid-email');
+} catch (error) {
+  if (error instanceof GravatarError) {
+    // Handle specific error codes
+    if (error.code === GRAVATAR_ERROR_CODES.INVALID_EMAIL) {
+      console.error('The provided email is invalid');
+    } else if (error.code === GRAVATAR_ERROR_CODES.INVALID_RESPONSE) {
+      console.error('Received an invalid response from Gravatar API');
+    }
+  }
+}
+```
+
+Common error codes include `INVALID_EMAIL`, `INVALID_RESPONSE`, `RATE_LIMITED`, and `NOT_FOUND`.
+
 ## 🚀 Performance Features
 
 - **Built-in Caching** - Reduces API calls and improves performance
