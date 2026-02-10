@@ -3,7 +3,7 @@
  * Tests all 9 core functions with various scenarios, edge cases, and error handling
  */
 
-import { test, expect, describe, beforeEach, afterEach } from 'bun:test';
+import { test, expect, describe, beforeEach } from 'bun:test';
 import {
   buildAvatarUrl,
   buildProfileUrl,
@@ -18,14 +18,12 @@ import {
   GRAVATAR_API_BASE,
   GRAVATAR_QR_BASE,
 } from '../gravatar';
-import { GravatarError, GRAVATAR_ERROR_CODES, type GravatarProfile } from '../types';
+import { GravatarError, GRAVATAR_ERROR_CODES } from '../types';
 import {
   setupTestEnvironment,
   setupFetchWithResponses,
   createMockResponse,
   TestDataGenerator,
-  generateRandomEmail,
-  measureTime,
 } from '../../../test-utils/test-helpers';
 import { hashEmailWithCache } from '../../utils/hash';
 
@@ -475,9 +473,9 @@ describe('API Client Functions', () => {
       const profiles = await getProfiles(emails);
 
       expect(profiles).toHaveLength(3);
-      expect(profiles[0].display_name).toBe('User user1');
-      expect(profiles[1].display_name).toBe('User user2');
-      expect(profiles[2].display_name).toBe('User user3');
+      expect(profiles[0]!.display_name).toBe('User user1');
+      expect(profiles[1]!.display_name).toBe('User user2');
+      expect(profiles[2]!.display_name).toBe('User user3');
 
       restoreFetch();
     });
@@ -598,8 +596,8 @@ describe('API Client Functions', () => {
       stats = getApiCacheStats();
       expect(stats.size).toBe(1);
       expect(stats.entries).toHaveLength(1);
-      expect(stats.entries[0].key).toContain('profile:');
-      expect(stats.entries[0].expires).toBeGreaterThan(Date.now());
+      expect(stats.entries[0]!.key).toContain('profile:');
+      expect(stats.entries[0]!.expires).toBeGreaterThan(Date.now());
 
       restoreFetch();
     });

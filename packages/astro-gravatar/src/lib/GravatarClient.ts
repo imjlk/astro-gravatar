@@ -13,7 +13,6 @@ import { GravatarError, GRAVATAR_ERROR_CODES } from './types.js'; // Import valu
 
 import type {
   CacheEntry,
-  CacheOptions,
 } from './types.js';
 import { hashEmailWithCache } from '../utils/hash.js';
 import {
@@ -578,7 +577,7 @@ export class GravatarClient {
 
       return {
         data,
-        headers: Object.fromEntries(response.headers.entries()),
+        headers: Object.fromEntries((response.headers as any).entries()),
       };
 
     } catch (error) {
@@ -821,7 +820,10 @@ export class GravatarClient {
     const maxSize = this.config.cache?.maxSize ?? DEFAULT_CACHE_MAX_SIZE;
     const toRemove = entries.length - maxSize;
     for (let i = 0; i < toRemove; i++) {
-      this.cache.delete(entries[i][0]);
+      const entry = entries[i];
+      if (entry) {
+        this.cache.delete(entry[0]);
+      }
     }
   }
 

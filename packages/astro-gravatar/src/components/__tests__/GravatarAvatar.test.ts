@@ -9,12 +9,8 @@ import { hashEmailWithCache } from '../../utils/hash';
 import type { AvatarRating, DefaultAvatar } from '../../lib/types';
 import {
   setupTestEnvironment,
-  createMockProps,
-  generateRandomEmail,
   setupMockDOM,
 } from '../../../test-utils/test-helpers';
-import { mockGravatarError } from '../../__tests__/mocks';
-
 // Setup test environment
 setupTestEnvironment();
 setupMockDOM();
@@ -151,18 +147,18 @@ describe('GravatarAvatar Component Tests', () => {
         'data-testid': 'avatar-component',
         'data-user-id': '123',
       };
-      const rendered = await renderGravatarAvatar(props);
+      const _rendered = await renderGravatarAvatar(props);
 
       // Component should pass through additional props
-      expect(rendered.props['data-testid']).toBe('avatar-component');
-      expect(rendered.props['data-user-id']).toBe('123');
+      expect(_rendered.props['data-testid']).toBe('avatar-component');
+      expect(_rendered.props['data-user-id']).toBe('123');
     });
   });
 
   describe('Responsive srcset Generation', () => {
     test('should generate srcset for responsive images', async () => {
       const props = { email: testEmail, size: 100 };
-      const rendered = await renderGravatarAvatar(props);
+      await renderGravatarAvatar(props);
 
       // Simulate srcset generation logic from the component
       const baseSize = props.size;
@@ -192,7 +188,7 @@ describe('GravatarAvatar Component Tests', () => {
 
     test('should cap srcset sizes at 2048px', async () => {
       const props = { email: testEmail, size: 1200 };
-      const rendered = await renderGravatarAvatar(props);
+      await renderGravatarAvatar(props);
 
       // Simulate srcset generation
       const baseSize = props.size;
@@ -214,7 +210,7 @@ describe('GravatarAvatar Component Tests', () => {
 
     test('should generate responsive sizes attribute', async () => {
       const props = { email: testEmail, size: 120 };
-      const rendered = await renderGravatarAvatar(props);
+      await renderGravatarAvatar(props);
 
       // Simulate sizes attribute generation
       const expectedSizes = `(max-width: 768px) ${Math.min(props.size, 80)}px, ${props.size}px`;
@@ -223,7 +219,7 @@ describe('GravatarAvatar Component Tests', () => {
 
     test('should not generate srcset when size is not provided', async () => {
       const props = { email: testEmail };
-      const rendered = await renderGravatarAvatar(props);
+      await renderGravatarAvatar(props);
 
       expect((props as any).size).toBeUndefined();
     });
@@ -563,7 +559,7 @@ describe('GravatarAvatar Component Tests', () => {
       const props = { email: testEmail, size: 100 };
 
       // Test that srcset generation doesn't create excessive URLs
-      const { url } = await renderGravatarAvatar(props);
+      await renderGravatarAvatar(props);
       const baseSize = props.size;
       const scales = [1, 1.5, 2];
 

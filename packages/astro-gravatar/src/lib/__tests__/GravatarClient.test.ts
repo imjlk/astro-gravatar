@@ -4,7 +4,7 @@
 
 import { describe, test, expect, beforeEach, afterEach, jest, type Mock } from 'bun:test';
 import { GravatarClient } from '../GravatarClient.js';
-import { GravatarError, GRAVATAR_ERROR_CODES } from '../types.js';
+import { GravatarError } from '../types.js';
 import type { GravatarProfile } from '../types';
 
 // Mock fetch for testing
@@ -312,8 +312,8 @@ describe('GravatarClient', () => {
     const results = await client.getProfiles(['user1@example.com', 'user2@example.com']);
 
     expect(results).toHaveLength(2);
-    expect(results[0].profile).toEqual(mockProfiles[0]);
-    expect(results[1].profile).toEqual(mockProfiles[1]);
+    expect(results[0]!.profile).toEqual(mockProfiles[0]);
+    expect(results[1]!.profile).toEqual(mockProfiles[1]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -344,10 +344,10 @@ describe('GravatarClient', () => {
     const results = await client.getProfiles(['success@example.com', 'fail@example.com']);
 
     expect(results).toHaveLength(2);
-    expect(results[0].profile).toEqual(mockProfile);
-    expect(results[0].error).toBeUndefined();
-    expect(results[1].profile).toBeUndefined();
-    expect(results[1].error).toBeInstanceOf(GravatarError);
+    expect(results[0]!.profile).toEqual(mockProfile);
+    expect(results[0]!.error).toBeUndefined();
+    expect(results[1]!.profile).toBeUndefined();
+    expect(results[1]!.error).toBeInstanceOf(GravatarError);
   });
 
   test('should respect concurrency limits', async () => {
@@ -541,7 +541,7 @@ describe('GravatarClient', () => {
     expect(stats.misses).toBe(1);
     expect(stats.hitRatio).toBe(0.5);
     expect(stats.entries).toHaveLength(1);
-    expect(stats.entries[0].accessCount).toBe(2);
+    expect(stats.entries[0]!.accessCount).toBe(2);
   });
 
   // ============================================================================

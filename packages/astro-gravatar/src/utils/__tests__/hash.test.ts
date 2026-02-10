@@ -16,7 +16,7 @@ import {
   getEmailHashCacheStats
 } from '../hash';
 import { GravatarError, GRAVATAR_ERROR_CODES } from '../../lib/types';
-import { VALID_EMAILS, INVALID_EMAILS, ERROR_SCENARIOS } from '../../__tests__/fixtures';
+import { VALID_EMAILS, INVALID_EMAILS } from '../../__tests__/fixtures';
 import { TestDataGenerator, benchmark, measureTime } from '../../../test-utils/test-helpers';
 
 describe('Email Validation', () => {
@@ -244,12 +244,12 @@ describe('Batch Email Hashing', () => {
     const emails = TestDataGenerator.emails(100);
 
     // Test individual hashing
-    const { duration: individualTime } = await measureTime(async () => {
+    await measureTime(async () => {
       return Promise.all(emails.map(email => hashEmail(email)));
     });
 
     // Test batch hashing
-    const { duration: batchTime } = await measureTime(async () => {
+    await measureTime(async () => {
       return hashEmails(emails);
     });
 
@@ -289,7 +289,7 @@ describe('Batch Email Hashing', () => {
   test('should handle large arrays efficiently', async () => {
     const emails = TestDataGenerator.emails(1000);
 
-    const { result: hashes, duration } = await measureTime(() => hashEmails(emails));
+    const { result: hashes, duration: _duration } = await measureTime(() => hashEmails(emails));
 
     expect(hashes).toHaveLength(1000);
     // expect(duration).toBeLessThan(1000); // Relaxed check for test environments
@@ -487,15 +487,15 @@ describe('Hash Caching', () => {
     clearEmailHashCache();
 
     // Test mixed operations - some cached, some new
-    const { averageTime: mixedTime } = await benchmark(async () => {
-      const randomEmail = emails[Math.floor(Math.random() * emails.length)];
+    await benchmark(async () => {
+      const randomEmail = emails[Math.floor(Math.random() * emails.length)]!;
       return hashEmailWithCache(randomEmail);
     }, iterations);
 
     // Test all new operations (cache disabled)
     clearEmailHashCache();
-    const { averageTime: noCacheTime } = await benchmark(async () => {
-      const randomEmail = emails[Math.floor(Math.random() * emails.length)];
+    await benchmark(async () => {
+      const randomEmail = emails[Math.floor(Math.random() * emails.length)]!;
       return hashEmailWithCache(randomEmail, false);
     }, iterations);
 
@@ -546,7 +546,7 @@ describe('Hash Caching', () => {
 
     // All hashes should be identical
     hashes.forEach(hash => {
-      expect(hash).toBe(hashes[0]);
+      expect(hash).toBe(hashes[0]!);
     });
 
     // Cache should only have one entry

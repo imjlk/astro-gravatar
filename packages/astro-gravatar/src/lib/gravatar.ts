@@ -285,7 +285,7 @@ async function makeRequest<T>(
       apiCache.set(cacheKey, { data, expires: Date.now() + ttl });
     }
 
-    return { data, headers: Object.fromEntries(response.headers.entries()) };
+    return { data, headers: Object.fromEntries((response.headers as any).entries()) };
 
   } catch (error) {
     clearTimeout(timeoutId);
@@ -362,7 +362,7 @@ export async function getProfiles(
     const profiles: GravatarProfile[] = [];
     const errors: GravatarError[] = [];
 
-    results.forEach((result, index) => {
+    results.forEach((result, _index) => {
       if (result.status === 'fulfilled') {
         profiles.push(result.value);
       } else {

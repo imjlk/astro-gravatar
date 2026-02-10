@@ -11,15 +11,12 @@ import {
   setupTestEnvironment,
   setupFetchWithResponses,
   createMockResponse,
-  TestDataGenerator,
-  generateRandomEmail,
   setupMockDOM,
 } from '../../../test-utils/test-helpers';
 import {
   mockGravatarProfile,
   mockMinimalGravatarProfile,
   mockOrganizationProfile,
-  mockGravatarError,
   mockNotFoundResponse,
 } from '../../__tests__/mocks';
 
@@ -590,8 +587,8 @@ describe('GravatarProfileCard Component Tests', () => {
       const { visibleVerifiedAccounts } = await renderGravatarProfileCard(props, mockGravatarProfile);
 
       expect(visibleVerifiedAccounts.length).toBeGreaterThan(0);
-      expect(visibleVerifiedAccounts[0].service_icon).toContain('https://');
-      expect(visibleVerifiedAccounts[0].url).toContain('https://');
+      expect(visibleVerifiedAccounts[0]!.service_icon).toContain('https://');
+      expect(visibleVerifiedAccounts[0]!.url).toContain('https://');
     });
 
     test('should limit verified accounts display', async () => {
@@ -652,7 +649,7 @@ describe('GravatarProfileCard Component Tests', () => {
         variations.map(props => renderGravatarProfileCard(props, mockGravatarProfile))
       );
 
-      results.forEach((result, index) => {
+      results.forEach((result, _index) => {
         expect(result.cssClasses).toBeDefined();
         expect(result.avatarUrl).toBeDefined();
         expect(result.profile).toBeDefined();

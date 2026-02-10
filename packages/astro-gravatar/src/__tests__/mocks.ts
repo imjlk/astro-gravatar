@@ -5,15 +5,8 @@
 
 import type {
   GravatarProfile,
-  Avatar,
-  VerifiedAccount,
-  Link,
-  Interest,
-  CryptoWalletAddress,
-  ContactInfo,
   GravatarApiResponse,
   RateLimitInfo,
-  GravatarError
 } from '../lib/types';
 import { GravatarError as GravatarErrorClass } from '../lib/types';
 
@@ -191,7 +184,7 @@ export const mockNetworkErrorResponse: GravatarApiResponse = {
  * Creates a mock fetch function that simulates Gravatar API responses
  */
 export function createMockFetch(responseMap: Record<string, Response>): any {
-  return (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  return (async (input: RequestInfo | URL, _init?: RequestInit): Promise<Response> => {
     const url = typeof input === 'string' ? input : input.toString();
 
     // Find matching mock response
@@ -252,18 +245,18 @@ export function setupFetchMock() {
   };
 
   const mockFetch = createMockFetch(mockResponses);
-  global.mockFetch = mockFetch;
+  (global as any).mockFetch = mockFetch;
 
   // Store original fetch
   const originalFetch = global.fetch;
 
   // Replace fetch with mock
-  global.fetch = mockFetch;
+  (global as any).fetch = mockFetch;
 
   // Return cleanup function
   return () => {
-    global.fetch = originalFetch;
-    global.mockFetch = undefined;
+    (global as any).fetch = originalFetch;
+    (global as any).mockFetch = undefined;
   };
 }
 
@@ -271,7 +264,7 @@ export function setupFetchMock() {
  * Mocks for avatar image responses
  */
 export const mockAvatarImageResponse = new Response(
-  Buffer.from('fake-image-data'),
+  new Uint8Array(Buffer.from('fake-image-data')),
   {
     status: 200,
     headers: {

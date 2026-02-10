@@ -35,7 +35,7 @@ async function advancedExample() {
 
   // Create a client with custom configuration
   const client = new GravatarClient({
-    apiKey: process.env.GRAVATAR_API_KEY,
+    apiKey: process.env['GRAVATAR_API_KEY'],
     baseUrl: 'https://api.gravatar.com/v3',
     timeout: 15000, // 15 seconds
     headers: {
@@ -98,7 +98,7 @@ async function monitoringExample() {
   console.log('\n=== Monitoring Example ===');
 
   const client = new GravatarClient({
-    apiKey: process.env.GRAVATAR_API_KEY,
+    apiKey: process.env['GRAVATAR_API_KEY'],
     cache: { ttl: 300, maxSize: 100 },
   });
 
@@ -214,7 +214,7 @@ function integrationExample() {
 
   // Create a singleton client for your Astro app
   const gravatarClient = new GravatarClient({
-    apiKey: process.env.GRAVATAR_API_KEY,
+    apiKey: process.env['GRAVATAR_API_KEY'],
     cache: {
       ttl: 300, // 5 minutes - good for production
       maxSize: 1000, // Large cache for better performance

@@ -8,8 +8,8 @@ import { beforeAll, afterEach, afterAll } from 'bun:test';
 // Global test configuration
 beforeAll(() => {
   // Set up test environment variables
-  process.env.NODE_ENV = 'test';
-  process.env.GRAVATAR_TEST_MODE = 'true';
+  process.env['NODE_ENV'] = 'test';
+  process.env['GRAVATAR_TEST_MODE'] = 'true';
 
   // Mock console methods in tests to reduce noise
   global.console = {
@@ -27,8 +27,8 @@ beforeAll(() => {
 afterEach(() => {
   // Reset any global state between tests
   // Clear any modules that might have been cached
-  if (global.mockFetch) {
-    global.mockFetch = undefined;
+  if ((globalThis as any).mockFetch) {
+    (globalThis as any).mockFetch = undefined;
   }
 });
 
