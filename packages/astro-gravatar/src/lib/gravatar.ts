@@ -74,7 +74,7 @@ export async function buildAvatarUrl(
     if (options.size < 1 || options.size > 2048) {
       throw new GravatarError(
         'Avatar size must be between 1 and 2048 pixels',
-        GRAVATAR_ERROR_CODES.INVALID_EMAIL
+        GRAVATAR_ERROR_CODES.INVALID_RESPONSE
       );
     }
     params.set('s', options.size.toString());
@@ -142,7 +142,7 @@ export async function buildQRCodeUrl(
     if (options.size < 1 || options.size > 1000) {
       throw new GravatarError(
         'QR code size must be between 1 and 1000 pixels',
-        GRAVATAR_ERROR_CODES.INVALID_EMAIL
+        GRAVATAR_ERROR_CODES.INVALID_RESPONSE
       );
     }
     params.set('size', options.size.toString());

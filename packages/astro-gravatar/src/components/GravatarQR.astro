@@ -26,6 +26,7 @@
 import { buildQRCodeUrl } from '../lib/gravatar.js';
 import type { GravatarQRProps, QRCodeVersion, QRCodeIcon } from '../lib/types.js';
 import { GravatarError, GRAVATAR_ERROR_CODES } from '../lib/types.js';
+import { isValidEmail } from '../utils/validation.js';
 
 interface Props {
   /** Email address to generate QR code for */
@@ -62,8 +63,7 @@ let qrCodeUrl: string | null = null;
 
 try {
   // Validate email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !emailRegex.test(email)) {
+  if (!email || !isValidEmail(email)) {
     throw new GravatarError(
       'Valid email address is required for QR code generation',
       GRAVATAR_ERROR_CODES.INVALID_EMAIL
