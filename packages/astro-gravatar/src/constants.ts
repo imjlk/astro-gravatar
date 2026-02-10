@@ -8,7 +8,7 @@ export const DEFAULT_QR_SIZE = 80;
 
 export const DEFAULT_TIMEOUT_MS = 10000;
 export const DEFAULT_CACHE_TTL_SECONDS = 300;
-export const DEFAULT_CACHE_MAX_SIZE = 100;
+export const DEFAULT_CACHE_MAX_SIZE = 1000;
 export const CACHE_TTL_MS = 5 * 60 * 1000;
 
 export const DEFAULT_RETRY_MAX_ATTEMPTS = 3;

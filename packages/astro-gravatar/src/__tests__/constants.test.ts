@@ -17,7 +17,7 @@ describe("Constants Module", () => {
     // Timeout and Caching
     expect(Constants.DEFAULT_TIMEOUT_MS).toBe(10000);
     expect(Constants.DEFAULT_CACHE_TTL_SECONDS).toBe(300);
-    expect(Constants.DEFAULT_CACHE_MAX_SIZE).toBe(100);
+    expect(Constants.DEFAULT_CACHE_MAX_SIZE).toBe(1000);
     expect(Constants.CACHE_TTL_MS).toBe(300000); // 5 * 60 * 1000
     
     // Retry configuration

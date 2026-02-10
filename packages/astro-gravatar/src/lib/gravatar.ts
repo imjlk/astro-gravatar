@@ -12,6 +12,13 @@ import type {
 } from './types.js'; // Import types
 import { GravatarError, GRAVATAR_ERROR_CODES } from './types.js'; // Import values
 import { hashEmailWithCache } from '../utils/hash.js';
+import {
+  MIN_AVATAR_SIZE,
+  MAX_AVATAR_SIZE,
+  DEFAULT_QR_SIZE,
+  DEFAULT_TIMEOUT_MS,
+  DEFAULT_CACHE_TTL_SECONDS
+} from '../constants.js';
 
 // ============================================================================
 // Constants
@@ -36,7 +43,7 @@ export const DEFAULT_AVATAR_RATING: AvatarRating = 'g';
 export const DEFAULT_AVATAR_IMAGE: DefaultAvatar = 'mp';
 
 /** Default request timeout in milliseconds */
-export const DEFAULT_TIMEOUT = 10000;
+export const DEFAULT_TIMEOUT = DEFAULT_TIMEOUT_MS;
 
 // ============================================================================
 // URL Building Utilities
@@ -69,11 +76,11 @@ export async function buildAvatarUrl(
   const hash = await hashEmailWithCache(email);
   const params = new URLSearchParams();
 
-  // Add size parameter (1-2048 pixels)
+  // Add size parameter (MIN_AVATAR_SIZE-MAX_AVATAR_SIZE pixels)
   if (options.size !== undefined && options.size !== DEFAULT_AVATAR_SIZE) {
-    if (options.size < 1 || options.size > 2048) {
+    if (options.size < MIN_AVATAR_SIZE || options.size > MAX_AVATAR_SIZE) {
       throw new GravatarError(
-        'Avatar size must be between 1 and 2048 pixels',
+        `Avatar size must be between ${MIN_AVATAR_SIZE} and ${MAX_AVATAR_SIZE} pixels`,
         GRAVATAR_ERROR_CODES.INVALID_RESPONSE
       );
     }
@@ -138,7 +145,7 @@ export async function buildQRCodeUrl(
   const params = new URLSearchParams();
 
   // Add size parameter
-  if (options.size !== undefined && options.size !== 80) {
+  if (options.size !== undefined && options.size !== DEFAULT_QR_SIZE) {
     if (options.size < 1 || options.size > 1000) {
       throw new GravatarError(
         'QR code size must be between 1 and 1000 pixels',
@@ -274,7 +281,7 @@ async function makeRequest<T>(
 
     // Cache successful responses
     if (cacheKey && rateLimit && rateLimit.remaining > 0) {
-      const ttl = Math.min(300, rateLimit.reset - Math.floor(Date.now() / 1000)) * 1000; // Max 5 minutes
+      const ttl = Math.min(DEFAULT_CACHE_TTL_SECONDS, rateLimit.reset - Math.floor(Date.now() / 1000)) * 1000; // Max 5 minutes
       apiCache.set(cacheKey, { data, expires: Date.now() + ttl });
     }
 
@@ -410,9 +417,9 @@ export function getApiCacheStats(): {
  */
 export function validateAvatarParams(size?: number, rating?: AvatarRating): void {
   if (size !== undefined) {
-    if (typeof size !== 'number' || size < 1 || size > 2048) {
+    if (typeof size !== 'number' || size < MIN_AVATAR_SIZE || size > MAX_AVATAR_SIZE) {
       throw new GravatarError(
-        'Avatar size must be a number between 1 and 2048',
+        `Avatar size must be a number between ${MIN_AVATAR_SIZE} and ${MAX_AVATAR_SIZE}`,
         GRAVATAR_ERROR_CODES.INVALID_RESPONSE
       );
     }

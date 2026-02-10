@@ -4,6 +4,7 @@
  */
 
 import { GravatarError, GRAVATAR_ERROR_CODES } from '../lib/types.js';
+import { CACHE_TTL_MS, DEFAULT_CACHE_MAX_SIZE } from '../constants.js';
 import { isValidEmail } from './validation.js';
 
 export { isValidEmail };
@@ -127,8 +128,8 @@ export async function extractHash(input: string): Promise<string> {
  * Cache for recently hashed emails to improve performance
  */
 const emailHashCache = new Map<string, { hash: string; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-const CACHE_MAX_SIZE = 1000;
+const CACHE_TTL = CACHE_TTL_MS; // 5 minutes
+const CACHE_MAX_SIZE = DEFAULT_CACHE_MAX_SIZE;
 
 /**
  * Creates a SHA256 hash with optional caching

@@ -59,7 +59,7 @@ describe('GravatarClient', () => {
     expect(config.timeout).toBe(10000);
     expect((defaultClient as any).config.cache?.enabled).toBe(true);
     expect((defaultClient as any).config.cache?.ttl).toBe(300); // 5 minutes default
-    expect((defaultClient as any).config.cache?.maxSize).toBe(100);
+    expect((defaultClient as any).config.cache?.maxSize).toBe(1000);
     expect((defaultClient as any).config.retry?.maxAttempts).toBe(3);
   });
 

@@ -21,6 +21,18 @@ import {
   DEFAULT_TIMEOUT,
   buildProfileUrl
 } from './gravatar.js';
+import {
+  DEFAULT_CACHE_TTL_SECONDS,
+  DEFAULT_CACHE_MAX_SIZE,
+  DEFAULT_RETRY_MAX_ATTEMPTS,
+  DEFAULT_RETRY_BASE_DELAY_MS,
+  DEFAULT_RETRY_MAX_DELAY_MS,
+  DEFAULT_BACKOFF_FACTOR,
+  DEFAULT_SAFETY_BUFFER,
+  DEFAULT_RATE_LIMIT_MAX_CONCURRENT,
+  DEFAULT_CONCURRENCY,
+  RETRY_INTERVAL_MS
+} from '../constants.js';
 
 // ============================================================================
 // Interfaces
@@ -143,21 +155,21 @@ export class GravatarClient {
     timeout: DEFAULT_TIMEOUT,
     headers: {},
     cache: {
-      ttl: 300, // 5 minutes
-      maxSize: 100,
+      ttl: DEFAULT_CACHE_TTL_SECONDS, // 5 minutes
+      maxSize: DEFAULT_CACHE_MAX_SIZE,
       enabled: true,
     },
     retry: {
-      maxAttempts: 3,
-      baseDelay: 1000,
-      maxDelay: 10000,
-      backoffFactor: 2,
+      maxAttempts: DEFAULT_RETRY_MAX_ATTEMPTS,
+      baseDelay: DEFAULT_RETRY_BASE_DELAY_MS,
+      maxDelay: DEFAULT_RETRY_MAX_DELAY_MS,
+      backoffFactor: DEFAULT_BACKOFF_FACTOR,
       retryOnRateLimit: true,
     },
     rateLimit: {
       autoHandle: true,
-      safetyBuffer: 0.1, // 10% safety buffer
-      maxConcurrent: 10,
+      safetyBuffer: DEFAULT_SAFETY_BUFFER, // 10% safety buffer
+      maxConcurrent: DEFAULT_RATE_LIMIT_MAX_CONCURRENT,
     },
   };
 
@@ -265,7 +277,7 @@ export class GravatarClient {
     error?: GravatarError;
   }>> {
     const {
-      concurrency = 10,
+      concurrency = DEFAULT_CONCURRENCY,
       failFast = false,
       batchDelay = 0,
       clientOptions = {}
@@ -284,14 +296,14 @@ export class GravatarClient {
       const batchPromises = batch.map(async (email) => {
         try {
           // Wait for a slot to free up if maxConcurrent is exceeded
-          if (this.currentRequests >= (this.config.rateLimit?.maxConcurrent ?? 10)) {
+          if (this.currentRequests >= (this.config.rateLimit?.maxConcurrent ?? DEFAULT_RATE_LIMIT_MAX_CONCURRENT)) {
             await new Promise<void>(resolve => {
               const interval = setInterval(() => {
-                if (this.currentRequests < (this.config.rateLimit?.maxConcurrent ?? 10)) {
+                if (this.currentRequests < (this.config.rateLimit?.maxConcurrent ?? DEFAULT_RATE_LIMIT_MAX_CONCURRENT)) {
                   clearInterval(interval);
                   resolve();
                 }
-              }, 50);
+              }, RETRY_INTERVAL_MS);
             });
           }
           const profile = await this.getProfile(email, clientOptions);
@@ -379,7 +391,7 @@ export class GravatarClient {
     return {
       size: this.cache.size,
       ttl: (this.config.cache?.ttl ?? 3600000),
-      maxSize: (this.config.cache?.maxSize ?? 100),
+      maxSize: (this.config.cache?.maxSize ?? DEFAULT_CACHE_MAX_SIZE),
       hits: this.stats.cacheHits,
       misses: cacheMisses,
       hitRatio,
@@ -445,7 +457,7 @@ export class GravatarClient {
   ): Promise<GravatarApiResponse<T>> {
     let lastError: GravatarError | null = null;
     let attempt = 0;
-    const maxAttempts = config.retry?.maxAttempts ?? 3;
+    const maxAttempts = config.retry?.maxAttempts ?? DEFAULT_RETRY_MAX_ATTEMPTS;
 
     while (attempt < maxAttempts) {
       try {
@@ -650,9 +662,9 @@ export class GravatarClient {
     config: Required<GravatarClientOptions>
   ): number {
     const retryConfig = config.retry ?? GravatarClient.DEFAULTS.retry;
-    const baseDelay = retryConfig.baseDelay ?? GravatarClient.DEFAULTS.retry.baseDelay ?? 1000;
-    const backoffFactor = retryConfig.backoffFactor ?? GravatarClient.DEFAULTS.retry.backoffFactor ?? 2;
-    const maxDelay = retryConfig.maxDelay ?? GravatarClient.DEFAULTS.retry.maxDelay ?? 10000;
+    const baseDelay = retryConfig.baseDelay ?? GravatarClient.DEFAULTS.retry.baseDelay ?? DEFAULT_RETRY_BASE_DELAY_MS;
+    const backoffFactor = retryConfig.backoffFactor ?? GravatarClient.DEFAULTS.retry.backoffFactor ?? DEFAULT_BACKOFF_FACTOR;
+    const maxDelay = retryConfig.maxDelay ?? GravatarClient.DEFAULTS.retry.maxDelay ?? DEFAULT_RETRY_MAX_DELAY_MS;
 
     const exponentialDelay = baseDelay * Math.pow(backoffFactor, attempt - 1);
 
@@ -678,7 +690,7 @@ export class GravatarClient {
     const now = Date.now(); // Current time in milliseconds
     const resetTime = rateLimit.reset * 1000; // Convert to milliseconds
 
-    const safetyBuffer = (config.rateLimit?.safetyBuffer ?? 0.1);
+    const safetyBuffer = (config.rateLimit?.safetyBuffer ?? DEFAULT_SAFETY_BUFFER);
     const bufferAmount = (resetTime - now) * safetyBuffer;
 
     const delayUntilReset = Math.max(0, resetTime - now + bufferAmount);
@@ -776,7 +788,7 @@ export class GravatarClient {
    */
   private setCache<T>(key: string, data: T): void {
     const now = Date.now();
-    const ttl = (this.config.cache?.ttl ?? 300) * 1000; // Convert to milliseconds (ensure default)
+    const ttl = (this.config.cache?.ttl ?? DEFAULT_CACHE_TTL_SECONDS) * 1000; // Convert to milliseconds (ensure default)
 
     const entry: CacheEntry<T> = {
       data,
@@ -790,7 +802,7 @@ export class GravatarClient {
 
     // Remove old entries if cache is full
     // Prune if too large
-    const maxSize = this.config.cache?.maxSize ?? 100;
+    const maxSize = this.config.cache?.maxSize ?? DEFAULT_CACHE_MAX_SIZE;
     if (this.cache.size > maxSize) {
       this.evictOldestEntries();
     }
@@ -806,7 +818,7 @@ export class GravatarClient {
     entries.sort(([, a], [, b]) => a.lastAccess - b.lastAccess);
 
     // Remove enough entries to maintain maxSize
-    const maxSize = this.config.cache?.maxSize ?? 100;
+    const maxSize = this.config.cache?.maxSize ?? DEFAULT_CACHE_MAX_SIZE;
     const toRemove = entries.length - maxSize;
     for (let i = 0; i < toRemove; i++) {
       this.cache.delete(entries[i][0]);
