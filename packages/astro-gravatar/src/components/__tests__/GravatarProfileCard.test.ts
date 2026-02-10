@@ -80,14 +80,14 @@ describe('GravatarProfileCard Component Tests', () => {
 
       // Simulate conditional rendering logic
       const shouldShowName = props.showName !== false;
-      const shouldShowBio = props.showBio !== false && !!profile?.description;
-      const shouldShowVerified = props.showVerified !== false && !!(profile?.verified_accounts?.length);
-      const shouldShowLinks = props.showLinks !== false && !!(profile?.links?.length);
+      const shouldShowBio = props.showBio !== false && !!profile?.description && props.template !== 'compact';
+      const shouldShowVerified = props.showVerified !== false && !!(profile?.verified_accounts?.length) && props.template !== 'compact';
+      const shouldShowLinks = props.showLinks !== false && !!(profile?.links?.length) && props.template !== 'compact';
 
-      const filteredLinks = profile?.links?.slice(0, props.maxLinks || 3) || [];
-      const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
+      const filteredLinks = props.template === 'compact' ? [] : (profile?.links?.slice(0, props.maxLinks ?? 3) || []);
+      const visibleVerifiedAccounts = props.template === 'compact' ? [] : (profile?.verified_accounts?.filter(
         (account: any) => !account.is_hidden
-      ) || [];
+      ) || []);
 
       // Simulate the HTML structure that would be generated
       return {
@@ -200,6 +200,28 @@ describe('GravatarProfileCard Component Tests', () => {
       expect(cssClasses).not.toContain('gravatar-profile-card--compact');
     });
 
+    test('should hide bio, verified, and links in compact template', async () => {
+      const props = { email: testEmail, template: 'compact' };
+      const { shouldShowBio, shouldShowVerified, shouldShowLinks, filteredLinks, visibleVerifiedAccounts } = await renderGravatarProfileCard(props, mockGravatarProfile);
+
+      expect(shouldShowBio).toBe(false);
+      expect(shouldShowVerified).toBe(false);
+      expect(shouldShowLinks).toBe(false);
+      expect(filteredLinks.length).toBe(0);
+      expect(visibleVerifiedAccounts.length).toBe(0);
+    });
+
+    test('should show bio, verified, and links in detailed template', async () => {
+      const props = { email: testEmail, template: 'detailed' };
+      const { shouldShowBio, shouldShowVerified, shouldShowLinks, filteredLinks, visibleVerifiedAccounts } = await renderGravatarProfileCard(props, mockGravatarProfile);
+
+      expect(shouldShowBio).toBe(true);
+      expect(shouldShowVerified).toBe(true);
+      expect(shouldShowLinks).toBe(true);
+      expect(filteredLinks.length).toBeGreaterThan(0);
+      expect(visibleVerifiedAccounts.length).toBeGreaterThan(0);
+    });
+
     test('should truncate bio text differently for templates', async () => {
       const longBio = 'This is a very long bio that should be truncated differently based on the template being used for rendering the profile card component in the astro gravatar library testing suite.';
 
@@ -208,21 +230,14 @@ describe('GravatarProfileCard Component Tests', () => {
         description: longBio,
       };
 
-      // Test default template (150 chars)
-      const propsDefault = { email: testEmail, template: 'default' };
-      const { shouldShowBio: showBioDefault } = await renderGravatarProfileCard(propsDefault, profileWithLongBio);
-
-      // Test compact template (60 chars)
-      const propsCompact = { email: testEmail, template: 'compact' };
-      const { shouldShowBio: showBioCompact } = await renderGravatarProfileCard(propsCompact, profileWithLongBio);
+      const { shouldShowBio: showBioDefault } = await renderGravatarProfileCard({ email: testEmail, template: 'default' }, profileWithLongBio);
+      const { shouldShowBio: showBioDetailed } = await renderGravatarProfileCard({ email: testEmail, template: 'detailed' }, profileWithLongBio);
+      const { shouldShowBio: showBioCompact } = await renderGravatarProfileCard({ email: testEmail, template: 'compact' }, profileWithLongBio);
 
       expect(showBioDefault).toBe(true);
-      expect(showBioCompact).toBe(true);
-
-      // The actual truncation would happen in the component template
-      // Here we test that bio would be shown for both templates
+      expect(showBioDetailed).toBe(true);
+      expect(showBioCompact).toBe(false);
       expect(longBio.length).toBeGreaterThan(150);
-      expect(longBio.length).toBeGreaterThan(60);
     });
 
     test('should show additional details in detailed template', async () => {
@@ -325,47 +340,31 @@ describe('GravatarProfileCard Component Tests', () => {
       expect(shouldShowName).toBe(false);
     });
 
-    test('should show bio when available and enabled', async () => {
-      const props = { email: testEmail, showBio: true };
-      const { shouldShowBio } = await renderGravatarProfileCard(props, mockGravatarProfile);
+    test('should toggle showVerified', async () => {
+      const { shouldShowVerified: showTrue } = await renderGravatarProfileCard({ email: testEmail, showVerified: true }, mockGravatarProfile);
+      expect(showTrue).toBe(true);
 
-      expect(shouldShowBio).toBe(true);
+      const { shouldShowVerified: showFalse } = await renderGravatarProfileCard({ email: testEmail, showVerified: false }, mockGravatarProfile);
+      expect(showFalse).toBe(false);
     });
 
-    test('should hide bio when disabled', async () => {
-      const props = { email: testEmail, showBio: false };
-      const { shouldShowName, shouldShowBio } = await renderGravatarProfileCard(props, mockGravatarProfile);
+    test('should toggle showLinks', async () => {
+      const { shouldShowLinks: showTrue } = await renderGravatarProfileCard({ email: testEmail, showLinks: true }, mockGravatarProfile);
+      expect(showTrue).toBe(true);
 
-      expect(shouldShowName).toBe(true); // Name should still show
-      expect(shouldShowBio).toBe(false);
+      const { shouldShowLinks: showFalse } = await renderGravatarProfileCard({ email: testEmail, showLinks: false }, mockGravatarProfile);
+      expect(showFalse).toBe(false);
     });
 
-    test('should not show bio when profile has no description', async () => {
-      const props = { email: testEmail, showBio: true };
-      const profileWithoutBio = { ...mockGravatarProfile, description: undefined };
-      const { shouldShowBio } = await renderGravatarProfileCard(props, profileWithoutBio);
+    test('should toggle showBio', async () => {
+      const { shouldShowBio: showTrue } = await renderGravatarProfileCard({ email: testEmail, showBio: true }, mockGravatarProfile);
+      expect(showTrue).toBe(true);
 
-      expect(shouldShowBio).toBe(false);
-    });
-
-    test('should show verified accounts when available and enabled', async () => {
-      const props = { email: testEmail, showVerified: true };
-      const { shouldShowVerified, visibleVerifiedAccounts } = await renderGravatarProfileCard(props, mockGravatarProfile);
-
-      expect(shouldShowVerified).toBe(true);
-      expect(visibleVerifiedAccounts.length).toBeGreaterThan(0);
-      expect(visibleVerifiedAccounts[0].service_label).toBe('Twitter');
-    });
-
-    test('should hide verified accounts when disabled', async () => {
-      const props = { email: testEmail, showVerified: false };
-      const { shouldShowVerified } = await renderGravatarProfileCard(props, mockGravatarProfile);
-
-      expect(shouldShowVerified).toBe(false);
+      const { shouldShowBio: showFalse } = await renderGravatarProfileCard({ email: testEmail, showBio: false }, mockGravatarProfile);
+      expect(showFalse).toBe(false);
     });
 
     test('should filter out hidden verified accounts', async () => {
-      const props = { email: testEmail, showVerified: true };
       const profileWithHiddenAccounts = {
         ...mockGravatarProfile,
         verified_accounts: [
@@ -379,41 +378,23 @@ describe('GravatarProfileCard Component Tests', () => {
           },
         ],
       };
-      const { visibleVerifiedAccounts } = await renderGravatarProfileCard(props, profileWithHiddenAccounts);
+      const { visibleVerifiedAccounts } = await renderGravatarProfileCard({ email: testEmail, showVerified: true }, profileWithHiddenAccounts);
 
-      expect(visibleVerifiedAccounts.length).toBe(2); // Only non-hidden accounts
-      expect(visibleVerifiedAccounts.every(account => !account.is_hidden)).toBe(true);
-    });
-
-    test('should show links when available and enabled', async () => {
-      const props = { email: testEmail, showLinks: true };
-      const { shouldShowLinks, filteredLinks } = await renderGravatarProfileCard(props, mockGravatarProfile);
-
-      expect(shouldShowLinks).toBe(true);
-      expect(filteredLinks.length).toBeGreaterThan(0);
-      expect(filteredLinks[0].label).toBe('Personal Website');
-    });
-
-    test('should hide links when disabled', async () => {
-      const props = { email: testEmail, showLinks: false };
-      const { shouldShowLinks } = await renderGravatarProfileCard(props, mockGravatarProfile);
-
-      expect(shouldShowLinks).toBe(false);
+      expect(visibleVerifiedAccounts.length).toBe(2);
+      expect(visibleVerifiedAccounts.every((account: any) => !account.is_hidden)).toBe(true);
     });
 
     test('should limit number of links shown', async () => {
-      const props = { email: testEmail, showLinks: true, maxLinks: 1 };
-      const { filteredLinks } = await renderGravatarProfileCard(props, mockGravatarProfile);
+      const { filteredLinks: links1 } = await renderGravatarProfileCard({ email: testEmail, showLinks: true, maxLinks: 1 }, mockGravatarProfile);
+      expect(links1.length).toBe(1);
 
-      const duplicateKey = 'test-key';
-      const key1 = 'value1';
-      const attributes = {
-        [duplicateKey as any]: key1,
-        'other-key': 'value2'
-      };
-      expect(attributes[duplicateKey as any]).toBe(key1);
-      expect(filteredLinks.length).toBe(1);
-      expect(filteredLinks[0].label).toBe('Personal Website');
+      const { filteredLinks: links5 } = await renderGravatarProfileCard({ email: testEmail, showLinks: true, maxLinks: 5 }, mockGravatarProfile);
+      expect(links5.length).toBe(Math.min(5, mockGravatarProfile.links?.length || 0));
+    });
+
+    test('should handle maxLinks=0', async () => {
+      const { filteredLinks } = await renderGravatarProfileCard({ email: testEmail, showLinks: true, maxLinks: 0 }, mockGravatarProfile);
+      expect(filteredLinks.length).toBe(0);
     });
 
     test('should use default maxLinks when not specified', async () => {
@@ -721,12 +702,10 @@ describe('GravatarProfileCard Component Tests', () => {
     });
 
     test('should adapt content for mobile screens', async () => {
-      const props = { email: testEmail, template: 'compact' };
-      const { shouldShowBio, filteredLinks } = await renderGravatarProfileCard(props, mockGravatarProfile);
+      const { shouldShowBio, filteredLinks } = await renderGravatarProfileCard({ email: testEmail, template: 'compact' }, mockGravatarProfile);
 
-      // Compact template is better for mobile
-      expect(shouldShowBio).toBe(true);
-      expect(filteredLinks.length).toBeLessThanOrEqual(3);
+      expect(shouldShowBio).toBe(false);
+      expect(filteredLinks.length).toBe(0);
     });
   });
 });

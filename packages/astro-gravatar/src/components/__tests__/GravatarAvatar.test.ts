@@ -4,7 +4,7 @@
  */
 
 import { test, expect, describe, beforeAll } from 'bun:test';
-import { buildAvatarUrl, validateAvatarParams } from '../../lib/gravatar';
+import { buildAvatarUrl, validateAvatarParams, getDefaultAvatarConfig } from '../../lib/gravatar';
 import { hashEmailWithCache } from '../../utils/hash';
 import type { AvatarRating, DefaultAvatar } from '../../lib/types';
 import {
@@ -31,10 +31,7 @@ describe('GravatarAvatar Component Tests', () => {
     testEmailHash = await hashEmailWithCache(testEmail);
   });
 
-  // Helper function to simulate component rendering
   async function renderGravatarAvatar(props: any) {
-    // In a real Astro test environment, this would use astro:test
-    // For now, we'll test the URL generation and validate expected behavior
     const url = await buildAvatarUrl(props.email, {
       size: props.size,
       rating: props.rating,
@@ -42,19 +39,62 @@ describe('GravatarAvatar Component Tests', () => {
       forceDefault: props.forceDefault,
     });
 
-    // Simulate the component's alt text logic exactly
     const altText = props.alt !== undefined ? props.alt : `Avatar for ${props.email}`;
+
+    let srcset = undefined;
+    let sizesAttr = undefined;
+    if (props.size) {
+      const scales = [1, 1.5, 2];
+      const srcPromises = scales.map(async scale => {
+        const scaledSize = Math.round(props.size * scale);
+        if (scaledSize > 2048) return null;
+        const scaledUrl = await buildAvatarUrl(props.email, {
+          size: scaledSize,
+          rating: props.rating,
+          default: props.default,
+          forceDefault: props.forceDefault,
+        });
+        return `${scaledUrl} ${scale}x`;
+      });
+      const results = await Promise.all(srcPromises);
+      srcset = results.filter(Boolean).join(', ');
+      sizesAttr = `(max-width: 768px) ${Math.min(props.size, 80)}px, ${props.size}px`;
+    }
+
+    const className = props.class;
+    const imgClass = ['gravatar-avatar', className].filter(Boolean).join(' ');
+
+    let placeholderBorderRadius = '0';
+    const classList = className?.split(' ') || [];
+    if (classList.includes('rounded-full')) {
+      placeholderBorderRadius = '50%';
+    } else if (classList.includes('rounded')) {
+      placeholderBorderRadius = '0.25rem';
+    }
 
     return {
       url,
       props,
-      // Simulate the HTML attributes that would be generated
+      wrapper: {
+        class: 'gravatar-avatar-wrapper',
+        'data-lazy': props.lazy ? 'true' : 'false',
+      },
+      placeholder: props.lazy ? {
+        class: 'lazy-placeholder',
+        style: {
+          width: (props.size || 80) + 'px',
+          height: (props.size || 80) + 'px',
+          borderRadius: placeholderBorderRadius,
+        }
+      } : null,
       attributes: {
         src: url,
+        srcset,
+        sizes: sizesAttr,
         width: props.size,
         height: props.size,
         alt: altText,
-        class: ['gravatar-avatar', props.class || ''].filter(Boolean).join(' '),
+        class: imgClass,
         loading: props.lazy ? 'lazy' : 'eager',
         decoding: 'async',
         importance: 'auto',
@@ -575,6 +615,99 @@ describe('GravatarAvatar Component Tests', () => {
       expect(urls[0]).not.toBe(urls[1]);
       expect(urls[1]).not.toBe(urls[2]);
       expect(urls[0]).not.toBe(urls[2]);
+    });
+  });
+
+  describe('Comprehensive Prop Tests', () => {
+    test('should handle all possible rating values', async () => {
+      const ratings: AvatarRating[] = ['g', 'pg', 'r', 'x'];
+      for (const rating of ratings) {
+        const props = { email: testEmail, rating };
+        const { url } = await renderGravatarAvatar(props);
+        if (rating === 'g') {
+          expect(url).not.toContain('r=g');
+        } else {
+          expect(url).toContain(`r=${rating}`);
+        }
+      }
+    });
+
+    test('should handle all possible default image types', async () => {
+      const defaults: DefaultAvatar[] = ['mp', 'identicon', 'monsterid', 'wavatar', 'retro', 'robohash', 'blank', '404'];
+      for (const defaultType of defaults) {
+        const props = { email: testEmail, default: defaultType };
+        const { url } = await renderGravatarAvatar(props);
+        if (defaultType === 'mp') {
+          expect(url).not.toContain('d=mp');
+        } else {
+          expect(url).toContain(`d=${defaultType}`);
+        }
+      }
+    });
+
+    test('should handle complex class combinations for placeholder borderRadius', async () => {
+      const testCases = [
+        { class: 'rounded-full', expected: '50%' },
+        { class: 'rounded', expected: '0.25rem' },
+        { class: 'custom-class rounded-full shadow', expected: '50%' },
+        { class: 'my-avatar rounded border', expected: '0.25rem' },
+        { class: 'no-rounded-here', expected: '0' },
+        { class: undefined, expected: '0' },
+      ];
+
+      for (const { class: className, expected } of testCases) {
+        const props = { email: testEmail, lazy: true, class: className };
+        const rendered = await renderGravatarAvatar(props);
+        expect(rendered.placeholder?.style.borderRadius).toBe(expected);
+      }
+    });
+
+    test('should verify lazy loading wrapper and placeholder', async () => {
+      const props = { email: testEmail, lazy: true, size: 120 };
+      const rendered = await renderGravatarAvatar(props);
+
+      expect(rendered.wrapper['data-lazy']).toBe('true');
+      expect(rendered.placeholder).not.toBeNull();
+      expect(rendered.placeholder?.class).toBe('lazy-placeholder');
+      expect(rendered.placeholder?.style.width).toBe('120px');
+      expect(rendered.placeholder?.style.height).toBe('120px');
+      expect(rendered.attributes.loading).toBe('lazy');
+    });
+
+    test('should verify non-lazy loading state', async () => {
+      const props = { email: testEmail, lazy: false };
+      const rendered = await renderGravatarAvatar(props);
+
+      expect(rendered.wrapper['data-lazy']).toBe('false');
+      expect(rendered.placeholder).toBeNull();
+      expect(rendered.attributes.loading).toBe('eager');
+    });
+
+    test('should handle srcset and sizes for different sizes', async () => {
+      const sizes = [50, 100, 200];
+      for (const size of sizes) {
+        const props = { email: testEmail, size };
+        const { attributes } = await renderGravatarAvatar(props);
+        
+        expect(attributes.srcset).toContain('1x');
+        expect(attributes.srcset).toContain('1.5x');
+        expect(attributes.srcset).toContain('2x');
+        expect(attributes.sizes).toBe(`(max-width: 768px) ${Math.min(size, 80)}px, ${size}px`);
+      }
+    });
+
+    test('should validate invalid rating parameter', () => {
+      expect(() => {
+        validateAvatarParams(100, 'invalid' as any);
+      }).toThrow(/Avatar rating must be one of/);
+    });
+
+    test('should return default avatar configuration', () => {
+      const config = getDefaultAvatarConfig();
+      expect(config.size).toBe(80);
+      expect(config.rating).toBe('g');
+      expect(config.default).toBe('mp');
+      expect(config.forceDefault).toBe(false);
     });
   });
 });
