@@ -111,6 +111,10 @@ describe('URL Building Functions', () => {
       await expect(buildAvatarUrl(testEmail, { size: -1 })).rejects.toThrow(GravatarError);
     });
 
+    test('should throw error for invalid size (0)', async () => {
+      await expect(buildAvatarUrl(testEmail, { size: 0 })).rejects.toThrow(GravatarError);
+    });
+
     test('should throw error for invalid size (too large)', async () => {
       await expect(buildAvatarUrl(testEmail, { size: 2049 })).rejects.toThrow(GravatarError);
     });
@@ -241,6 +245,7 @@ describe('URL Building Functions', () => {
 
     test('should throw error for invalid QR code size', async () => {
       await expect(buildQRCodeUrl('test@example.com', { size: -1 })).rejects.toThrow(GravatarError);
+      await expect(buildQRCodeUrl('test@example.com', { size: 0 })).rejects.toThrow(GravatarError);
       await expect(buildQRCodeUrl('test@example.com', { size: 1001 })).rejects.toThrow(GravatarError);
     });
 
@@ -716,7 +721,7 @@ describe('Utility Functions', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(GravatarError);
         if (error instanceof GravatarError) {
-          expect(error.code).toBe(GRAVATAR_ERROR_CODES.INVALID_EMAIL);
+          expect(error.code).toBe(GRAVATAR_ERROR_CODES.INVALID_RESPONSE);
           expect(error.message).toContain('Avatar size');
         }
       }
@@ -728,7 +733,7 @@ describe('Utility Functions', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(GravatarError);
         if (error instanceof GravatarError) {
-          expect(error.code).toBe(GRAVATAR_ERROR_CODES.INVALID_EMAIL);
+          expect(error.code).toBe(GRAVATAR_ERROR_CODES.INVALID_RESPONSE);
           expect(error.message).toContain('Avatar rating');
         }
       }

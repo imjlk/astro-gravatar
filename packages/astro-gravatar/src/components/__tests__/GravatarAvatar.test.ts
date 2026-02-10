@@ -215,8 +215,8 @@ describe('GravatarAvatar Component Tests', () => {
       };
       const { url } = await renderGravatarAvatar(props);
 
-      // Custom URLs are double-encoded in the URL
-      expect(url).toContain(encodeURIComponent(encodeURIComponent(customDefault)));
+      // Custom URLs are single-encoded by URLSearchParams
+      expect(url).toContain(encodeURIComponent(customDefault));
     });
 
     test('should exclude default parameters when using defaults', async () => {

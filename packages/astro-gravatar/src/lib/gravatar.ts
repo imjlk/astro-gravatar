@@ -70,7 +70,7 @@ export async function buildAvatarUrl(
   const params = new URLSearchParams();
 
   // Add size parameter (1-2048 pixels)
-  if (options.size && options.size !== DEFAULT_AVATAR_SIZE) {
+  if (options.size !== undefined && options.size !== DEFAULT_AVATAR_SIZE) {
     if (options.size < 1 || options.size > 2048) {
       throw new GravatarError(
         'Avatar size must be between 1 and 2048 pixels',
@@ -138,7 +138,7 @@ export async function buildQRCodeUrl(
   const params = new URLSearchParams();
 
   // Add size parameter
-  if (options.size && options.size !== 80) {
+  if (options.size !== undefined && options.size !== 80) {
     if (options.size < 1 || options.size > 1000) {
       throw new GravatarError(
         'QR code size must be between 1 and 1000 pixels',
@@ -413,7 +413,7 @@ export function validateAvatarParams(size?: number, rating?: AvatarRating): void
     if (typeof size !== 'number' || size < 1 || size > 2048) {
       throw new GravatarError(
         'Avatar size must be a number between 1 and 2048',
-        GRAVATAR_ERROR_CODES.INVALID_EMAIL
+        GRAVATAR_ERROR_CODES.INVALID_RESPONSE
       );
     }
   }
@@ -423,7 +423,7 @@ export function validateAvatarParams(size?: number, rating?: AvatarRating): void
     if (!validRatings.includes(rating)) {
       throw new GravatarError(
         `Avatar rating must be one of: ${validRatings.join(', ')}`,
-        GRAVATAR_ERROR_CODES.INVALID_EMAIL
+        GRAVATAR_ERROR_CODES.INVALID_RESPONSE
       );
     }
   }
