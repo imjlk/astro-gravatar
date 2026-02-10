@@ -106,7 +106,7 @@ const sizesAttr = size ? `(max-width: 768px) ${Math.min(size, 80)}px, ${size}px`
     <div class="lazy-placeholder" style={{
       width: size + 'px',
       height: size + 'px',
-      borderRadius: className?.includes('rounded-full') ? '50%' : className?.includes('rounded') ? '0.25rem' : '0'
+      borderRadius: className?.split(' ').includes('rounded-full') ? '50%' : className?.split(' ').includes('rounded') ? '0.25rem' : '0'
     }}></div>
   )}
   <img
