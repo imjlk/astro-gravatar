@@ -128,6 +128,7 @@ export async function extractHash(input: string): Promise<string> {
  * Cache for recently hashed emails to improve performance
  */
 const emailHashCache = new Map<string, { hash: string; timestamp: number }>();
+const inFlightHashes = new Map<string, Promise<string>>();
 const CACHE_TTL = CACHE_TTL_MS; // 5 minutes
 const CACHE_MAX_SIZE = DEFAULT_CACHE_MAX_SIZE;
 
@@ -151,22 +152,33 @@ export async function hashEmailWithCache(email: string, useCache: boolean = true
     return cached.hash;
   }
 
-  // Generate new hash
-  const hash = await hashEmail(email);
-
-  // Update cache (cleanup if too large)
-  if (emailHashCache.size >= CACHE_MAX_SIZE) {
-    // Remove oldest entries
-    const oldestKeys = Array.from(emailHashCache.keys())
-      .sort((a, b) => emailHashCache.get(a)!.timestamp - emailHashCache.get(b)!.timestamp)
-      .slice(0, Math.floor(CACHE_MAX_SIZE / 2));
-
-    oldestKeys.forEach(key => emailHashCache.delete(key));
+  const inFlight = inFlightHashes.get(normalizedEmail);
+  if (inFlight) {
+    return await inFlight;
   }
 
-  emailHashCache.set(normalizedEmail, { hash, timestamp: now });
+  const hashPromise = hashEmail(email);
+  inFlightHashes.set(normalizedEmail, hashPromise);
 
-  return hash;
+  try {
+    const hash = await hashPromise;
+
+    // Update cache (cleanup if too large)
+    if (emailHashCache.size >= CACHE_MAX_SIZE) {
+      // Remove oldest entries
+      const oldestKeys = Array.from(emailHashCache.keys())
+        .sort((a, b) => emailHashCache.get(a)!.timestamp - emailHashCache.get(b)!.timestamp)
+        .slice(0, Math.floor(CACHE_MAX_SIZE / 2));
+
+      oldestKeys.forEach(key => emailHashCache.delete(key));
+    }
+
+    emailHashCache.set(normalizedEmail, { hash, timestamp: now });
+
+    return hash;
+  } finally {
+    inFlightHashes.delete(normalizedEmail);
+  }
 }
 
 /**
