@@ -274,7 +274,7 @@ async function makeRequest<T>(
 
     // Cache successful responses
     if (cacheKey && rateLimit && rateLimit.remaining > 0) {
-      const ttl = Math.min(300, rateLimit.reset - Date.now()) * 1000; // Max 5 minutes
+      const ttl = Math.min(300, rateLimit.reset - Math.floor(Date.now() / 1000)) * 1000; // Max 5 minutes
       apiCache.set(cacheKey, { data, expires: Date.now() + ttl });
     }
 

@@ -24,13 +24,13 @@ import { GravatarError as GravatarErrorClass } from '../lib/types';
 export const mockRateLimit: RateLimitInfo = {
   limit: 1000,
   remaining: 999,
-  reset: Date.now() + 3600000, // 1 hour from now
+  reset: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
 };
 
 export const mockRateLimitExceeded: RateLimitInfo = {
   limit: 1000,
   remaining: 0,
-  reset: Date.now() + 3600000,
+  reset: Math.floor(Date.now() / 1000) + 3600,
 };
 
 // ============================================================================

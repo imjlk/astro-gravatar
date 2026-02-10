@@ -778,13 +778,6 @@ export class GravatarClient {
     const now = Date.now();
     const ttl = (this.config.cache?.ttl ?? 300) * 1000; // Convert to milliseconds (ensure default)
 
-    // Remove old entries if cache is full
-    // Prune if too large
-    const maxSize = this.config.cache?.maxSize ?? 100;
-    if (this.cache.size >= maxSize) {
-      this.evictOldestEntries();
-    }
-
     const entry: CacheEntry<T> = {
       data,
       expires: now + ttl,
@@ -794,6 +787,13 @@ export class GravatarClient {
     };
 
     this.cache.set(key, entry);
+
+    // Remove old entries if cache is full
+    // Prune if too large
+    const maxSize = this.config.cache?.maxSize ?? 100;
+    if (this.cache.size > maxSize) {
+      this.evictOldestEntries();
+    }
   }
 
   /**
@@ -807,7 +807,7 @@ export class GravatarClient {
 
     // Remove enough entries to maintain maxSize
     const maxSize = this.config.cache?.maxSize ?? 100;
-    const toRemove = entries.length - maxSize + 1;
+    const toRemove = entries.length - maxSize;
     for (let i = 0; i < toRemove; i++) {
       this.cache.delete(entries[i][0]);
     }

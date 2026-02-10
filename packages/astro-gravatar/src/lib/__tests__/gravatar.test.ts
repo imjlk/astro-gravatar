@@ -278,7 +278,7 @@ describe('API Client Functions', () => {
         [`profiles/${emailHash}`]: createMockResponse(mockProfile, 200, {
           'X-RateLimit-Limit': '1000',
           'X-RateLimit-Remaining': '999',
-          'X-RateLimit-Reset': String(Date.now() + 3600000),
+          'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) + 3600),
         }),
       });
 
@@ -357,7 +357,7 @@ describe('API Client Functions', () => {
           {
             'X-RateLimit-Limit': '1000',
             'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': String(Date.now() + 3600000),
+            'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) + 3600),
           }
         ),
       });
@@ -432,7 +432,7 @@ describe('API Client Functions', () => {
           return createMockResponse(mockProfile, 200, {
             'X-RateLimit-Limit': '1000',
             'X-RateLimit-Remaining': '999',
-            'X-RateLimit-Reset': String(Date.now() + 3600000),
+            'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) + 3600),
           });
         }
 
@@ -541,7 +541,7 @@ describe('API Client Functions', () => {
           return createMockResponse(mockProfile, 200, {
             'X-RateLimit-Limit': '1000',
             'X-RateLimit-Remaining': '999',
-            'X-RateLimit-Reset': String(Date.now() + 3600000),
+            'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) + 3600),
           });
         }
 
@@ -577,7 +577,7 @@ describe('API Client Functions', () => {
         [`profiles/${emailHash}`]: createMockResponse(mockProfile, 200, {
           'X-RateLimit-Limit': '1000',
           'X-RateLimit-Remaining': '999',
-          'X-RateLimit-Reset': String(Date.now() + 3600000),
+          'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) + 3600),
         }),
       });
 
@@ -614,7 +614,7 @@ describe('API Client Functions', () => {
           return createMockResponse(mockProfile, 200, {
             'X-RateLimit-Limit': '1000',
             'X-RateLimit-Remaining': '999',
-            'X-RateLimit-Reset': String(Date.now() - 1000), // Reset time in past
+            'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) - 1), // Reset time in past
           });
         }
 
