@@ -77,6 +77,7 @@ export async function buildAvatarUrl(
   const params = new URLSearchParams();
 
   // Add size parameter (MIN_AVATAR_SIZE-MAX_AVATAR_SIZE pixels)
+  // Check for undefined explicitly to allow 0 to trigger validation error
   if (options.size !== undefined && options.size !== DEFAULT_AVATAR_SIZE) {
     if (options.size < MIN_AVATAR_SIZE || options.size > MAX_AVATAR_SIZE) {
       throw new GravatarError(
@@ -139,6 +140,7 @@ export async function buildQRCodeUrl(
   const params = new URLSearchParams();
 
   // Add size parameter
+  // Check for undefined explicitly to allow 0 to trigger validation error
   if (options.size !== undefined && options.size !== DEFAULT_QR_SIZE) {
     if (options.size < 1 || options.size > 1000) {
       throw new GravatarError(

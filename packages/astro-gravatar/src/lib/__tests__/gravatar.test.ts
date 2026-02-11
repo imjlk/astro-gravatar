@@ -113,6 +113,10 @@ describe('URL Building Functions', () => {
     test('should throw error for invalid size (0)', async () => {
       await expect(buildAvatarUrl(testEmail, { size: 0 })).rejects.toThrow(GravatarError);
     });
+    test('should explicitly validate size=0 as invalid', async () => {
+      // This ensures 0 is not treated as falsy and skipped
+      await expect(buildAvatarUrl(testEmail, { size: 0 })).rejects.toThrow(GravatarError);
+    });
 
     test('should throw error for invalid size (too large)', async () => {
       await expect(buildAvatarUrl(testEmail, { size: 2049 })).rejects.toThrow(GravatarError);
