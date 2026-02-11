@@ -74,7 +74,7 @@ try {
   if (size && (size < 1 || size > 1000)) {
     throw new GravatarError(
       'QR code size must be between 1 and 1000 pixels',
-      GRAVATAR_ERROR_CODES.INVALID_EMAIL
+      GRAVATAR_ERROR_CODES.INVALID_RESPONSE
     );
   }
 
@@ -82,7 +82,7 @@ try {
   if (version && ![1, 3].includes(version)) {
     throw new GravatarError(
       'QR code version must be 1 (standard) or 3 (modern dots)',
-      GRAVATAR_ERROR_CODES.INVALID_EMAIL
+      GRAVATAR_ERROR_CODES.INVALID_RESPONSE
     );
   }
 
@@ -90,7 +90,7 @@ try {
   if (type && !['user', 'gravatar', 'none'].includes(type)) {
     throw new GravatarError(
       'QR code type must be "user", "gravatar", or "none"',
-      GRAVATAR_ERROR_CODES.INVALID_EMAIL
+      GRAVATAR_ERROR_CODES.INVALID_RESPONSE
     );
   }
 
