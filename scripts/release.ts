@@ -15,11 +15,6 @@ interface ReleaseOptions {
   skipGit?: boolean;
 }
 
-async function getCurrentVersion(): Promise<string> {
-  const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
-  return packageJson.version;
-}
-
 async function bumpVersion(options: ReleaseOptions): Promise<string> {
   const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
   const currentVersion = packageJson.version;
@@ -43,7 +38,7 @@ async function bumpVersion(options: ReleaseOptions): Promise<string> {
   if (options.preid) versionArgs.push(`--preid=${options.preid}`);
   if (options.skipGit) versionArgs.push("--no-git-tag-version");
 
-  const result = await $`cd packages/astro-gravatar && bun ${versionArgs}`.env(env).catch((err) => {
+  await $`cd packages/astro-gravatar && bun ${versionArgs}`.env(env).catch((err) => {
     console.error("Version bump failed:", err.stderr?.toString());
     throw new Error("Version bump failed");
   });
@@ -88,7 +83,7 @@ async function publishPackage(tag: string = "latest", dryRun: boolean = false): 
   await $`cd packages/astro-gravatar && bun publish${tag === "latest" ? "" : ` --tag ${tag}`}`;
 }
 
-async function generateChangelog(version: string): Promise<string> {
+async function generateChangelog(_version: string): Promise<string> {
   try {
     const result = await $`git describe --tags --abbrev=0 HEAD^`.quiet().catch(() => "");
     const prevTag = (typeof result === 'string' ? result : result.stdout?.toString())?.trim() || "";
@@ -168,6 +163,7 @@ function parseArgs(args: string[]): ReleaseOptions {
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
+    if (!arg) continue;
 
     switch (arg) {
       case "patch":
@@ -313,7 +309,7 @@ async function main(): Promise<void> {
     }
 
   } catch (error) {
-    console.error(`\n❌ Release failed: ${error.message}`);
+    console.error(`\n❌ Release failed: ${(error as Error).message}`);
     process.exit(1);
   }
 }
