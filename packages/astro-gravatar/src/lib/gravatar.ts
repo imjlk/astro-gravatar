@@ -94,13 +94,7 @@ export async function buildAvatarUrl(
 
   // Add default image parameter
   if (options.default && options.default !== DEFAULT_AVATAR_IMAGE) {
-    if (typeof options.default === 'string' && !options.default.startsWith('http')) {
-      // It's a predefined default type
-      params.set('d', options.default);
-    } else {
-      // It's a URL, let URLSearchParams handle the encoding
-      params.set('d', options.default);
-    }
+    params.set('d', options.default);
   }
 
   // Add force default parameter

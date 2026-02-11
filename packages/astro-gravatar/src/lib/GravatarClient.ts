@@ -333,7 +333,7 @@ export class GravatarClient {
             if (failFast && result.reason instanceof GravatarError) {
               throw result.reason;
             }
-            // Extract email from the batch to maintain order
+            // Extract email from the batch to maintain order (Promise.allSettled preserves order)
             const email = batch[index] || 'unknown';
             results.push({
               email,

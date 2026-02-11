@@ -596,4 +596,35 @@ describe('GravatarClient', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2); // Should not use cache
     expect(noCacheClient.getCacheStats().size).toBe(0);
   });
+
+  test('should correctly map failed profiles to their corresponding emails', async () => {
+    const mockProfile: GravatarProfile = {
+      hash: 'abc123',
+      profile_url: 'https://gravatar.com/abc123',
+      avatar_url: 'https://gravatar.com/avatar/abc123',
+      avatar_alt_text: 'Avatar',
+      display_name: 'Test User',
+    };
+
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockProfile,
+        headers: new Headers(),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        text: async () => 'Profile not found',
+        headers: new Headers(),
+      } as Response);
+
+    const results = await client.getProfiles(['success@example.com', 'fail@example.com']);
+
+    expect(results).toHaveLength(2);
+    expect(results[0]!.email).toBe('success@example.com');
+    expect(results[1]!.email).toBe('fail@example.com');
+  });
 });

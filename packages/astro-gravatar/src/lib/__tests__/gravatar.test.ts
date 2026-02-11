@@ -71,6 +71,7 @@ describe('URL Building Functions', () => {
       expect(url).toContain(`${GRAVATAR_AVATAR_BASE}/${hash}?d=`);
       // Note: URLSearchParams will automatically encode the URL
       expect(url).toContain('https%3A%2F%2Fexample.com%2Fdefault-avatar.png');
+      expect(url).not.toContain("d=https%253A");
     });
 
     test('should build avatar URL with force default parameter', async () => {
