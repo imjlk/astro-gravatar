@@ -199,7 +199,7 @@ bun run test:watch
 
 ### Test Statistics
 
-- **Total Tests**: 475+
+- **Total Tests**: 267+
 - **Coverage**: >95%
 - **Test Files**: 9
 - **Components Tested**: 3

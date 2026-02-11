@@ -258,7 +258,7 @@ This package is extensively tested using Bun's built-in test runner.
 
 ### Test Statistics
 
-- **Total Tests**: 475+
+- **Total Tests**: 267+
 - **Line Coverage**: 97.69%
 - **Function Coverage**: 95.83%
 - **Overall Coverage**: >95%
