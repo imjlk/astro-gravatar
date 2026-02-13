@@ -3,11 +3,7 @@
  * Provides realistic mock data for testing various scenarios
  */
 
-import type {
-  GravatarProfile,
-  GravatarApiResponse,
-  RateLimitInfo,
-} from '../lib/types';
+import type { GravatarProfile, GravatarApiResponse, RateLimitInfo } from '../lib/types';
 import { GravatarError as GravatarErrorClass } from '../lib/types';
 
 // ============================================================================
@@ -232,16 +228,13 @@ export function setupFetchMock() {
     ),
 
     // Rate limited
-    'gravatar.com/ratelimited': new Response(
-      JSON.stringify(mockRateLimitResponse),
-      {
-        status: 429,
-        headers: {
-          'Content-Type': 'application/json',
-          ...mockRateLimitResponse.headers,
-        },
-      }
-    ),
+    'gravatar.com/ratelimited': new Response(JSON.stringify(mockRateLimitResponse), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        ...mockRateLimitResponse.headers,
+      },
+    }),
   };
 
   const mockFetch = createMockFetch(mockResponses);
@@ -275,25 +268,18 @@ export const mockAvatarImageResponse = new Response(
   }
 );
 
-export const mockAvatar404Response = new Response(
-  null,
-  {
-    status: 404,
-    headers: {
-      'Content-Type': 'image/png',
-    },
-  }
-);
+export const mockAvatar404Response = new Response(null, {
+  status: 404,
+  headers: {
+    'Content-Type': 'image/png',
+  },
+});
 
 // ============================================================================
 // Error Mocks
 // ============================================================================
 
-export const mockGravatarError = new GravatarErrorClass(
-  'Profile not found',
-  'NOT_FOUND',
-  404
-);
+export const mockGravatarError = new GravatarErrorClass('Profile not found', 'NOT_FOUND', 404);
 
 export const mockRateLimitError = new GravatarErrorClass(
   'Rate limit exceeded',
@@ -302,8 +288,4 @@ export const mockRateLimitError = new GravatarErrorClass(
   mockRateLimitExceeded
 );
 
-export const mockNetworkError = new GravatarErrorClass(
-  'Network error',
-  'NETWORK_ERROR',
-  0
-);
+export const mockNetworkError = new GravatarErrorClass('Network error', 'NETWORK_ERROR', 0);

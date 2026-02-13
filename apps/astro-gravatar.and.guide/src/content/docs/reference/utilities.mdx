@@ -19,12 +19,15 @@ const hash = await hashEmail('user@example.com');
 ```
 
 **Parameters:**
+
 - `email` (string): Email address to hash
 
 **Returns:**
+
 - `Promise<string>`: 64-character SHA256 hash
 
 **Example:**
+
 ```typescript
 // Direct use in avatar URL
 const email = 'user@example.com';
@@ -43,12 +46,13 @@ const url = await buildAvatarUrl('user@example.com', {
   size: 200,
   rating: 'pg',
   default: 'identicon',
-  forceDefault: false
+  forceDefault: false,
 });
 // Returns: 'https://www.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109?s=200&r=pg&d=identicon'
 ```
 
 **Parameters:**
+
 - `email` (string): Email address for the avatar
 - `options` (object): Avatar configuration options
 
@@ -61,6 +65,7 @@ const url = await buildAvatarUrl('user@example.com', {
 | `forceDefault` | `boolean` | `false` | Force default image |
 
 **Returns:**
+
 - `Promise<string>`: Complete Gravatar avatar URL
 
 ### getProfile
@@ -71,13 +76,14 @@ Fetch user profile data from Gravatar API v3.
 import { getProfile } from 'astro-gravatar';
 
 const profile = await getProfile('user@example.com', {
-  apiKey: 'your-api-key' // Optional but recommended
+  apiKey: 'your-api-key', // Optional but recommended
 });
 
 // Returns GravatarProfile object or null if not found
 ```
 
 **Parameters:**
+
 - `email` (string): Email address of the user
 - `options` (object, optional): Request configuration
 
@@ -88,15 +94,17 @@ const profile = await getProfile('user@example.com', {
 | `cache` | `boolean` | `true` | Enable response caching |
 
 **Returns:**
+
 - `Promise<GravatarProfile \| null>`: Profile data or null if not found
 
 **Example with error handling:**
+
 ```typescript
 import { getProfile, GravatarError } from 'astro-gravatar';
 
 try {
   const profile = await getProfile('user@example.com', {
-    apiKey: import.meta.env.GRAVATAR_API_KEY
+    apiKey: import.meta.env.GRAVATAR_API_KEY,
   });
 
   if (profile) {
@@ -122,29 +130,28 @@ import { getProfiles } from 'astro-gravatar';
 const emails = ['user1@example.com', 'user2@example.com', 'user3@example.com'];
 
 const profiles = await getProfiles(emails, {
-  apiKey: 'your-api-key'
+  apiKey: 'your-api-key',
 });
 
 // Returns array of GravatarProfile objects (null for missing profiles)
 ```
 
 **Parameters:**
+
 - `emails` (string[]): Array of email addresses
 - `options` (object, optional): Request configuration (same as getProfile)
 
 **Returns:**
+
 - `Promise<(GravatarProfile \| null)[]>`: Array of profile data
 
 **Example:**
+
 ```typescript
-const teamEmails = [
-  'alice@example.com',
-  'bob@example.com',
-  'charlie@example.com'
-];
+const teamEmails = ['alice@example.com', 'bob@example.com', 'charlie@example.com'];
 
 const profiles = await getProfiles(teamEmails, {
-  apiKey: import.meta.env.GRAVATAR_API_KEY
+  apiKey: import.meta.env.GRAVATAR_API_KEY,
 });
 
 // Filter out null profiles (users without Gravatar)
@@ -166,6 +173,7 @@ clearApiCache();
 ```
 
 **Use cases:**
+
 - Force refresh of profile data
 - Free memory in long-running applications
 - Handle user profile updates
@@ -184,12 +192,13 @@ console.log('Cache size:', stats.size);
 ```
 
 **Returns:**
+
 ```typescript
 interface CacheStats {
-  hits: number;      // Number of cache hits
-  misses: number;    // Number of cache misses
-  size: number;      // Number of cached items
-  hitRate: number;   // Cache hit rate (0-1)
+  hits: number; // Number of cache hits
+  misses: number; // Number of cache misses
+  size: number; // Number of cached items
+  hitRate: number; // Cache hit rate (0-1)
 }
 ```
 
@@ -207,9 +216,9 @@ const client = new GravatarClient({
   baseUrl: 'https://api.gravatar.com/v3',
   timeout: 15000,
   cache: {
-    ttl: 300,        // 5 minutes
-    maxSize: 1000    // Maximum cached items
-  }
+    ttl: 300, // 5 minutes
+    maxSize: 1000, // Maximum cached items
+  },
 });
 
 const profile = await client.getProfile('user@example.com');
@@ -244,6 +253,7 @@ try {
 ```
 
 **Properties:**
+
 - `message`: string - Error message
 - `code`: string - Gravatar error code
 - `status`: number - HTTP status code
@@ -339,7 +349,7 @@ async function robustGetProfile(email: string, retries = 3): Promise<Profile | n
     } catch (error) {
       if (error.code === 'rate_limit_exceeded' && i < retries - 1) {
         const delay = Math.pow(2, i) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
       throw error;

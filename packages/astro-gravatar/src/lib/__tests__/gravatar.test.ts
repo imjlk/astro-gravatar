@@ -71,7 +71,7 @@ describe('URL Building Functions', () => {
       expect(url).toContain(`${GRAVATAR_AVATAR_BASE}/${hash}?d=`);
       // Note: URLSearchParams will automatically encode the URL
       expect(url).toContain('https%3A%2F%2Fexample.com%2Fdefault-avatar.png');
-      expect(url).not.toContain("d=https%253A");
+      expect(url).not.toContain('d=https%253A');
     });
 
     test('should build avatar URL with force default parameter', async () => {
@@ -139,7 +139,16 @@ describe('URL Building Functions', () => {
     });
 
     test('should test all predefined default avatar types', async () => {
-      const defaultTypes = ['404', 'mp', 'identicon', 'monsterid', 'wavatar', 'retro', 'robohash', 'blank'];
+      const defaultTypes = [
+        '404',
+        'mp',
+        'identicon',
+        'monsterid',
+        'wavatar',
+        'retro',
+        'robohash',
+        'blank',
+      ];
 
       for (const defaultType of defaultTypes) {
         const url = await buildAvatarUrl(testEmail, { default: defaultType as any });
@@ -249,7 +258,9 @@ describe('URL Building Functions', () => {
     test('should throw error for invalid QR code size', async () => {
       await expect(buildQRCodeUrl('test@example.com', { size: -1 })).rejects.toThrow(GravatarError);
       await expect(buildQRCodeUrl('test@example.com', { size: 0 })).rejects.toThrow(GravatarError);
-      await expect(buildQRCodeUrl('test@example.com', { size: 1001 })).rejects.toThrow(GravatarError);
+      await expect(buildQRCodeUrl('test@example.com', { size: 1001 })).rejects.toThrow(
+        GravatarError
+      );
     });
 
     test('should handle boundary sizes for QR code', async () => {
@@ -310,7 +321,10 @@ describe('API Client Functions', () => {
       });
 
       // Override fetch to capture headers
-      global.fetch = (async (input: RequestInfo | URL, init?: RequestInit | BunFetchRequestInit) => {
+      global.fetch = (async (
+        input: RequestInfo | URL,
+        init?: RequestInit | BunFetchRequestInit
+      ) => {
         receivedHeaders = (init?.headers as Record<string, string>) || {};
         const url = typeof input === 'string' ? input : input.toString();
 
@@ -333,10 +347,7 @@ describe('API Client Functions', () => {
       const emailHash = await hashEmailWithCache(email);
 
       const restoreFetch = setupFetchWithResponses({
-        [`profiles/${emailHash}`]: createMockResponse(
-          { error: 'Profile not found' },
-          404
-        ),
+        [`profiles/${emailHash}`]: createMockResponse({ error: 'Profile not found' }, 404),
       });
 
       await expect(getProfile(email)).rejects.toThrow(GravatarError);
@@ -359,15 +370,11 @@ describe('API Client Functions', () => {
       const emailHash = await hashEmailWithCache(email);
 
       const restoreFetch = setupFetchWithResponses({
-        [`profiles/${emailHash}`]: createMockResponse(
-          { error: 'Rate limit exceeded' },
-          429,
-          {
-            'X-RateLimit-Limit': '1000',
-            'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) + 3600),
-          }
-        ),
+        [`profiles/${emailHash}`]: createMockResponse({ error: 'Rate limit exceeded' }, 429, {
+          'X-RateLimit-Limit': '1000',
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) + 3600),
+        }),
       });
 
       try {
@@ -460,11 +467,11 @@ describe('API Client Functions', () => {
   describe('getProfiles', () => {
     test('should fetch multiple profiles successfully', async () => {
       const emails = ['user1@example.com', 'user2@example.com', 'user3@example.com'];
-      const mockProfiles = emails.map(email =>
+      const mockProfiles = emails.map((email) =>
         TestDataGenerator.profile({ display_name: `User ${email.split('@')[0]}` })
       );
 
-      const emailHashes = await Promise.all(emails.map(e => hashEmailWithCache(e)));
+      const emailHashes = await Promise.all(emails.map((e) => hashEmailWithCache(e)));
 
       const restoreFetch = setupFetchWithResponses(
         Object.fromEntries(
@@ -487,15 +494,12 @@ describe('API Client Functions', () => {
 
     test('should handle partial failures gracefully', async () => {
       const emails = ['existing@example.com', 'nonexistent@example.com', 'another@example.com'];
-      const emailHashes = await Promise.all(emails.map(e => hashEmailWithCache(e)));
+      const emailHashes = await Promise.all(emails.map((e) => hashEmailWithCache(e)));
       const mockProfile = TestDataGenerator.profile({ display_name: 'Existing User' });
 
       const restoreFetch = setupFetchWithResponses({
         [`profiles/${emailHashes[0]}`]: createMockResponse(mockProfile, 200),
-        [`profiles/${emailHashes[1]}`]: createMockResponse(
-          { error: 'Profile not found' },
-          404
-        ),
+        [`profiles/${emailHashes[1]}`]: createMockResponse({ error: 'Profile not found' }, 404),
         [`profiles/${emailHashes[2]}`]: createMockResponse(
           TestDataGenerator.profile({ display_name: 'Another User' }),
           200
@@ -506,25 +510,19 @@ describe('API Client Functions', () => {
 
       // Should return 2 successful profiles, skipping the failed one
       expect(profiles).toHaveLength(2);
-      expect(profiles.some(p => p.display_name === 'Existing User')).toBe(true);
-      expect(profiles.some(p => p.display_name === 'Another User')).toBe(true);
+      expect(profiles.some((p) => p.display_name === 'Existing User')).toBe(true);
+      expect(profiles.some((p) => p.display_name === 'Another User')).toBe(true);
 
       restoreFetch();
     });
 
     test('should handle all profiles failing', async () => {
       const emails = ['nonexistent1@example.com', 'nonexistent2@example.com'];
-      const emailHashes = await Promise.all(emails.map(e => hashEmailWithCache(e)));
+      const emailHashes = await Promise.all(emails.map((e) => hashEmailWithCache(e)));
 
       const restoreFetch = setupFetchWithResponses({
-        [`profiles/${emailHashes[0]}`]: createMockResponse(
-          { error: 'Profile not found' },
-          404
-        ),
-        [`profiles/${emailHashes[1]}`]: createMockResponse(
-          { error: 'Profile not found' },
-          404
-        ),
+        [`profiles/${emailHashes[0]}`]: createMockResponse({ error: 'Profile not found' }, 404),
+        [`profiles/${emailHashes[1]}`]: createMockResponse({ error: 'Profile not found' }, 404),
       });
 
       await expect(getProfiles(emails)).rejects.toThrow(GravatarError);
@@ -652,7 +650,7 @@ describe('Utility Functions', () => {
     test('should accept valid rating parameter', () => {
       const validRatings = ['g', 'pg', 'r', 'x'];
 
-      validRatings.forEach(rating => {
+      validRatings.forEach((rating) => {
         expect(() => {
           validateAvatarParams(undefined, rating as any);
         }).not.toThrow();

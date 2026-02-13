@@ -121,8 +121,8 @@ try {
     if (error) return ''; // Don't generate srcset if there's an error
 
     const scales = [1, 1.5, 2];
-    return scales
-      .map(scale => {
+    const srcsetParts = await Promise.all(
+      scales.map(async scale => {
         const scaledSize = Math.round(baseSize * scale);
         const maxSize = 1000;
         if (scaledSize > maxSize) return null;
@@ -137,8 +137,8 @@ try {
 
         return `${scaledUrl} ${scale}x`;
       })
-      .filter(Boolean)
-      .join(', ');
+    );
+    return srcsetParts.filter(Boolean).join(', ');
   };
 
   const srcset = await generateSrcset(size);

@@ -1,13 +1,13 @@
 #!/usr/bin/env bun
 
-import { $ } from "bun";
-import { readFileSync, writeFileSync } from "fs";
-import { join } from "path";
+import { $ } from 'bun';
+import { readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 
-const packagePath = join(process.cwd(), "packages", "astro-gravatar", "package.json");
+const packagePath = join(process.cwd(), 'packages', 'astro-gravatar', 'package.json');
 
 interface ReleaseOptions {
-  type?: "patch" | "minor" | "major" | "prerelease" | "preminor" | "beta" | "alpha";
+  type?: 'patch' | 'minor' | 'major' | 'prerelease' | 'preminor' | 'beta' | 'alpha';
   preid?: string;
   tag?: string;
   dryRun?: boolean;
@@ -16,7 +16,7 @@ interface ReleaseOptions {
 }
 
 async function bumpVersion(options: ReleaseOptions): Promise<string> {
-  const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
+  const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
   const currentVersion = packageJson.version;
 
   console.log(`Current version: ${currentVersion}`);
@@ -28,22 +28,22 @@ async function bumpVersion(options: ReleaseOptions): Promise<string> {
   }
 
   if (options.skipGit) {
-    versionCmd += " --no-git-tag-version";
+    versionCmd += ' --no-git-tag-version';
   }
 
   console.log(`Running: bun ${versionCmd}`);
 
-  const env = { BUN_CONFIG_NO_JSON_WARNINGS: "1" };
-  const versionArgs = ["pm", "version", options.type];
+  const env = { BUN_CONFIG_NO_JSON_WARNINGS: '1' };
+  const versionArgs = ['pm', 'version', options.type];
   if (options.preid) versionArgs.push(`--preid=${options.preid}`);
-  if (options.skipGit) versionArgs.push("--no-git-tag-version");
+  if (options.skipGit) versionArgs.push('--no-git-tag-version');
 
   await $`cd packages/astro-gravatar && bun ${versionArgs}`.env(env).catch((err) => {
-    console.error("Version bump failed:", err.stderr?.toString());
-    throw new Error("Version bump failed");
+    console.error('Version bump failed:', err.stderr?.toString());
+    throw new Error('Version bump failed');
   });
 
-  const newPackageJson = JSON.parse(readFileSync(packagePath, "utf8"));
+  const newPackageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
   const newVersion = newPackageJson.version;
 
   console.log(`New version: ${newVersion}`);
@@ -52,14 +52,14 @@ async function bumpVersion(options: ReleaseOptions): Promise<string> {
 
 async function createGitTag(version: string, skipGit: boolean = false): Promise<void> {
   if (skipGit) {
-    console.log("Skipping git operations");
+    console.log('Skipping git operations');
     return;
   }
 
   console.log(`Creating git tag for version ${version}...`);
 
   await $`git add packages/astro-gravatar/package.json`.catch((err) => {
-    console.warn("Git add failed (possibly no changes):", err.stderr?.toString());
+    console.warn('Git add failed (possibly no changes):', err.stderr?.toString());
   });
 
   const gitStatus = await $`git status --porcelain packages/astro-gravatar/package.json`.text();
@@ -72,21 +72,21 @@ async function createGitTag(version: string, skipGit: boolean = false): Promise<
   await $`git push origin main --follow-tags`;
 }
 
-async function publishPackage(tag: string = "latest", dryRun: boolean = false): Promise<void> {
+async function publishPackage(tag: string = 'latest', dryRun: boolean = false): Promise<void> {
   if (dryRun) {
-    console.log("Dry run: Would publish to npm with tag:", tag);
+    console.log('Dry run: Would publish to npm with tag:', tag);
     return;
   }
 
   console.log(`Publishing to npm with tag: ${tag}`);
 
-  await $`cd packages/astro-gravatar && bun publish${tag === "latest" ? "" : ` --tag ${tag}`}`;
+  await $`cd packages/astro-gravatar && bun publish${tag === 'latest' ? '' : ` --tag ${tag}`}`;
 }
 
 async function generateChangelog(_version: string): Promise<string> {
   try {
-    const result = await $`git describe --tags --abbrev=0 HEAD^`.quiet().catch(() => "");
-    const prevTag = (typeof result === 'string' ? result : result.stdout?.toString())?.trim() || "";
+    const result = await $`git describe --tags --abbrev=0 HEAD^`.quiet().catch(() => '');
+    const prevTag = (typeof result === 'string' ? result : result.stdout?.toString())?.trim() || '';
 
     let changelogCmd = `git log --pretty=format:"- %s (%h)"`;
     if (prevTag) {
@@ -94,19 +94,24 @@ async function generateChangelog(_version: string): Promise<string> {
     }
 
     const changelogResult = await $`${changelogCmd}`;
-    return (typeof changelogResult === 'string' ? changelogResult : changelogResult.stdout?.toString())?.trim() || "Release changes";
+    return (
+      (typeof changelogResult === 'string'
+        ? changelogResult
+        : changelogResult.stdout?.toString()
+      )?.trim() || 'Release changes'
+    );
   } catch (error) {
-    console.warn("Could not generate changelog:", error);
-    return "Release changes";
+    console.warn('Could not generate changelog:', error);
+    return 'Release changes';
   }
 }
 
 async function updateChangelog(version: string, changes: string): Promise<void> {
-  const changelogPath = join(process.cwd(), "CHANGELOG.md");
-  let existingChangelog = "";
+  const changelogPath = join(process.cwd(), 'CHANGELOG.md');
+  let existingChangelog = '';
 
   try {
-    existingChangelog = readFileSync(changelogPath, "utf8");
+    existingChangelog = readFileSync(changelogPath, 'utf8');
   } catch {
     // File doesn't exist, will create it
   }
@@ -121,40 +126,40 @@ async function updateChangelog(version: string, changes: string): Promise<void> 
     writeFileSync(changelogPath, `# Changelog\n\n${newEntry}`);
   }
 
-  console.log("Updated CHANGELOG.md");
+  console.log('Updated CHANGELOG.md');
 }
 
 async function runPreReleaseChecks(): Promise<void> {
-  console.log("Running pre-release checks...");
+  console.log('Running pre-release checks...');
 
-  console.log("Running tests...");
+  console.log('Running tests...');
   const testResult = await $`bun run test`.catch((err) => {
-    console.error("Tests failed:", err.stderr?.toString());
-    throw new Error("Tests failed");
+    console.error('Tests failed:', err.stderr?.toString());
+    throw new Error('Tests failed');
   });
 
   if (testResult.exitCode !== 0) {
-    throw new Error("Tests failed");
+    throw new Error('Tests failed');
   }
 
-  console.log("Running type checking...");
+  console.log('Running type checking...');
   const typecheckResult = await $`bun run typecheck`.catch((err) => {
-    console.error("Type checking failed:", err.stderr?.toString());
-    throw new Error("Type checking failed");
+    console.error('Type checking failed:', err.stderr?.toString());
+    throw new Error('Type checking failed');
   });
 
   if (typecheckResult.exitCode !== 0) {
-    throw new Error("Type checking failed");
+    throw new Error('Type checking failed');
   }
 
-  console.log("Building package...");
+  console.log('Building package...');
   const buildResult = await $`bun run build`.catch((err) => {
-    console.error("Build failed:", err.stderr?.toString());
-    throw new Error("Build failed");
+    console.error('Build failed:', err.stderr?.toString());
+    throw new Error('Build failed');
   });
 
   if (buildResult.exitCode !== 0) {
-    throw new Error("Build failed");
+    throw new Error('Build failed');
   }
 }
 
@@ -166,51 +171,51 @@ function parseArgs(args: string[]): ReleaseOptions {
     if (!arg) continue;
 
     switch (arg) {
-      case "patch":
-      case "minor":
-      case "major":
-      case "prerelease":
+      case 'patch':
+      case 'minor':
+      case 'major':
+      case 'prerelease':
         options.type = arg;
         break;
 
-      case "beta":
-        options.type = "preminor";
-        options.preid = "beta";
-        options.tag = "beta";
+      case 'beta':
+        options.type = 'preminor';
+        options.preid = 'beta';
+        options.tag = 'beta';
         break;
 
-      case "alpha":
-        options.type = "preminor";
-        options.preid = "alpha";
-        options.tag = "alpha";
+      case 'alpha':
+        options.type = 'preminor';
+        options.preid = 'alpha';
+        options.tag = 'alpha';
         break;
 
-      case "--dry-run":
+      case '--dry-run':
         options.dryRun = true;
         break;
 
-      case "--skip-tests":
+      case '--skip-tests':
         options.skipTests = true;
         break;
 
-      case "--skip-git":
+      case '--skip-git':
         options.skipGit = true;
         break;
 
-      case "--preid":
+      case '--preid':
         if (i + 1 < args.length) {
           options.preid = args[++i];
         }
         break;
 
-      case "--tag":
+      case '--tag':
         if (i + 1 < args.length) {
           options.tag = args[++i];
         }
         break;
 
       default:
-        if (arg.startsWith("--")) {
+        if (arg.startsWith('--')) {
           console.error(`Unknown option: ${arg}`);
           process.exit(1);
         } else {
@@ -222,7 +227,7 @@ function parseArgs(args: string[]): ReleaseOptions {
 
   // Default to patch if no type specified
   if (!options.type) {
-    options.type = "patch";
+    options.type = 'patch';
   }
 
   return options;
@@ -265,7 +270,7 @@ Environment Variables:
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
-  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
+  if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
     printHelp();
     return;
   }
@@ -294,7 +299,7 @@ async function main(): Promise<void> {
     }
 
     // Publish package
-    const publishTag = options.tag || "latest";
+    const publishTag = options.tag || 'latest';
     await publishPackage(publishTag, options.dryRun);
 
     console.log(`\n✅ ${options.type} release v${version} completed successfully!`);
@@ -307,7 +312,6 @@ async function main(): Promise<void> {
     } else {
       console.log(`\n🔍 Dry run completed - no actual changes made`);
     }
-
   } catch (error) {
     console.error(`\n❌ Release failed: ${(error as Error).message}`);
     process.exit(1);

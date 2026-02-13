@@ -28,13 +28,16 @@ Retrieve a user's profile using their email hash or profile URL slug.
 **Endpoint**: `GET /profiles/{profileIdentifier}`
 
 **Authentication**:
+
 - **Public**: Limited profile data
 - **Bearer Token**: Full profile data (recommended)
 
 **Parameters**:
+
 - `profileIdentifier` (required): SHA256 hash of email or profile URL slug
 
 **Response Codes**:
+
 - `200 OK`: Successfully retrieved profile
 - `404 Not Found`: Profile not found
 - `429 Too Many Requests`: Rate limit exceeded
@@ -75,9 +78,11 @@ Generate a QR code for a user's profile.
 **Authentication**: Public (no authentication required)
 
 **Parameters**:
+
 - `sha256_hash` (required): SHA256 hash of email or profile URL slug
 
 **Query Parameters**:
+
 - `size` (optional): Size of QR code in pixels (default: 80)
 - `version` (optional): QR code style (1: standard, 3: modern dots)
 - `utm_medium` (optional): UTM medium parameter
@@ -85,6 +90,7 @@ Generate a QR code for a user's profile.
 - `type` (optional): Center icon type (user, gravatar, none)
 
 **Response Codes**:
+
 - `200 OK`: QR code image (PNG format)
 - `429 Too Many Requests`: Rate limit exceeded
 - `500 Internal Server Error`: Server error
@@ -107,12 +113,12 @@ https://www.gravatar.com/avatar/{hash}?parameters
 
 ### URL Parameters
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `s` or `size` | Avatar size in pixels | 80 |
-| `d` or `default` | Default avatar type | mp |
-| `r` or `rating` | Maximum rating level | g |
-| `f` or `forcedefault` | Force default image | y |
+| Parameter             | Description           | Default |
+| --------------------- | --------------------- | ------- |
+| `s` or `size`         | Avatar size in pixels | 80      |
+| `d` or `default`      | Default avatar type   | mp      |
+| `r` or `rating`       | Maximum rating level  | g       |
+| `f` or `forcedefault` | Force default image   | y       |
 
 ### Default Avatar Options
 
@@ -193,7 +199,7 @@ https://gravatar.com/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579
 ### Default Rate Limits
 
 | Authentication | Requests per Hour |
-|----------------|-------------------|
+| -------------- | ----------------- |
 | API Key        | 1,000             |
 | Public         | Limited           |
 
@@ -211,14 +217,14 @@ All API responses include rate limit information:
 // Check rate limits from response headers
 const response = await fetch('https://api.gravatar.com/v3/profiles/hash', {
   headers: {
-    'Authorization': `Bearer ${apiKey}`
-  }
+    Authorization: `Bearer ${apiKey}`,
+  },
 });
 
 const rateLimit = {
   limit: response.headers.get('X-RateLimit-Limit'),
   remaining: response.headers.get('X-RateLimit-Remaining'),
-  reset: response.headers.get('X-RateLimit-Reset')
+  reset: response.headers.get('X-RateLimit-Reset'),
 };
 
 if (rateLimit.remaining === '0') {
@@ -227,7 +233,7 @@ if (rateLimit.remaining === '0') {
 
   if (waitTime > 0) {
     console.log(`Rate limit reached. Waiting ${waitTime}ms...`);
-    await new Promise(resolve => setTimeout(resolve, waitTime));
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
   }
 }
 ```
@@ -247,15 +253,15 @@ All API errors follow a consistent format:
 
 ### Common Error Codes
 
-| HTTP Status | Error Code | Description | Solution |
-|-------------|------------|-------------|----------|
-| 400 | `uncropped_image` | Image is not square | Crop image to 1:1 ratio |
-| 400 | `unsupported_image` | File format not supported | Use JPG, PNG, or GIF |
-| 401 | - | Authentication failed | Check API key |
-| 403 | `insufficient_scope` | Token lacks permissions | Request proper scopes |
-| 404 | `disabled` | Profile is disabled | No solution |
-| 429 | `rate_limit_exceeded` | Too many requests | Implement backoff |
-| 500 | - | Server error | Retry with backoff |
+| HTTP Status | Error Code            | Description               | Solution                |
+| ----------- | --------------------- | ------------------------- | ----------------------- |
+| 400         | `uncropped_image`     | Image is not square       | Crop image to 1:1 ratio |
+| 400         | `unsupported_image`   | File format not supported | Use JPG, PNG, or GIF    |
+| 401         | -                     | Authentication failed     | Check API key           |
+| 403         | `insufficient_scope`  | Token lacks permissions   | Request proper scopes   |
+| 404         | `disabled`            | Profile is disabled       | No solution             |
+| 429         | `rate_limit_exceeded` | Too many requests         | Implement backoff       |
+| 500         | -                     | Server error              | Retry with backoff      |
 
 ### Error Handling Best Practices
 
@@ -270,7 +276,7 @@ try {
     switch (error.code) {
       case 'rate_limit_exceeded':
         // Implement exponential backoff
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
         return getProfile('user@example.com', { apiKey });
 
       case 'disabled':
@@ -295,20 +301,21 @@ import { getProfile, buildAvatarUrl } from 'astro-gravatar';
 
 // Get profile with API key
 const profile = await getProfile('user@example.com', {
-  apiKey: import.meta.env.GRAVATAR_API_KEY
+  apiKey: import.meta.env.GRAVATAR_API_KEY,
 });
 
 // Build avatar URL
 const avatarUrl = buildAvatarUrl('user@example.com', {
   size: 200,
   rating: 'pg',
-  default: 'identicon'
+  default: 'identicon',
 });
 ```
 
 ### OpenAPI Specification
 
 The complete API specification is available at:
+
 ```
 https://api.gravatar.com/v3/openapi
 ```

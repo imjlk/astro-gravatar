@@ -8,7 +8,7 @@ import type {
   GravatarApiResponse,
   RateLimitInfo,
   AvatarRating,
-  DefaultAvatar
+  DefaultAvatar,
 } from './types.js'; // Import types
 import { GravatarError, GRAVATAR_ERROR_CODES } from './types.js'; // Import values
 import { hashEmailWithCache } from '../utils/hash.js';
@@ -17,7 +17,7 @@ import {
   MAX_AVATAR_SIZE,
   DEFAULT_QR_SIZE,
   DEFAULT_TIMEOUT_MS,
-  DEFAULT_CACHE_TTL_SECONDS
+  DEFAULT_CACHE_TTL_SECONDS,
 } from '../constants.js';
 
 // ============================================================================
@@ -113,7 +113,10 @@ export async function buildAvatarUrl(
  * @param config - API client configuration
  * @returns Profile API URL
  */
-export async function buildProfileUrl(email: string, config: GravatarClientConfig = {}): Promise<string> {
+export async function buildProfileUrl(
+  email: string,
+  config: GravatarClientConfig = {}
+): Promise<string> {
   const hash = await hashEmailWithCache(email);
   const baseUrl = config.baseUrl || GRAVATAR_API_BASE;
   return `${baseUrl}/profiles/${hash}`;
@@ -229,7 +232,7 @@ async function makeRequest<T>(
 
   const headers: Record<string, string> = {
     'User-Agent': 'astro-gravatar/1.0.0',
-    'Accept': 'application/json',
+    Accept: 'application/json',
     ...config.headers,
   };
 
@@ -264,10 +267,13 @@ async function makeRequest<T>(
 
       throw new GravatarError(
         errorMessage,
-        response.status === 429 ? GRAVATAR_ERROR_CODES.RATE_LIMITED :
-          response.status === 401 ? GRAVATAR_ERROR_CODES.AUTH_ERROR :
-            response.status === 404 ? GRAVATAR_ERROR_CODES.NOT_FOUND :
-              GRAVATAR_ERROR_CODES.API_ERROR,
+        response.status === 429
+          ? GRAVATAR_ERROR_CODES.RATE_LIMITED
+          : response.status === 401
+            ? GRAVATAR_ERROR_CODES.AUTH_ERROR
+            : response.status === 404
+              ? GRAVATAR_ERROR_CODES.NOT_FOUND
+              : GRAVATAR_ERROR_CODES.API_ERROR,
         response.status,
         rateLimit
       );
@@ -277,12 +283,12 @@ async function makeRequest<T>(
 
     // Cache successful responses
     if (cacheKey && rateLimit && rateLimit.remaining > 0) {
-      const ttl = Math.min(DEFAULT_CACHE_TTL_SECONDS, rateLimit.reset - Math.floor(Date.now() / 1000)) * 1000; // Max 5 minutes
+      const ttl =
+        Math.min(DEFAULT_CACHE_TTL_SECONDS, rateLimit.reset - Math.floor(Date.now() / 1000)) * 1000; // Max 5 minutes
       apiCache.set(cacheKey, { data, expires: Date.now() + ttl });
     }
 
-    return { data, headers: Object.fromEntries((response.headers as any).entries()) };
-
+    return { data, headers: Object.fromEntries(response.headers.entries()) };
   } catch (error) {
     clearTimeout(timeoutId);
 
@@ -291,10 +297,7 @@ async function makeRequest<T>(
     }
 
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new GravatarError(
-        'Request timeout',
-        GRAVATAR_ERROR_CODES.NETWORK_ERROR
-      );
+      throw new GravatarError('Request timeout', GRAVATAR_ERROR_CODES.NETWORK_ERROR);
     }
 
     throw new GravatarError(
@@ -333,10 +336,7 @@ export async function getProfile(
   const response = await makeRequest<GravatarProfile>(url, config, cacheKey);
 
   if (!response.data) {
-    throw new GravatarError(
-      'No profile data received',
-      GRAVATAR_ERROR_CODES.INVALID_RESPONSE
-    );
+    throw new GravatarError('No profile data received', GRAVATAR_ERROR_CODES.INVALID_RESPONSE);
   }
 
   return response.data;
@@ -353,8 +353,8 @@ export async function getProfiles(
   emails: string[],
   config: GravatarClientConfig = {}
 ): Promise<GravatarProfile[]> {
-  const promises = emails.map(email => getProfile(email, config));
-  return Promise.allSettled(promises).then(results => {
+  const promises = emails.map((email) => getProfile(email, config));
+  return Promise.allSettled(promises).then((results) => {
     const profiles: GravatarProfile[] = [];
     const errors: GravatarError[] = [];
 

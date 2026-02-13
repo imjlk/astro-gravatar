@@ -1,5 +1,5 @@
-import { readFile, mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 /**
  * This script enforces a minimum code coverage threshold.
@@ -7,17 +7,17 @@ import { join } from "node:path";
  * percentage for lines and functions, excluding tests and mocks.
  */
 
-const PACKAGE_JSON_FILE = "package.json";
-const LCOV_FILE = "coverage/lcov.info";
-const COVERAGE_DIR = "coverage";
-const SUMMARY_FILE = join(COVERAGE_DIR, "coverage-summary.json");
+const PACKAGE_JSON_FILE = 'package.json';
+const LCOV_FILE = 'coverage/lcov.info';
+const COVERAGE_DIR = 'coverage';
+const SUMMARY_FILE = join(COVERAGE_DIR, 'coverage-summary.json');
 
 /**
  * Reads the threshold from package.json
  */
 async function getThreshold() {
   try {
-    const content = await readFile(PACKAGE_JSON_FILE, "utf-8");
+    const content = await readFile(PACKAGE_JSON_FILE, 'utf-8');
     const pkg = JSON.parse(content);
     return pkg.coverageThreshold?.global?.lines ?? 90;
   } catch {
@@ -26,17 +26,12 @@ async function getThreshold() {
 }
 
 // Files to exclude from coverage calculation to focus on source code
-const EXCLUDE_PATTERNS = [
-  "__tests__",
-  "test-utils",
-  "mocks.ts",
-  "fixtures.ts"
-];
+const EXCLUDE_PATTERNS = ['__tests__', 'test-utils', 'mocks.ts', 'fixtures.ts'];
 
 async function parseLcov(filePath: string) {
-  const content = await readFile(filePath, "utf-8");
-  const records = content.split("end_of_record");
-  
+  const content = await readFile(filePath, 'utf-8');
+  const records = content.split('end_of_record');
+
   let totalLF = 0;
   let totalLH = 0;
   let totalFNF = 0;
@@ -45,23 +40,23 @@ async function parseLcov(filePath: string) {
   for (const record of records) {
     if (!record.trim()) continue;
 
-    const lines = record.split("\n");
-    let sf = "";
+    const lines = record.split('\n');
+    let sf = '';
     let lf = 0;
     let lh = 0;
     let fnf = 0;
     let fnh = 0;
 
     for (const line of lines) {
-      if (line.startsWith("SF:")) sf = line.substring(3);
-      if (line.startsWith("LF:")) lf = parseInt(line.substring(3));
-      if (line.startsWith("LH:")) lh = parseInt(line.substring(3));
-      if (line.startsWith("FNF:")) fnf = parseInt(line.substring(4));
-      if (line.startsWith("FNH:")) fnh = parseInt(line.substring(4));
+      if (line.startsWith('SF:')) sf = line.substring(3);
+      if (line.startsWith('LF:')) lf = parseInt(line.substring(3));
+      if (line.startsWith('LH:')) lh = parseInt(line.substring(3));
+      if (line.startsWith('FNF:')) fnf = parseInt(line.substring(4));
+      if (line.startsWith('FNH:')) fnh = parseInt(line.substring(4));
     }
 
-    const shouldExclude = EXCLUDE_PATTERNS.some(pattern => sf.includes(pattern));
-    
+    const shouldExclude = EXCLUDE_PATTERNS.some((pattern) => sf.includes(pattern));
+
     if (!shouldExclude && sf) {
       totalLF += lf;
       totalLH += lh;
@@ -75,7 +70,7 @@ async function parseLcov(filePath: string) {
 
   return {
     lines: { total: totalLF, covered: totalLH, pct: parseFloat(linePct.toFixed(2)) },
-    functions: { total: totalFNF, covered: totalFNH, pct: parseFloat(funcPct.toFixed(2)) }
+    functions: { total: totalFNF, covered: totalFNH, pct: parseFloat(funcPct.toFixed(2)) },
   };
 }
 
@@ -84,38 +79,42 @@ async function run() {
   console.log(`Checking coverage against threshold of ${threshold}%...`);
   try {
     const stats = await parseLcov(LCOV_FILE);
-    
+
     const summary = {
       total: {
         lines: stats.lines,
         functions: stats.functions,
         statements: stats.lines,
-        branches: { total: 0, covered: 0, pct: 100 }
-      }
+        branches: { total: 0, covered: 0, pct: 100 },
+      },
     };
 
     // Ensure coverage directory exists for the summary file
     await mkdir(COVERAGE_DIR, { recursive: true });
     await writeFile(SUMMARY_FILE, JSON.stringify(summary, null, 2));
-    
+
     console.log(`\nCoverage Results (Source Code Only):`);
     console.log(`-----------------------------------`);
     console.log(`Lines:     ${stats.lines.pct}% (${stats.lines.covered}/${stats.lines.total})`);
-    console.log(`Functions: ${stats.functions.pct}% (${stats.functions.covered}/${stats.functions.total})`);
+    console.log(
+      `Functions: ${stats.functions.pct}% (${stats.functions.covered}/${stats.functions.total})`
+    );
     console.log(`-----------------------------------`);
-    
+
     let failed = false;
     if (stats.lines.pct < threshold) {
       console.error(`❌ Line coverage ${stats.lines.pct}% is below threshold ${threshold}%`);
       failed = true;
     }
     if (stats.functions.pct < threshold) {
-      console.error(`❌ Function coverage ${stats.functions.pct}% is below threshold ${threshold}%`);
+      console.error(
+        `❌ Function coverage ${stats.functions.pct}% is below threshold ${threshold}%`
+      );
       failed = true;
     }
 
     if (failed) {
-      console.error("\nFAIL: Code coverage threshold not met.");
+      console.error('\nFAIL: Code coverage threshold not met.');
       process.exit(1);
     }
 
@@ -125,7 +124,7 @@ async function run() {
       console.error(`\n❌ Error: LCOV file not found at ${LCOV_FILE}`);
       console.error("Make sure to run 'bun test --coverage' with LCOV reporter first.");
     } else {
-      console.error("\n❌ Error checking coverage:", err.message);
+      console.error('\n❌ Error checking coverage:', err.message);
     }
     process.exit(1);
   }

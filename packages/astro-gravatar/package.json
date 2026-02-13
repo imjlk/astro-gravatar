@@ -3,10 +3,17 @@
   "version": "0.0.15",
   "type": "module",
   "main": "./index.ts",
+  "bin": {
+    "astro-gravatar": "./src/cli/index.ts"
+  },
   "exports": {
     ".": {
       "types": "./index.ts",
       "import": "./index.ts"
+    },
+    "./cli": {
+      "types": "./src/cli/index.ts",
+      "import": "./src/cli/index.ts"
     },
     "./GravatarProfileCard": {
       "types": "./src/components/GravatarProfileCard.astro",
@@ -60,6 +67,7 @@
     "test:unit": "bun test src/**/__tests__/*.test.ts",
     "test:integration": "bun test src/**/__tests__/*.integration.test.ts",
     "test:components": "bun test src/components/**/__tests__/*.test.ts",
+    "bundle:size": "bun build src/lib/gravatar.ts --outfile=/tmp/bundle.js --minify && stat -c%s /tmp/bundle.js | xargs -I {} echo 'Bundle size (minified): {} bytes'",
     "prepublishOnly": "bun run build && bun test"
   },
   "coverageThreshold": {

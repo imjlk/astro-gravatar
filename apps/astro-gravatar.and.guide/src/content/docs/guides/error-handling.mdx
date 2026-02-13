@@ -22,6 +22,7 @@ Learn how to handle common errors and implement fallbacks for robust avatar disp
 ```
 
 Available options:
+
 - `identicon` - Geometric pattern based on email hash
 - `mp` - Mystery person silhouette
 - `monsterid` - Generated monster
@@ -98,7 +99,7 @@ async function getProfileWithFallback(email: string) {
       email,
       display_name: email.split('@')[0],
       avatar_url: `https://www.gravatar.com/avatar/${hashEmail(email)}?d=identicon&s=80`,
-      description: null
+      description: null,
     };
   }
 }
@@ -117,7 +118,7 @@ async function fetchWithRetry(email: string, retries = 3): Promise<Profile | nul
   } catch (error) {
     if (retries > 0 && error.code === 'rate_limit_exceeded') {
       const delay = Math.pow(2, 4 - retries) * 1000; // 1s, 2s, 4s
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
       return fetchWithRetry(email, retries - 1);
     }
     throw error;
@@ -212,7 +213,9 @@ const avatarProps = validateAvatarProps({
 
 <CardGrid>
   <Card title="Missing API Key" icon="key">
-    <p style="margin: 0;">Add <code>GRAVATAR_API_KEY</code> to your environment variables</p>
+    <p style="margin: 0;">
+      Add <code>GRAVATAR_API_KEY</code> to your environment variables
+    </p>
   </Card>
   <Card title="Invalid Email" icon="mail">
     <p style="margin: 0;">Validate email format before using with components</p>
@@ -238,7 +241,7 @@ export function handleAvatarError(error: Error) {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', 'avatar_error', {
       error_message: error.message,
-      error_type: error.constructor.name
+      error_type: error.constructor.name,
     });
   }
 }

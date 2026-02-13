@@ -9,16 +9,16 @@ Generate QR codes that link to user Gravatar profiles for easy sharing and mobil
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `email` | `string` | **Required** | Email address for QR code |
-| `size` | `number` | `80` | QR code size in pixels (1-1000) |
-| `version` | `1 \| 3` | `1` | QR code style (1: standard, 3: modern dots) |
-| `type` | `'none' \| 'user' \| 'gravatar'` | `'none'` | Center icon type |
-| `utmMedium` | `string` | `undefined` | UTM medium parameter |
-| `utmCampaign` | `string` | `undefined` | UTM campaign parameter |
-| `class` | `string` | `''` | Additional CSS classes |
-| `alt` | `string` | Auto-generated | Alt text for accessibility |
+| Prop          | Type                             | Default        | Description                                 |
+| ------------- | -------------------------------- | -------------- | ------------------------------------------- |
+| `email`       | `string`                         | **Required**   | Email address for QR code                   |
+| `size`        | `number`                         | `80`           | QR code size in pixels (1-1000)             |
+| `version`     | `1 \| 3`                         | `1`            | QR code style (1: standard, 3: modern dots) |
+| `type`        | `'none' \| 'user' \| 'gravatar'` | `'none'`       | Center icon type                            |
+| `utmMedium`   | `string`                         | `undefined`    | UTM medium parameter                        |
+| `utmCampaign` | `string`                         | `undefined`    | UTM campaign parameter                      |
+| `class`       | `string`                         | `''`           | Additional CSS classes                      |
+| `alt`         | `string`                         | Auto-generated | Alt text for accessibility                  |
 
 ## Examples
 
@@ -51,11 +51,7 @@ import GravatarQR from 'astro-gravatar/GravatarQR';
 ```
 
 <div style="display: flex; justify-content: center; margin: 2rem 0;">
-  <GravatarQR
-    email="user@example.com"
-    size={150}
-    class="qr-large"
-  />
+  <GravatarQR email="user@example.com" size={150} class="qr-large" />
 </div>
 
 ### Modern Style
@@ -74,12 +70,7 @@ import GravatarQR from 'astro-gravatar/GravatarQR';
 ```
 
 <div style="display: flex; justify-content: center; margin: 2rem 0;">
-  <GravatarQR
-    email="user@example.com"
-    version={3}
-    type="gravatar"
-    size={120}
-  />
+  <GravatarQR email="user@example.com" version={3} type="gravatar" size={120} />
 </div>
 
 ### With UTM Tracking
@@ -124,12 +115,7 @@ import GravatarQR from 'astro-gravatar/GravatarQR';
 ```
 
 <div style="display: flex; justify-content: center; margin: 2rem 0;">
-  <GravatarQR
-    email="user@example.com"
-    version={3}
-    type="user"
-    size={120}
-  />
+  <GravatarQR email="user@example.com" version={3} type="user" size={120} />
 </div>
 
 ## Styling
@@ -165,9 +151,18 @@ The component includes comprehensive styling for various scenarios:
 }
 
 /* Size Variants */
-.gravatar-qr--small { width: 40px; height: 40px; }
-.gravatar-qr--medium { width: 80px; height: 80px; }
-.gravatar-qr--large { width: 120px; height: 120px; }
+.gravatar-qr--small {
+  width: 40px;
+  height: 40px;
+}
+.gravatar-qr--medium {
+  width: 80px;
+  height: 80px;
+}
+.gravatar-qr--large {
+  width: 120px;
+  height: 120px;
+}
 
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
@@ -275,6 +270,7 @@ import GravatarQR from 'astro-gravatar/GravatarQR';
 ```
 
 This generates URLs like:
+
 ```
 https://gravatar.com/userhash?utm_medium=business_card&utm_campaign=qrcode_sharing&utm_source=printed_material
 ```
@@ -351,11 +347,14 @@ import GravatarQR from 'astro-gravatar/GravatarQR';
 ```
 
 Generates:
+
 ```html
 <img
   src="https://api.gravatar.com/v3/qr-code/...?size=100"
-  srcset="https://api.gravatar.com/v3/qr-code/...?size=150 1.5x,
-          https://api.gravatar.com/v3/qr-code/...?size=200 2x"
+  srcset="
+    https://api.gravatar.com/v3/qr-code/...?size=150 1.5x,
+    https://api.gravatar.com/v3/qr-code/...?size=200 2x
+  "
   sizes="(max-width: 768px) 80px, 100px"
   loading="lazy"
   decoding="async"
@@ -400,6 +399,7 @@ QR codes are lazy-loaded by default for better performance:
 ### Testing
 
 Always test QR codes with mobile scanners:
+
 ```bash
 # Test with various QR code scanner apps
 # Verify link destinations work correctly

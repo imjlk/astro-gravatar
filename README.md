@@ -120,6 +120,12 @@ bun run test
 # Type checking
 bun run typecheck
 
+# Lint code
+bun run lint
+
+# Format code
+bun run format
+
 # Build package
 bun run build
 ```
@@ -136,11 +142,17 @@ bun run test:coverage           # Run tests with coverage
 bun run dev                     # Start documentation site
 bun run build                   # Build the package
 bun run typecheck               # Run TypeScript type checking
+bun run lint                    # Run ESLint on source files
+bun run format                  # Format code with Prettier
+bun run format:check            # Check code formatting
 
 # Package Management
 bun run pack:preview            # Preview package creation
 bun run pkg:get                 # Get package information
 bun run pkg:fix                 # Auto-fix package issues
+
+# Security
+bun run security:check          # Run security audit
 
 # Release Management
 bun run changeset               # Create a new changeset
@@ -238,7 +250,22 @@ Pre-releases are managed via branches:
 - **GitHub Actions**: Automated testing and deployment via `.github/workflows/release.yml`
 - **Multi-Node Testing**: Tests on Node.js 18, 20, 22
 - **Coverage Reporting**: Codecov integration
+- **Security Scanning**: Automated vulnerability scanning via `bun audit`
 - **Automated Releases**: Sampo-driven release workflow
+
+## 🔒 Security
+
+This project includes automated security scanning:
+
+- **CI Security Scan**: Every PR and push triggers `bun audit` to check for vulnerabilities
+- **Local Security Check**: Run `bun run security:check` to audit dependencies locally
+- **Vulnerability Reporting**: If you discover a security vulnerability, please email the maintainers
+
+### Security Policy
+
+- Dependencies are audited on every CI run
+- High and critical vulnerabilities will fail the CI pipeline
+- We aim to address security issues within 24-48 hours
 
 ## 🤝 Contributing
 
@@ -261,6 +288,7 @@ We welcome contributions! Please see our [Contributing Guide](./_refs/개발_가
 - **Testing**: All new features must include tests
 - **Documentation**: Update docs for API changes
 - **Bun First**: Use Bun for all development tasks
+- **Formatting**: Prettier with single quotes, semicolons, 2-space indentation
 
 ## 📄 License
 

@@ -17,17 +17,17 @@ The main avatar component for displaying user avatars.
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `email` | `string` | **Required** | Email address for the avatar |
-| `size` | `number` | `80` | Avatar size in pixels (1-2048) |
-| `rating` | `'g' \| 'pg' \| 'r' \| 'x'` | `'g'` | Maximum rating level |
-| `default` | `string` | `'mp'` | Default image for missing avatars |
-| `forceDefault` | `boolean` | `false` | Force default image even if avatar exists |
-| `lazy` | `boolean` | `false` | Enable lazy loading |
-| `alt` | `string` | Auto-generated | Alt text for accessibility |
-| `class` | `string` | `''` | Additional CSS classes |
-| `style` | `string` | `''` | Inline styles |
+| Prop           | Type                        | Default        | Description                               |
+| -------------- | --------------------------- | -------------- | ----------------------------------------- |
+| `email`        | `string`                    | **Required**   | Email address for the avatar              |
+| `size`         | `number`                    | `80`           | Avatar size in pixels (1-2048)            |
+| `rating`       | `'g' \| 'pg' \| 'r' \| 'x'` | `'g'`          | Maximum rating level                      |
+| `default`      | `string`                    | `'mp'`         | Default image for missing avatars         |
+| `forceDefault` | `boolean`                   | `false`        | Force default image even if avatar exists |
+| `lazy`         | `boolean`                   | `false`        | Enable lazy loading                       |
+| `alt`          | `string`                    | Auto-generated | Alt text for accessibility                |
+| `class`        | `string`                    | `''`           | Additional CSS classes                    |
+| `style`        | `string`                    | `''`           | Inline styles                             |
 
 ### Default Avatar Options
 
@@ -88,18 +88,18 @@ A complete profile card component that combines avatar and user information.
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `email` | `string` | **Required** | Email address for the profile |
-| `layout` | `'horizontal' \| 'vertical' \| 'card'` | `'card'` | Layout style |
-| `avatarSize` | `number` | `80` | Avatar size in pixels |
-| `showName` | `boolean` | `true` | Display user's name |
-| `showBio` | `boolean` | `true` | Display user's bio |
-| `showVerified` | `boolean` | `true` | Show verified accounts |
-| `showLinks` | `boolean` | `true` | Show profile links |
-| `maxLinks` | `number` | `3` | Maximum links to display |
-| `template` | `'default' \| 'compact' \| 'detailed'` | `'default'` | Card template |
-| `class` | `string` | `''` | Additional CSS classes |
+| Prop           | Type                                   | Default      | Description                   |
+| -------------- | -------------------------------------- | ------------ | ----------------------------- |
+| `email`        | `string`                               | **Required** | Email address for the profile |
+| `layout`       | `'horizontal' \| 'vertical' \| 'card'` | `'card'`     | Layout style                  |
+| `avatarSize`   | `number`                               | `80`         | Avatar size in pixels         |
+| `showName`     | `boolean`                              | `true`       | Display user's name           |
+| `showBio`      | `boolean`                              | `true`       | Display user's bio            |
+| `showVerified` | `boolean`                              | `true`       | Show verified accounts        |
+| `showLinks`    | `boolean`                              | `true`       | Show profile links            |
+| `maxLinks`     | `number`                               | `3`          | Maximum links to display      |
+| `template`     | `'default' \| 'compact' \| 'detailed'` | `'default'`  | Card template                 |
+| `class`        | `string`                               | `''`         | Additional CSS classes        |
 
 ### Layout Options
 
@@ -170,6 +170,7 @@ import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
 ## Utilities Reference
 
 For utility functions like `hashEmail`, `buildAvatarUrl`, `getProfile`, and `getProfiles`, see the [Utilities Reference](/reference/utilities) page.
+
 ## TypeScript Types
 
 ### GravatarProfile
@@ -224,7 +225,15 @@ interface GravatarAvatarProps {
 }
 
 type AvatarRating = 'g' | 'pg' | 'r' | 'x';
-type DefaultAvatar = '404' | 'mp' | 'identicon' | 'monsterid' | 'wavatar' | 'retro' | 'robohash' | 'blank';
+type DefaultAvatar =
+  | '404'
+  | 'mp'
+  | 'identicon'
+  | 'monsterid'
+  | 'wavatar'
+  | 'retro'
+  | 'robohash'
+  | 'blank';
 ```
 
 ### GravatarProfileCardProps
@@ -254,9 +263,9 @@ import { GravatarClient } from 'astro-gravatar';
 const client = new GravatarClient({
   apiKey: 'your-api-key',
   cache: {
-    ttl: 300,        // 5 minutes cache time
-    maxSize: 1000    // Maximum cached items
-  }
+    ttl: 300, // 5 minutes cache time
+    maxSize: 1000, // Maximum cached items
+  },
 });
 ```
 

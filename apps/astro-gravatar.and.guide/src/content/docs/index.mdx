@@ -22,73 +22,70 @@ import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
 ## Beautiful Components, Zero Configuration
 
 <CardGrid stagger>
-	<Card title="Simple Integration" icon="rocket">
-		<div style="display: flex; gap: 1rem; align-items: center; margin: 1rem 0;">
-			<GravatarAvatar email="user@example.com" size={40} class="rounded-full" />
-			<span style="font-size: 0.875rem;">Just one line of code to display avatars</span>
-		</div>
-	</Card>
-	<Card title="Profile Cards" icon="user">
-		<GravatarProfileCard
-			email="hello@automattic.com"
-			layout="card"
-			avatarSize={60}
-			showName
-		/>
-	</Card>
-	<Card title="TypeScript Ready" icon="code-2">
-		<p style="margin: 0;">Full TypeScript support with comprehensive types and intellisense</p>
-	</Card>
-	<Card title="Performance Optimized" icon="zap">
-		<p style="margin: 0;">Built-in caching, lazy loading, and responsive images out of the box</p>
-	</Card>
+  <Card title="Simple Integration" icon="rocket">
+    <div style="display: flex; gap: 1rem; align-items: center; margin: 1rem 0;">
+      <GravatarAvatar email="user@example.com" size={40} class="rounded-full" />
+      <span style="font-size: 0.875rem;">Just one line of code to display avatars</span>
+    </div>
+  </Card>
+  <Card title="Profile Cards" icon="user">
+    <GravatarProfileCard email="hello@automattic.com" layout="card" avatarSize={60} showName />
+  </Card>
+  <Card title="TypeScript Ready" icon="code-2">
+    <p style="margin: 0;">Full TypeScript support with comprehensive types and intellisense</p>
+  </Card>
+  <Card title="Performance Optimized" icon="zap">
+    <p style="margin: 0;">Built-in caching, lazy loading, and responsive images out of the box</p>
+  </Card>
 </CardGrid>
 
 ## Features
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
-	<div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
-		<h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
-			🎨 Customizable
-		</h3>
-		<p style="margin: 0; color: var(--sl-color-text-secondary);">
-	Flexible components with multiple layout options and built-in error handling for robust implementations.
-		</p>
-	</div>
-	<div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
-		<h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
-			🚀 Performant
-		</h3>
-		<p style="margin: 0; color: var(--sl-color-text-secondary);">
-			Built-in caching, lazy loading, and optimized Gravatar URLs with automatic srcset generation.
-		</p>
-	</div>
-	<div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
-		<h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
-			🔒 TypeScript
-		</h3>
-		<p style="margin: 0; color: var(--sl-color-text-secondary);">
-			Full TypeScript support with comprehensive types and excellent intellisense.
-		</p>
-	</div>
-	<div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
-		<h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
-			🌐 SSR Ready
-		</h3>
-		<p style="margin: 0; color: var(--sl-color-text-secondary);">
-			Works seamlessly with Astro's server-side rendering and static generation.
-		</p>
-	</div>
+  <div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
+    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
+      🎨 Customizable
+    </h3>
+    <p style="margin: 0; color: var(--sl-color-text-secondary);">
+      Flexible components with multiple layout options and built-in error handling for robust
+      implementations.
+    </p>
+  </div>
+  <div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
+    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
+      🚀 Performant
+    </h3>
+    <p style="margin: 0; color: var(--sl-color-text-secondary);">
+      Built-in caching, lazy loading, and optimized Gravatar URLs with automatic srcset generation.
+    </p>
+  </div>
+  <div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
+    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
+      🔒 TypeScript
+    </h3>
+    <p style="margin: 0; color: var(--sl-color-text-secondary);">
+      Full TypeScript support with comprehensive types and excellent intellisense.
+    </p>
+  </div>
+  <div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
+    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
+      🌐 SSR Ready
+    </h3>
+    <p style="margin: 0; color: var(--sl-color-text-secondary);">
+      Works seamlessly with Astro's server-side rendering and static generation.
+    </p>
+  </div>
 </div>
 
 ## Quick Examples
 
 ### Avatar Display
+
 <div style="display: flex; gap: 1rem; align-items: center; padding: 1rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; margin: 1rem 0;">
-	<GravatarAvatar email="team@company.com" size={60} class="rounded-full" />
-	<GravatarAvatar email="team@company.com" size={50} default="identicon" class="rounded-full" />
-	<GravatarAvatar email="team@company.com" size={40} default="retro" class="rounded-full" />
-	<GravatarAvatar email="team@company.com" size={30} default="monsterid" class="rounded-full" />
+  <GravatarAvatar email="team@company.com" size={60} class="rounded-full" />
+  <GravatarAvatar email="team@company.com" size={50} default="identicon" class="rounded-full" />
+  <GravatarAvatar email="team@company.com" size={40} default="retro" class="rounded-full" />
+  <GravatarAvatar email="team@company.com" size={30} default="monsterid" class="rounded-full" />
 </div>
 
 ```astro
@@ -100,21 +97,22 @@ import GravatarAvatar from 'astro-gravatar';
 ```
 
 ### Profile Cards
+
 <div style="display: flex; gap: 2rem; align-items: center; justify-content: center; margin: 1rem 0;">
-	<GravatarProfileCard
-		email="developer@example.com"
-		layout="vertical"
-		avatarSize={80}
-		showName
-		template="compact"
-	/>
-	<GravatarProfileCard
-		email="designer@example.com"
-		layout="card"
-		avatarSize={80}
-		showName
-		showBio
-	/>
+  <GravatarProfileCard
+    email="developer@example.com"
+    layout="vertical"
+    avatarSize={80}
+    showName
+    template="compact"
+  />
+  <GravatarProfileCard
+    email="designer@example.com"
+    layout="card"
+    avatarSize={80}
+    showName
+    showBio
+  />
 </div>
 
 ```astro

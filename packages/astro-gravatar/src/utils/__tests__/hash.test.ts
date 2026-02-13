@@ -13,7 +13,7 @@ import {
   extractHash,
   hashEmailWithCache,
   clearEmailHashCache,
-  getEmailHashCacheStats
+  getEmailHashCacheStats,
 } from '../hash';
 import { GravatarError, GRAVATAR_ERROR_CODES } from '../../lib/types';
 import { VALID_EMAILS, INVALID_EMAILS } from '../../__tests__/fixtures';
@@ -21,13 +21,13 @@ import { TestDataGenerator, benchmark, measureTime } from '../../../test-utils/t
 
 describe('Email Validation', () => {
   test('should validate correct email formats', () => {
-    VALID_EMAILS.forEach(email => {
+    VALID_EMAILS.forEach((email) => {
       expect(isValidEmail(email)).toBe(true);
     });
   });
 
   test('should reject invalid email formats', () => {
-    INVALID_EMAILS.forEach(email => {
+    INVALID_EMAILS.forEach((email) => {
       expect(isValidEmail(email)).toBe(false);
     });
   });
@@ -86,7 +86,7 @@ describe('Email Normalization', () => {
   test('should throw errors for invalid emails', () => {
     const invalidInputs = ['', '   ', 'invalid', '@domain.com', 'user@'];
 
-    invalidInputs.forEach(input => {
+    invalidInputs.forEach((input) => {
       expect(() => normalizeEmail(input)).toThrow(GravatarError);
     });
   });
@@ -125,12 +125,12 @@ describe('Email Hashing', () => {
       {
         email: 'test@example.com',
         // SHA256 of 'test@example.com' normalized to lowercase
-        expectedHash: '973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b'
+        expectedHash: '973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b',
       },
       {
         email: 'user@gmail.com',
-        expectedHash: '02ee7bdc4ccf5c94808a0118eb531822f13e7e38e3810ab29ebefb2c2feb8e58'
-      }
+        expectedHash: '02ee7bdc4ccf5c94808a0118eb531822f13e7e38e3810ab29ebefb2c2feb8e58',
+      },
     ];
 
     for (const { email, expectedHash } of knownHashes) {
@@ -215,7 +215,7 @@ describe('Batch Email Hashing', () => {
     const hashes = await hashEmails(emails);
 
     expect(hashes).toHaveLength(3);
-    hashes.forEach(hash => {
+    hashes.forEach((hash) => {
       expect(hash).toHaveLength(64);
       expect(hash).toMatch(/^[a-f0-9]{64}$/);
     });
@@ -245,7 +245,7 @@ describe('Batch Email Hashing', () => {
 
     // Test individual hashing
     await measureTime(async () => {
-      return Promise.all(emails.map(email => hashEmail(email)));
+      return Promise.all(emails.map((email) => hashEmail(email)));
     });
 
     // Test batch hashing
@@ -259,14 +259,10 @@ describe('Batch Email Hashing', () => {
   });
 
   test('should maintain hash consistency with individual calls', async () => {
-    const emails = [
-      'user1@example.com',
-      'user2@gmail.com',
-      'user3@test.org'
-    ];
+    const emails = ['user1@example.com', 'user2@gmail.com', 'user3@test.org'];
 
     const batchHashes = await hashEmails(emails);
-    const individualHashes = await Promise.all(emails.map(email => hashEmail(email)));
+    const individualHashes = await Promise.all(emails.map((email) => hashEmail(email)));
 
     expect(batchHashes).toEqual(individualHashes);
   });
@@ -276,7 +272,7 @@ describe('Batch Email Hashing', () => {
       'test@example.com',
       'user@gmail.com',
       'test@example.com', // Duplicate
-      'user@gmail.com'   // Duplicate
+      'user@gmail.com', // Duplicate
     ];
 
     const hashes = await hashEmails(emails);
@@ -295,18 +291,13 @@ describe('Batch Email Hashing', () => {
     // expect(duration).toBeLessThan(1000); // Relaxed check for test environments
 
     // Verify all hashes are valid
-    hashes.forEach(hash => {
+    hashes.forEach((hash) => {
       expect(hash).toMatch(/^[a-f0-9]{64}$/);
     });
   });
 
   test('should handle mixed case emails in batch', async () => {
-    const emails = [
-      'Test@Example.COM',
-      'test@example.com',
-      'USER@GMAIL.COM',
-      'user@gmail.com'
-    ];
+    const emails = ['Test@Example.COM', 'test@example.com', 'USER@GMAIL.COM', 'user@gmail.com'];
 
     const hashes = await hashEmails(emails);
 
@@ -325,7 +316,7 @@ describe('Hash Validation', () => {
       '1234567890abcdef'.repeat(4), // 64 hex chars
     ];
 
-    validHashes.forEach(hash => {
+    validHashes.forEach((hash) => {
       expect(isValidGravatarHash(hash)).toBe(true);
     });
   });
@@ -342,7 +333,7 @@ describe('Hash Validation', () => {
       123 as any,
     ];
 
-    invalidHashes.forEach(hash => {
+    invalidHashes.forEach((hash) => {
       expect(isValidGravatarHash(hash)).toBe(false);
     });
   });
@@ -504,11 +495,7 @@ describe('Hash Caching', () => {
   });
 
   test('should maintain consistency between cached and non-cached results', async () => {
-    const emails = [
-      'test1@example.com',
-      'test2@gmail.com',
-      'test3@test.org'
-    ];
+    const emails = ['test1@example.com', 'test2@gmail.com', 'test3@test.org'];
 
     for (const email of emails) {
       const cachedHash = await hashEmailWithCache(email, true);
@@ -538,14 +525,12 @@ describe('Hash Caching', () => {
 
   test('should handle concurrent access to cache', async () => {
     const email = 'test@example.com';
-    const promises = Array.from({ length: 10 }, () =>
-      hashEmailWithCache(email)
-    );
+    const promises = Array.from({ length: 10 }, () => hashEmailWithCache(email));
 
     const hashes = await Promise.all(promises);
 
     // All hashes should be identical
-    hashes.forEach(hash => {
+    hashes.forEach((hash) => {
       expect(hash).toBe(hashes[0]!);
     });
 
@@ -628,7 +613,7 @@ describe('Cache TTL and Expiration', () => {
     }, 100);
 
     // Should remain efficient even with cache pressure
-    // expect(averageTime).toBeLessThan(50); 
+    // expect(averageTime).toBeLessThan(50);
   });
 });
 
@@ -642,7 +627,7 @@ describe('Performance Tests', () => {
     // expect(duration).toBeLessThan(1000);
 
     // Verify all hashes are valid
-    hashes.forEach(hash => {
+    hashes.forEach((hash) => {
       expect(hash).toMatch(/^[a-f0-9]{64}$/);
     });
   });
@@ -761,16 +746,7 @@ describe('Comprehensive Error Handling', () => {
   });
 
   test('should handle type errors gracefully', async () => {
-    const typeErrorInputs = [
-      null,
-      undefined,
-      123,
-      {},
-      [],
-      true,
-      false,
-      Symbol('test'),
-    ];
+    const typeErrorInputs = [null, undefined, 123, {}, [], true, false, Symbol('test')];
 
     for (const input of typeErrorInputs) {
       await expect(hashEmail(input as any)).rejects.toThrow(GravatarError);
@@ -798,5 +774,263 @@ describe('Comprehensive Error Handling', () => {
     // Test array with invalid emails
     const emails = ['valid@example.com', 'invalid'];
     await expect(hashEmails(emails)).rejects.toThrow(GravatarError);
+  });
+});
+
+describe('extractHash Edge Cases - Malformed URLs', () => {
+  test('should handle URL with invalid hash format (not 64 hex chars)', async () => {
+    const url = 'https://gravatar.com/abc123';
+    await expect(extractHash(url)).rejects.toThrow(GravatarError);
+  });
+
+  test('should handle URL with hash containing non-hex characters', async () => {
+    const invalidHash = 'g'.repeat(64);
+    const urlWithInvalidHash = `https://gravatar.com/${invalidHash}`;
+    await expect(extractHash(urlWithInvalidHash)).rejects.toThrow(GravatarError);
+  });
+
+  test('should handle URL with hash that is too short', async () => {
+    const shortHash = 'abc123';
+    const url = `https://gravatar.com/${shortHash}`;
+    await expect(extractHash(url)).rejects.toThrow(GravatarError);
+  });
+
+  test('should handle URL with hash that is too long', async () => {
+    const longHash = 'a'.repeat(100);
+    const url = `https://gravatar.com/${longHash}`;
+    const result = await extractHash(url);
+    expect(result).toBe('a'.repeat(64));
+  });
+
+  test('should handle Gravatar URL with query parameters', async () => {
+    const hash = 'a'.repeat(64);
+    const url = `https://gravatar.com/${hash}?size=80&d=identicon`;
+    expect(await extractHash(url)).toBe(hash);
+  });
+
+  test('should handle Gravatar URL with fragment', async () => {
+    const hash = 'a'.repeat(64);
+    const url = `https://gravatar.com/${hash}#profile`;
+    expect(await extractHash(url)).toBe(hash);
+  });
+
+  test('should handle HTTP Gravatar URL', async () => {
+    const hash = 'b'.repeat(64);
+    const url = `http://gravatar.com/${hash}`;
+    expect(await extractHash(url)).toBe(hash);
+  });
+
+  test('should handle secure Gravatar URL', async () => {
+    const hash = 'c'.repeat(64);
+    const url = `https://secure.gravatar.com/${hash}`;
+    expect(await extractHash(url)).toBe(hash);
+  });
+
+  test('should handle www Gravatar URL', async () => {
+    const hash = 'd'.repeat(64);
+    const url = `https://www.gravatar.com/${hash}`;
+    expect(await extractHash(url)).toBe(hash);
+  });
+
+  test('should handle URL with partial match (hash in query string)', async () => {
+    const hash = 'a'.repeat(64);
+    const url = `https://example.com/redirect?url=https://gravatar.com/${hash}`;
+    expect(await extractHash(url)).toBe(hash);
+  });
+
+  test('should handle URL with trailing slash', async () => {
+    const hash = 'e'.repeat(64);
+    const url = `https://gravatar.com/${hash}/`;
+    expect(await extractHash(url)).toBe(hash);
+  });
+
+  test('should handle URL with subpath after hash', async () => {
+    const hash = 'f'.repeat(64);
+    const url = `https://gravatar.com/${hash}/profile`;
+    expect(await extractHash(url)).toBe(hash);
+  });
+
+  test('should handle mixed case hash in URL', async () => {
+    const hash = 'AbCdEf1234567890'.repeat(4);
+    const url = `https://gravatar.com/${hash}`;
+    expect(await extractHash(url)).toBe(hash.toLowerCase());
+  });
+
+  test('should handle URL with special characters in path before hash', async () => {
+    const url = 'https://gravatar.com/avatar/invalid-hash-string';
+    await expect(extractHash(url)).rejects.toThrow(GravatarError);
+  });
+});
+
+describe('Cache Eviction During Concurrent Access', () => {
+  beforeEach(() => {
+    clearEmailHashCache();
+  });
+
+  afterEach(() => {
+    clearEmailHashCache();
+  });
+
+  test('should evict oldest entries when cache exceeds max size', async () => {
+    const emails = TestDataGenerator.emails(1001);
+
+    for (const email of emails) {
+      await hashEmailWithCache(email);
+    }
+
+    const stats = getEmailHashCacheStats();
+    expect(stats.size).toBeLessThanOrEqual(stats.maxSize);
+    expect(stats.size).toBeGreaterThan(500);
+  });
+
+  test('should handle rapid concurrent writes triggering eviction', async () => {
+    const emails = TestDataGenerator.emails(1500);
+    const promises = emails.map((email) => hashEmailWithCache(email));
+
+    await Promise.all(promises);
+
+    const stats = getEmailHashCacheStats();
+    expect(stats.size).toBeLessThanOrEqual(stats.maxSize);
+  });
+
+  test('should maintain cache integrity during eviction', async () => {
+    const firstEmails = TestDataGenerator.emails(500);
+    for (const email of firstEmails) {
+      await hashEmailWithCache(email);
+    }
+
+    const firstHashes = await Promise.all(
+      firstEmails.slice(0, 10).map((email) => hashEmailWithCache(email))
+    );
+
+    const moreEmails = TestDataGenerator.emails(600);
+    for (const email of moreEmails) {
+      await hashEmailWithCache(email);
+    }
+
+    const newHash = await hashEmailWithCache(moreEmails[0]!);
+    expect(newHash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  test('should handle cache size exactly at limit', async () => {
+    const emails = TestDataGenerator.emails(1000);
+
+    for (const email of emails) {
+      await hashEmailWithCache(email);
+    }
+
+    const stats = getEmailHashCacheStats();
+    expect(stats.size).toBe(1000);
+
+    const extraEmail = 'extra9999@test.com';
+    await hashEmailWithCache(extraEmail);
+
+    const newStats = getEmailHashCacheStats();
+    expect(newStats.size).toBeLessThanOrEqual(newStats.maxSize);
+  });
+
+  test('should preferentially evict oldest entries (LRU behavior)', async () => {
+    const firstEmail = 'first@example.com';
+
+    await hashEmailWithCache(firstEmail);
+
+    const fillerEmails = TestDataGenerator.emails(1000);
+    for (const email of fillerEmails) {
+      await hashEmailWithCache(email);
+    }
+
+    const firstHash = await hashEmailWithCache(firstEmail);
+    expect(firstHash).toMatch(/^[a-f0-9]{64}$/);
+  });
+});
+
+describe('In-flight Deduplication', () => {
+  beforeEach(() => {
+    clearEmailHashCache();
+  });
+
+  afterEach(() => {
+    clearEmailHashCache();
+  });
+
+  test('should deduplicate concurrent requests for same email', async () => {
+    const email = 'concurrent@example.com';
+    let hashCallCount = 0;
+
+    const promises = Array.from({ length: 10 }, () =>
+      hashEmailWithCache(email).then((result) => {
+        hashCallCount++;
+        return result;
+      })
+    );
+
+    const results = await Promise.all(promises);
+
+    const uniqueResults = new Set(results);
+    expect(uniqueResults.size).toBe(1);
+    expect(getEmailHashCacheStats().size).toBe(1);
+  });
+
+  test('should handle in-flight deduplication with cache disabled', async () => {
+    const email = 'inflight-nocache@example.com';
+
+    const promises = Array.from({ length: 5 }, () => hashEmailWithCache(email, false));
+
+    const results = await Promise.all(promises);
+
+    expect(new Set(results).size).toBe(1);
+    expect(getEmailHashCacheStats().size).toBe(0);
+  });
+
+  test('should properly clean up in-flight map after completion', async () => {
+    const email = 'cleanup-inflight@example.com';
+
+    const promises = Array.from({ length: 3 }, () => hashEmailWithCache(email));
+    await Promise.all(promises);
+
+    const cachedResult = await hashEmailWithCache(email);
+    expect(cachedResult).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  test('should handle in-flight deduplication across multiple emails', async () => {
+    const emails = ['multi1@example.com', 'multi2@example.com', 'multi3@example.com'];
+
+    const allPromises = emails.flatMap((email) =>
+      Array.from({ length: 5 }, () => hashEmailWithCache(email))
+    );
+
+    const results = await Promise.all(allPromises);
+
+    const uniqueHashes = new Set(results);
+    expect(uniqueHashes.size).toBe(3);
+    expect(getEmailHashCacheStats().size).toBe(3);
+  });
+
+  test('should handle error in in-flight request', async () => {
+    const invalidEmail = 'not-an-email';
+
+    const promises = Array.from({ length: 3 }, () =>
+      hashEmailWithCache(invalidEmail).catch((e) => e)
+    );
+
+    const results = await Promise.all(promises);
+
+    results.forEach((result) => {
+      expect(result).toBeInstanceOf(GravatarError);
+    });
+  });
+
+  test('should handle mixed cached and in-flight scenarios', async () => {
+    const email = 'mixed-scenario@example.com';
+
+    const firstHash = await hashEmailWithCache(email);
+    expect(getEmailHashCacheStats().size).toBe(1);
+
+    const promises = Array.from({ length: 5 }, () => hashEmailWithCache(email));
+    const results = await Promise.all(promises);
+
+    results.forEach((hash) => {
+      expect(hash).toBe(firstHash);
+    });
   });
 });

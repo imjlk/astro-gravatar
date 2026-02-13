@@ -72,10 +72,7 @@ export type {
 } from './src/lib/types.js';
 
 // Error Classes
-export {
-  GravatarError,
-  GRAVATAR_ERROR_CODES,
-} from './src/lib/types.js';
+export { GravatarError, GRAVATAR_ERROR_CODES } from './src/lib/types.js';
 
 // Constants
 export {

@@ -96,7 +96,7 @@ export const GRAVATAR_AVATAR_PROPS: Record<string, GravatarAvatarProps> = {
     default: 'identicon',
     forceDefault: false,
     class: 'avatar img-circle',
-    alt: 'John Doe\'s avatar',
+    alt: "John Doe's avatar",
     lazy: true,
     'data-testid': 'user-avatar',
     'data-user-email': 'john.doe@example.com',
@@ -209,7 +209,7 @@ export const GRAVATAR_QR_PROPS: Record<string, GravatarQRProps> = {
   },
   withAltText: {
     email: 'john.doe@example.com',
-    alt: 'QR code for John Doe\'s Gravatar profile',
+    alt: "QR code for John Doe's Gravatar profile",
   },
   complete: {
     email: 'john.doe@example.com',
@@ -219,7 +219,7 @@ export const GRAVATAR_QR_PROPS: Record<string, GravatarQRProps> = {
     utmMedium: 'qr_code',
     utmCampaign: 'profile_sharing',
     class: 'profile-qr',
-    alt: 'Scan to view John Doe\'s Gravatar profile',
+    alt: "Scan to view John Doe's Gravatar profile",
   },
 };
 

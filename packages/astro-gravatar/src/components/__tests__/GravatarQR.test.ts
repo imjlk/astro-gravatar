@@ -12,7 +12,7 @@ import { GravatarError, GRAVATAR_ERROR_CODES } from '../../lib/types';
 // Mock DOM environment for testing
 const mockDocument = {
   createElement: () => ({
-    setAttribute: () => { },
+    setAttribute: () => {},
     className: '',
     style: {},
   }),
@@ -86,14 +86,11 @@ describe('GravatarQR Component Tests', () => {
 
       const altText = alt !== undefined ? alt : `QR code linking to ${email}'s Gravatar profile`;
 
-      const cssClasses = [
-        'gravatar-qr',
-        className || '',
-      ].filter(Boolean).join(' ');
+      const cssClasses = ['gravatar-qr', className || ''].filter(Boolean).join(' ');
 
       const generateSrcset = async (baseSize: number) => {
         const scales = [1, 1.5, 2];
-        const promises = scales.map(async scale => {
+        const promises = scales.map(async (scale) => {
           const scaledSize = Math.round(baseSize * scale);
           const maxSize = 1000;
           if (scaledSize > maxSize) return null;
@@ -112,7 +109,9 @@ describe('GravatarQR Component Tests', () => {
       };
 
       const srcset = props.size ? await generateSrcset(size) : undefined;
-      const sizes = props.size ? `(max-width: 768px) ${Math.min(size, 120)}px, ${size}px` : undefined;
+      const sizes = props.size
+        ? `(max-width: 768px) ${Math.min(size, 120)}px, ${size}px`
+        : undefined;
 
       return {
         url: qrCodeUrl,
@@ -280,17 +279,23 @@ describe('GravatarQR Component Tests', () => {
 
     test('should reject invalid size values', async () => {
       const props = { email: testEmail, size: 1001 };
-      await expect(renderGravatarQR(props)).rejects.toThrow('QR code size must be between 1 and 1000 pixels');
+      await expect(renderGravatarQR(props)).rejects.toThrow(
+        'QR code size must be between 1 and 1000 pixels'
+      );
     });
 
     test('should reject invalid version values', async () => {
       const props = { email: testEmail, version: 2 as any };
-      await expect(renderGravatarQR(props)).rejects.toThrow('QR code version must be 1 (standard) or 3 (modern dots)');
+      await expect(renderGravatarQR(props)).rejects.toThrow(
+        'QR code version must be 1 (standard) or 3 (modern dots)'
+      );
     });
 
     test('should reject invalid type values', async () => {
       const props = { email: testEmail, type: 'invalid' as any };
-      await expect(renderGravatarQR(props)).rejects.toThrow('QR code type must be "user", "gravatar", or "none"');
+      await expect(renderGravatarQR(props)).rejects.toThrow(
+        'QR code type must be "user", "gravatar", or "none"'
+      );
     });
   });
 

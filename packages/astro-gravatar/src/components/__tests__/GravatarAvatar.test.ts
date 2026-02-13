@@ -7,10 +7,7 @@ import { test, expect, describe, beforeAll } from 'bun:test';
 import { buildAvatarUrl, validateAvatarParams, getDefaultAvatarConfig } from '../../lib/gravatar';
 import { hashEmailWithCache } from '../../utils/hash';
 import type { AvatarRating, DefaultAvatar } from '../../lib/types';
-import {
-  setupTestEnvironment,
-  setupMockDOM,
-} from '../../../test-utils/test-helpers';
+import { setupTestEnvironment, setupMockDOM } from '../../../test-utils/test-helpers';
 // Setup test environment
 setupTestEnvironment();
 setupMockDOM();
@@ -41,7 +38,7 @@ describe('GravatarAvatar Component Tests', () => {
     let sizesAttr = undefined;
     if (props.size) {
       const scales = [1, 1.5, 2];
-      const srcPromises = scales.map(async scale => {
+      const srcPromises = scales.map(async (scale) => {
         const scaledSize = Math.round(props.size * scale);
         if (scaledSize > 2048) return null;
         const scaledUrl = await buildAvatarUrl(props.email, {
@@ -75,14 +72,16 @@ describe('GravatarAvatar Component Tests', () => {
         class: 'gravatar-avatar-wrapper',
         'data-lazy': props.lazy ? 'true' : 'false',
       },
-      placeholder: props.lazy ? {
-        class: 'lazy-placeholder',
-        style: {
-          width: (props.size || 80) + 'px',
-          height: (props.size || 80) + 'px',
-          borderRadius: placeholderBorderRadius,
-        }
-      } : null,
+      placeholder: props.lazy
+        ? {
+            class: 'lazy-placeholder',
+            style: {
+              width: (props.size || 80) + 'px',
+              height: (props.size || 80) + 'px',
+              borderRadius: placeholderBorderRadius,
+            },
+          }
+        : null,
       attributes: {
         src: url,
         srcset,
@@ -163,7 +162,7 @@ describe('GravatarAvatar Component Tests', () => {
       // Simulate srcset generation logic from the component
       const baseSize = props.size;
       const sizes = [1, 1.5, 2];
-      const srcsetPromises = sizes.map(async scale => {
+      const srcsetPromises = sizes.map(async (scale) => {
         const scaledSize = Math.round(baseSize * scale);
         if (scaledSize > 2048) return null;
         const scaledUrl = await buildAvatarUrl(testEmail, {
@@ -193,7 +192,7 @@ describe('GravatarAvatar Component Tests', () => {
       // Simulate srcset generation
       const baseSize = props.size;
       const sizes = [1, 1.5, 2];
-      const srcsetPromises = sizes.map(async scale => {
+      const srcsetPromises = sizes.map(async (scale) => {
         const scaledSize = Math.round(baseSize * scale);
         if (scaledSize > 2048) return null;
         return `${await buildAvatarUrl(testEmail, { size: scaledSize })} ${scale}x`;
@@ -261,7 +260,7 @@ describe('GravatarAvatar Component Tests', () => {
 
       // Should not contain default parameters
       expect(url).not.toContain('s=80'); // Default size
-      expect(url).not.toContain('r=g');  // Default rating
+      expect(url).not.toContain('r=g'); // Default rating
       expect(url).not.toContain('d=mp'); // Default default
     });
   });
@@ -285,7 +284,15 @@ describe('GravatarAvatar Component Tests', () => {
 
     test('should support all default avatar types', async () => {
       // 'mp' is the default, so it won't appear in the URL
-      const nonDefaults: DefaultAvatar[] = ['404', 'identicon', 'monsterid', 'wavatar', 'retro', 'robohash', 'blank'];
+      const nonDefaults: DefaultAvatar[] = [
+        '404',
+        'identicon',
+        'monsterid',
+        'wavatar',
+        'retro',
+        'robohash',
+        'blank',
+      ];
 
       for (const defaultType of nonDefaults) {
         const props = { email: testEmail, default: defaultType };
@@ -629,7 +636,16 @@ describe('GravatarAvatar Component Tests', () => {
     });
 
     test('should handle all possible default image types', async () => {
-      const defaults: DefaultAvatar[] = ['mp', 'identicon', 'monsterid', 'wavatar', 'retro', 'robohash', 'blank', '404'];
+      const defaults: DefaultAvatar[] = [
+        'mp',
+        'identicon',
+        'monsterid',
+        'wavatar',
+        'retro',
+        'robohash',
+        'blank',
+        '404',
+      ];
       for (const defaultType of defaults) {
         const props = { email: testEmail, default: defaultType };
         const { url } = await renderGravatarAvatar(props);
@@ -684,7 +700,7 @@ describe('GravatarAvatar Component Tests', () => {
       for (const size of sizes) {
         const props = { email: testEmail, size };
         const { attributes } = await renderGravatarAvatar(props);
-        
+
         expect(attributes.srcset).toContain('1x');
         expect(attributes.srcset).toContain('1.5x');
         expect(attributes.srcset).toContain('2x');

@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+bun.lock
+bun.lockb
+*.md
+*.astro
+*.mdx
+apps

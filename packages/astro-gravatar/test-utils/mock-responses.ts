@@ -47,7 +47,7 @@ export const mockResponseHeaders = {
     'Content-Type': 'image/png',
     'Content-Length': '1234',
     'Cache-Control': 'public, max-age=31536000',
-    'ETag': '"mock-etag-12345"',
+    ETag: '"mock-etag-12345"',
   },
   imageNotFound: {
     'Content-Type': 'image/png',
@@ -421,7 +421,9 @@ export const mockRateLimitResponses = {
 /**
  * Generates a mock profile response with custom data
  */
-export function generateMockProfileResponse(overrides: Partial<GravatarProfile> = {}): GravatarApiResponse {
+export function generateMockProfileResponse(
+  overrides: Partial<GravatarProfile> = {}
+): GravatarApiResponse {
   return {
     data: { ...mockFullProfile, ...overrides },
     status: 200,
@@ -447,7 +449,10 @@ export function generateMockErrorResponse(
 /**
  * Generates a mock rate-limited response
  */
-export function generateRateLimitResponse(remaining: number, resetInSeconds: number = 300): GravatarApiResponse {
+export function generateRateLimitResponse(
+  remaining: number,
+  resetInSeconds: number = 300
+): GravatarApiResponse {
   return {
     error: 'Rate limit exceeded. Please try again later.',
     status: 429,

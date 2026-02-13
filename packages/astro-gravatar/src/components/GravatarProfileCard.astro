@@ -104,9 +104,8 @@ const truncate = (text: string, maxLength: number = 100) => {
 const filteredLinks = profile?.links?.slice(0, maxLinks) || [];
 
 // Filter verified accounts (exclude hidden ones)
-const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
-  account => !account.is_hidden
-) || [];
+const visibleVerifiedAccounts =
+  profile?.verified_accounts?.filter((account) => !account.is_hidden) || [];
 ---
 
 <article class:list={cardClasses}>
@@ -126,132 +125,143 @@ const visibleVerifiedAccounts = profile?.verified_accounts?.filter(
   <!-- Content Section -->
   <div class="gravatar-profile-card__content">
     <!-- Name Section -->
-    {showName && (
-      <div class="gravatar-profile-card__name">
-        {profile?.display_name ? (
-          clickable ? (
-            <a
-              href={profile.profile_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="gravatar-profile-card__name-link"
-            >
-              {profile.display_name}
-            </a>
+    {
+      showName && (
+        <div class="gravatar-profile-card__name">
+          {profile?.display_name ? (
+            clickable ? (
+              <a
+                href={profile.profile_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="gravatar-profile-card__name-link"
+              >
+                {profile.display_name}
+              </a>
+            ) : (
+              <h3 class="gravatar-profile-card__name-text">{profile.display_name}</h3>
+            )
           ) : (
-            <h3 class="gravatar-profile-card__name-text">{profile.display_name}</h3>
-          )
-        ) : (
-          <span class="gravatar-profile-card__email">{email}</span>
-        )}
-      </div>
-    )}
-
-    <!-- Bio/Description Section (only show for non-compact templates) -->
-    {showBio && profile?.description && template !== 'compact' && (
-      <p class="gravatar-profile-card__bio">
-        {template === 'detailed'
-          ? truncate(profile.description, 150)
-          : truncate(profile.description, 100)
-        }
-      </p>
-    )}
-
-    <!-- Additional Info (only for detailed template) -->
-    {template === 'detailed' && (
-      <div class="gravatar-profile-card__details">
-        {profile?.job_title && (
-          <div class="gravatar-profile-card__detail">
-            <span class="gravatar-profile-card__detail-label">Title:</span>
-            <span class="gravatar-profile-card__detail-value">{profile.job_title}</span>
-          </div>
-        )}
-
-        {profile?.company && (
-          <div class="gravatar-profile-card__detail">
-            <span class="gravatar-profile-card__detail-label">Company:</span>
-            <span class="gravatar-profile-card__detail-value">{profile.company}</span>
-          </div>
-        )}
-
-        {profile?.location && (
-          <div class="gravatar-profile-card__detail">
-            <span class="gravatar-profile-card__detail-label">Location:</span>
-            <span class="gravatar-profile-card__detail-value">{profile.location}</span>
-          </div>
-        )}
-      </div>
-    )}
-
-    <!-- Verified Accounts (hide for compact template) -->
-    {template !== 'compact' && showVerified && visibleVerifiedAccounts.length > 0 && (
-      <div class="gravatar-profile-card__verified">
-        <span class="gravatar-profile-card__verified-label">Verified:</span>
-        <div class="gravatar-profile-card__verified-accounts">
-          {visibleVerifiedAccounts.slice(0, 5).map((account) => (
-            <a
-              href={account.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="gravatar-profile-card__verified-account"
-              title={account.service_label}
-            >
-              <img
-                src={account.service_icon}
-                alt={account.service_label}
-                class="gravatar-profile-card__verified-icon"
-                width={16}
-                height={16}
-                loading="lazy"
-              />
-            </a>
-          ))}
-          {visibleVerifiedAccounts.length > 5 && (
-            <span class="gravatar-profile-card__verified-more">
-              +{visibleVerifiedAccounts.length - 5}
-            </span>
+            <span class="gravatar-profile-card__email">{email}</span>
           )}
         </div>
-      </div>
-    )}
+      )
+    }
+
+    <!-- Bio/Description Section (only show for non-compact templates) -->
+    {
+      showBio && profile?.description && template !== 'compact' && (
+        <p class="gravatar-profile-card__bio">
+          {template === 'detailed'
+            ? truncate(profile.description, 150)
+            : truncate(profile.description, 100)}
+        </p>
+      )
+    }
+
+    <!-- Additional Info (only for detailed template) -->
+    {
+      template === 'detailed' && (
+        <div class="gravatar-profile-card__details">
+          {profile?.job_title && (
+            <div class="gravatar-profile-card__detail">
+              <span class="gravatar-profile-card__detail-label">Title:</span>
+              <span class="gravatar-profile-card__detail-value">{profile.job_title}</span>
+            </div>
+          )}
+
+          {profile?.company && (
+            <div class="gravatar-profile-card__detail">
+              <span class="gravatar-profile-card__detail-label">Company:</span>
+              <span class="gravatar-profile-card__detail-value">{profile.company}</span>
+            </div>
+          )}
+
+          {profile?.location && (
+            <div class="gravatar-profile-card__detail">
+              <span class="gravatar-profile-card__detail-label">Location:</span>
+              <span class="gravatar-profile-card__detail-value">{profile.location}</span>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    <!-- Verified Accounts (hide for compact template) -->
+    {
+      template !== 'compact' && showVerified && visibleVerifiedAccounts.length > 0 && (
+        <div class="gravatar-profile-card__verified">
+          <span class="gravatar-profile-card__verified-label">Verified:</span>
+          <div class="gravatar-profile-card__verified-accounts">
+            {visibleVerifiedAccounts.slice(0, 5).map((account) => (
+              <a
+                href={account.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="gravatar-profile-card__verified-account"
+                title={account.service_label}
+              >
+                <img
+                  src={account.service_icon}
+                  alt={account.service_label}
+                  class="gravatar-profile-card__verified-icon"
+                  width={16}
+                  height={16}
+                  loading="lazy"
+                />
+              </a>
+            ))}
+            {visibleVerifiedAccounts.length > 5 && (
+              <span class="gravatar-profile-card__verified-more">
+                +{visibleVerifiedAccounts.length - 5}
+              </span>
+            )}
+          </div>
+        </div>
+      )
+    }
 
     <!-- Links (hide for compact template) -->
-    {template !== 'compact' && showLinks && filteredLinks.length > 0 && (
-      <div class="gravatar-profile-card__links">
-        {filteredLinks.map((link) => (
-          <a
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="gravatar-profile-card__link"
-            title={link.label}
-          >
-            {link.label}
-          </a>
-        ))}
-      </div>
-    )}
+    {
+      template !== 'compact' && showLinks && filteredLinks.length > 0 && (
+        <div class="gravatar-profile-card__links">
+          {filteredLinks.map((link) => (
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="gravatar-profile-card__link"
+              title={link.label}
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      )
+    }
 
     <!-- Error State -->
-    {profileError && (
-      <div class="gravatar-profile-card__error">
-        <span class="gravatar-profile-card__error-text">
-          Profile information unavailable
-        </span>
-      </div>
-    )}
+    {
+      profileError && (
+        <div class="gravatar-profile-card__error">
+          <span class="gravatar-profile-card__error-text">Profile information unavailable</span>
+        </div>
+      )
+    }
   </div>
 
   <!-- Click overlay for clickable cards -->
-  {clickable && profile?.profile_url && (
-    <a
-      href={profile.profile_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="gravatar-profile-card__overlay"
-      aria-label={`View ${profile.display_name || email}'s Gravatar profile`}
-    ></a>
-  )}
+  {
+    clickable && profile?.profile_url && (
+      <a
+        href={profile.profile_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="gravatar-profile-card__overlay"
+        aria-label={`View ${profile.display_name || email}'s Gravatar profile`}
+      />
+    )
+  }
 </article>
 
 <style>

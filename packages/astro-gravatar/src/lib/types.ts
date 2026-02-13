@@ -144,15 +144,15 @@ export type AvatarRating = 'g' | 'pg' | 'r' | 'x';
 
 /** Default avatar options when no avatar is found */
 export type DefaultAvatar =
-  | '404'           // Return 404 if not found
-  | 'mp'           // Mystery person (simple, cartoon-style silhouetted outline of a person)
-  | 'identicon'    // Geometric pattern based on email hash
-  | 'monsterid'    // Generated 'monster' with different colors and faces
-  | 'wavatar'      // Generated faces with differing features and backgrounds
-  | 'retro'        // Awesome generated 8-bit arcade-style pixelated faces
-  | 'robohash'     // Generated robot with different colors, faces, etc
-  | 'blank'        // Transparent PNG image
-  | string;        // Custom URL
+  | '404' // Return 404 if not found
+  | 'mp' // Mystery person (simple, cartoon-style silhouetted outline of a person)
+  | 'identicon' // Geometric pattern based on email hash
+  | 'monsterid' // Generated 'monster' with different colors and faces
+  | 'wavatar' // Generated faces with differing features and backgrounds
+  | 'retro' // Awesome generated 8-bit arcade-style pixelated faces
+  | 'robohash' // Generated robot with different colors, faces, etc
+  | 'blank' // Transparent PNG image
+  | string; // Custom URL
 
 /** QR code style versions */
 export type QRCodeVersion = 1 | 3;
@@ -351,4 +351,4 @@ export const GRAVATAR_ERROR_CODES = {
   INVALID_RESPONSE: 'INVALID_RESPONSE',
 } as const;
 
-export type GravatarErrorCode = typeof GRAVATAR_ERROR_CODES[keyof typeof GRAVATAR_ERROR_CODES];
+export type GravatarErrorCode = (typeof GRAVATAR_ERROR_CODES)[keyof typeof GRAVATAR_ERROR_CODES];

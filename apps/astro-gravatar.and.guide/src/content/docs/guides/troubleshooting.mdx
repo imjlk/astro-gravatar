@@ -12,11 +12,13 @@ Solutions to common issues when working with astro-gravatar components.
 ### Avatar Not Displaying
 
 #### Problem
+
 Avatar images are not showing up or showing default placeholders.
 
 #### Solutions
 
 1. **Check Email Hash Generation**
+
    ```typescript
    import { hashEmail } from 'astro-gravatar';
 
@@ -25,6 +27,7 @@ Avatar images are not showing up or showing default placeholders.
    ```
 
 2. **Verify Default Image Settings**
+
    ```astro
    <GravatarAvatar
      email="user@example.com"
@@ -40,11 +43,13 @@ Avatar images are not showing up or showing default placeholders.
 ### Profile Data Missing
 
 #### Problem
+
 Profile cards show empty or incomplete information.
 
 #### Solutions
 
 1. **Use API Key for Complete Data**
+
    ```astro
    ---
    import { getProfile } from 'astro-gravatar';
@@ -71,11 +76,13 @@ Profile cards show empty or incomplete information.
 ### Performance Issues
 
 #### Problem
+
 Slow loading or excessive API calls.
 
 #### Solutions
 
 1. **Implement Caching**
+
    ```typescript
    // Built-in caching is automatic
    import { getApiCacheStats } from 'astro-gravatar';
@@ -84,6 +91,7 @@ Slow loading or excessive API calls.
    ```
 
 2. **Use Lazy Loading**
+
    ```astro
    <GravatarAvatar
      email="user@example.com"
@@ -93,13 +101,14 @@ Slow loading or excessive API calls.
    ```
 
 3. **Batch Profile Requests**
+
    ```typescript
    import { getProfiles } from 'astro-gravatar';
 
    const profiles = await getProfiles([
      'user1@example.com',
      'user2@example.com',
-     'user3@example.com'
+     'user3@example.com',
    ]);
    ```
 
@@ -110,6 +119,7 @@ Slow loading or excessive API calls.
 **Error**: Too many API requests
 
 **Solutions**:
+
 - Implement client-side caching
 - Use API key for higher limits (1000/hour vs limited)
 - Apply for increased limits at [gravatar.com/developers](https://gravatar.com/developers)
@@ -123,7 +133,7 @@ async function fetchWithBackoff(email: string, retries = 3): Promise<Profile | n
   } catch (error) {
     if (retries > 0 && error.code === 'rate_limit_exceeded') {
       const delay = Math.pow(2, 4 - retries) * 1000; // 1s, 2s, 4s
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
       return fetchWithBackoff(email, retries - 1);
     }
     throw error;
@@ -136,6 +146,7 @@ async function fetchWithBackoff(email: string, retries = 3): Promise<Profile | n
 **Error**: API key authentication failed
 
 **Solutions**:
+
 - Verify API key is correct
 - Check environment variable setup
 - Ensure no extra spaces in API key
@@ -153,6 +164,7 @@ if (!import.meta.env.GRAVATAR_API_KEY) {
 **Error**: User profile doesn't exist or is disabled
 
 **Solutions**:
+
 - Use the user's primary email address
 - Check if user has disabled their profile
 - Implement fallback handling
@@ -225,13 +237,13 @@ import * as Gravatar from 'astro-gravatar';  // Avoid this
 import type {
   GravatarProfile,
   GravatarAvatarProps,
-  GravatarProfileCardProps
+  GravatarProfileCardProps,
 } from 'astro-gravatar';
 
 const avatarProps: GravatarAvatarProps = {
   email: 'user@example.com',
   size: 80,
-  default: 'identicon'
+  default: 'identicon',
 };
 ```
 
@@ -328,7 +340,7 @@ export async function getServerProfile(email: string) {
   }
 
   const profile = await getProfile(email, {
-    apiKey: process.env.GRAVATAR_API_KEY
+    apiKey: process.env.GRAVATAR_API_KEY,
   });
 
   // Cache for 5 minutes
@@ -365,7 +377,7 @@ debugGravatar('user@example.com');
 ```typescript
 // Monitor Gravatar API requests
 const originalFetch = global.fetch;
-global.fetch = async function(url, options) {
+global.fetch = async function (url, options) {
   if (url.includes('gravatar.com')) {
     console.log('Gravatar Request:', url);
     console.log('Headers:', options?.headers);
@@ -377,7 +389,7 @@ global.fetch = async function(url, options) {
     console.log('Rate Limit Headers:', {
       limit: response.headers.get('X-RateLimit-Limit'),
       remaining: response.headers.get('X-RateLimit-Remaining'),
-      reset: response.headers.get('X-RateLimit-Reset')
+      reset: response.headers.get('X-RateLimit-Reset'),
     });
   }
 

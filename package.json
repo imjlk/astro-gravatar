@@ -3,6 +3,9 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "lint": "eslint packages/astro-gravatar/src --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "build": "bun run build:package",
     "build:package": "cd packages/astro-gravatar && bun run build",
     "test": "cd packages/astro-gravatar && bun test",
@@ -38,12 +41,20 @@
     "release:prepare": "sampo release",
     "changeset": "sampo add",
     "changeset:pre": "sampo pre",
-
+    "security:check": "bun audit",
     "clean": "bun run clean:all",
     "clean:all": "rm -rf node_modules packages/*/node_modules apps/*/node_modules bun.lockb && bun install"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@eslint/js": "^10.0.1",
+    "@types/bun": "latest",
+    "@typescript-eslint/eslint-plugin": "^8.55.0",
+    "@typescript-eslint/parser": "^8.55.0",
+    "eslint": "^10.0.0",
+    "globals": "^17.3.0",
+    "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^0.14.1",
+    "typescript-eslint": "^8.55.0"
   },
   "peerDependencies": {
     "typescript": "^5"

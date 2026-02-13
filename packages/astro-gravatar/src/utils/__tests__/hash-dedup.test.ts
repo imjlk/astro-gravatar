@@ -1,15 +1,15 @@
-import { describe, it, expect, spyOn, beforeEach } from "bun:test";
-import { hashEmailWithCache, clearEmailHashCache } from "../hash.js";
+import { describe, it, expect, spyOn, beforeEach } from 'bun:test';
+import { hashEmailWithCache, clearEmailHashCache } from '../hash.js';
 
-describe("hashEmailWithCache deduplication", () => {
+describe('hashEmailWithCache deduplication', () => {
   beforeEach(() => {
     clearEmailHashCache();
   });
 
-  it("should deduplicate in-flight hashing requests", async () => {
-    const email = "test@example.com";
-    
-    const digestSpy = spyOn(crypto.subtle, "digest");
+  it('should deduplicate in-flight hashing requests', async () => {
+    const email = 'test@example.com';
+
+    const digestSpy = spyOn(crypto.subtle, 'digest');
 
     const results = await Promise.all([
       hashEmailWithCache(email),
@@ -21,7 +21,7 @@ describe("hashEmailWithCache deduplication", () => {
     expect(results[1]).toBe(results[2]);
 
     expect(digestSpy).toHaveBeenCalledTimes(1);
-    
+
     digestSpy.mockRestore();
   });
 });

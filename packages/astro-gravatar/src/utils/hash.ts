@@ -16,26 +16,17 @@ export { isValidEmail };
  */
 export function normalizeEmail(email: string): string {
   if (typeof email !== 'string') {
-    throw new GravatarError(
-      'Email must be a string',
-      GRAVATAR_ERROR_CODES.INVALID_EMAIL
-    );
+    throw new GravatarError('Email must be a string', GRAVATAR_ERROR_CODES.INVALID_EMAIL);
   }
 
   const trimmed = email.trim();
 
   if (!trimmed) {
-    throw new GravatarError(
-      'Email cannot be empty',
-      GRAVATAR_ERROR_CODES.INVALID_EMAIL
-    );
+    throw new GravatarError('Email cannot be empty', GRAVATAR_ERROR_CODES.INVALID_EMAIL);
   }
 
   if (!isValidEmail(trimmed)) {
-    throw new GravatarError(
-      `Invalid email format: ${trimmed}`,
-      GRAVATAR_ERROR_CODES.INVALID_EMAIL
-    );
+    throw new GravatarError(`Invalid email format: ${trimmed}`, GRAVATAR_ERROR_CODES.INVALID_EMAIL);
   }
 
   return trimmed.toLowerCase();
@@ -54,7 +45,7 @@ export async function hashEmail(email: string): Promise<string> {
     const data = encoder.encode(normalizedEmail);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   } catch (error) {
     if (error instanceof GravatarError) {
       throw error;
@@ -81,7 +72,7 @@ export async function hashEmails(emails: string[]): Promise<string[]> {
     );
   }
 
-  return Promise.all(emails.map(email => hashEmail(email)));
+  return Promise.all(emails.map((email) => hashEmail(email)));
 }
 
 /**
@@ -90,8 +81,7 @@ export async function hashEmails(emails: string[]): Promise<string[]> {
  * @returns True if hash is a valid SHA256 hash
  */
 export function isValidGravatarHash(hash: string): boolean {
-  return typeof hash === 'string' &&
-         /^[a-f0-9]{64}$/i.test(hash);
+  return typeof hash === 'string' && /^[a-f0-9]{64}$/i.test(hash);
 }
 
 /**
@@ -101,10 +91,7 @@ export function isValidGravatarHash(hash: string): boolean {
  */
 export async function extractHash(input: string): Promise<string> {
   if (!input || typeof input !== 'string') {
-    throw new GravatarError(
-      'Input must be a non-empty string',
-      GRAVATAR_ERROR_CODES.INVALID_EMAIL
-    );
+    throw new GravatarError('Input must be a non-empty string', GRAVATAR_ERROR_CODES.INVALID_EMAIL);
   }
 
   // If it's already a valid hash, return it
@@ -148,7 +135,7 @@ export async function hashEmailWithCache(email: string, useCache: boolean = true
   const now = Date.now();
 
   // Check cache first
-  if (cached && (now - cached.timestamp) < CACHE_TTL) {
+  if (cached && now - cached.timestamp < CACHE_TTL) {
     return cached.hash;
   }
 
@@ -170,7 +157,7 @@ export async function hashEmailWithCache(email: string, useCache: boolean = true
         .sort((a, b) => emailHashCache.get(a)!.timestamp - emailHashCache.get(b)!.timestamp)
         .slice(0, Math.floor(CACHE_MAX_SIZE / 2));
 
-      oldestKeys.forEach(key => emailHashCache.delete(key));
+      oldestKeys.forEach((key) => emailHashCache.delete(key));
     }
 
     emailHashCache.set(normalizedEmail, { hash, timestamp: now });

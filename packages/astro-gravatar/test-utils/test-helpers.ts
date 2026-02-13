@@ -179,7 +179,7 @@ export function expectValidGravatarUrl(url: string, email?: string) {
  */
 export function expectCssClasses(element: HTMLElement, expectedClasses: string[]) {
   const actualClasses = element.className.split(' ').filter(Boolean);
-  expectedClasses.forEach(expectedClass => {
+  expectedClasses.forEach((expectedClass) => {
     expect(actualClasses).toContain(expectedClass);
   });
 }
@@ -205,7 +205,7 @@ export function generateEmailHash(email: string): string {
   let hash = 0;
   for (let i = 0; i < email.length; i++) {
     const char = email.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
 
@@ -263,7 +263,7 @@ export const TestDataGenerator = {
  * Creates a promise that resolves after a specified delay
  */
 export function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -330,12 +330,12 @@ export function setupMockDOM() {
         tagName: tag.toUpperCase(),
         className: '',
         innerHTML: '',
-        setAttribute: () => { },
+        setAttribute: () => {},
         getAttribute: () => null,
-        appendChild: () => { },
+        appendChild: () => {},
       }),
       body: {
-        appendChild: () => { },
+        appendChild: () => {},
       },
     };
   }

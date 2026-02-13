@@ -126,7 +126,7 @@ describe('GravatarClient', () => {
       expect.objectContaining({
         method: 'GET',
         headers: expect.objectContaining({
-          'Authorization': 'Bearer test-api-key',
+          Authorization: 'Bearer test-api-key',
           'User-Agent': 'astro-gravatar-client/1.0.0',
         }),
       })
@@ -165,10 +165,13 @@ describe('GravatarClient', () => {
   // ============================================================================
 
   test('should handle API errors properly', async () => {
-    fetchMock.mockImplementation(async () => new Response('Profile not found', {
-      status: 404,
-      statusText: 'Not Found',
-    }));
+    fetchMock.mockImplementation(
+      async () =>
+        new Response('Profile not found', {
+          status: 404,
+          statusText: 'Not Found',
+        })
+    );
 
     await expect(client.getProfile('nonexistent@example.com')).rejects.toThrow(GravatarError);
   });
@@ -225,10 +228,13 @@ describe('GravatarClient', () => {
   });
 
   test('should not retry on authentication errors', async () => {
-    fetchMock.mockImplementation(async () => new Response('Invalid API key', {
-      status: 401,
-      statusText: 'Unauthorized',
-    }));
+    fetchMock.mockImplementation(
+      async () =>
+        new Response('Invalid API key', {
+          status: 401,
+          statusText: 'Unauthorized',
+        })
+    );
 
     await expect(client.getProfile('test@example.com')).rejects.toThrow(GravatarError);
     expect(fetchMock).toHaveBeenCalledTimes(1); // Should not retry
@@ -372,7 +378,7 @@ describe('GravatarClient', () => {
     fetchMock.mockImplementation(async () => {
       concurrentCount++;
       maxConcurrent = Math.max(maxConcurrent, concurrentCount);
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       concurrentCount--;
       return {
         ok: true,
@@ -478,7 +484,7 @@ describe('GravatarClient', () => {
     expect(shortTtlClient.getCacheStats().size).toBe(1);
 
     // Wait for cache to expire
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise((resolve) => setTimeout(resolve, 150));
 
     // Should make new request
     await shortTtlClient.getProfile('test@example.com');
@@ -626,5 +632,185 @@ describe('GravatarClient', () => {
     expect(results).toHaveLength(2);
     expect(results[0]!.email).toBe('success@example.com');
     expect(results[1]!.email).toBe('fail@example.com');
+  });
+
+  // ============================================================================
+  // Rate Limit Queue Tests
+  // ============================================================================
+
+  describe('Rate Limit Queue', () => {
+    test('should enforce maxConcurrent requests via queue', async () => {
+      // Create client with maxConcurrent = 2
+      const queueClient = new GravatarClient({
+        apiKey: 'test-key',
+        rateLimit: { maxConcurrent: 2 },
+        retry: { maxAttempts: 1 },
+      });
+
+      const mockProfile: GravatarProfile = {
+        hash: 'abc123',
+        profile_url: 'https://gravatar.com/abc123',
+        avatar_url: 'https://gravatar.com/avatar/abc123',
+        avatar_alt_text: 'Avatar',
+        display_name: 'Test User',
+      };
+
+      let concurrentCount = 0;
+      let maxConcurrent = 0;
+
+      fetchMock.mockImplementation(async () => {
+        concurrentCount++;
+        maxConcurrent = Math.max(maxConcurrent, concurrentCount);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        concurrentCount--;
+        return {
+          ok: true,
+          status: 200,
+          json: async () => mockProfile,
+          headers: new Headers(),
+        } as Response;
+      });
+
+      const emails = Array.from({ length: 6 }, (_, i) => `user${i}@example.com`);
+      await queueClient.getProfiles(emails, { concurrency: 6 }); // Request all at once
+
+      expect(maxConcurrent).toBeLessThanOrEqual(2);
+    });
+
+    test('should process queue in FIFO order', async () => {
+      const queueClient = new GravatarClient({
+        apiKey: 'test-key',
+        rateLimit: { maxConcurrent: 1 },
+        retry: { maxAttempts: 1 },
+      });
+
+      const processingOrder: number[] = [];
+      const mockProfile: GravatarProfile = {
+        hash: 'abc123',
+        profile_url: 'https://gravatar.com/abc123',
+        avatar_url: 'https://gravatar.com/avatar/abc123',
+        avatar_alt_text: 'Avatar',
+        display_name: 'Test User',
+      };
+
+      let callCount = 0;
+      fetchMock.mockImplementation(async () => {
+        const order = callCount++;
+        processingOrder.push(order);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        return {
+          ok: true,
+          status: 200,
+          json: async () => mockProfile,
+          headers: new Headers(),
+        } as Response;
+      });
+
+      const emails = Array.from({ length: 3 }, (_, i) => `user${i}@example.com`);
+      await queueClient.getProfiles(emails, { concurrency: 3 });
+
+      expect(processingOrder).toEqual([0, 1, 2]);
+    });
+
+    test('should not block queue when request fails', async () => {
+      const queueClient = new GravatarClient({
+        apiKey: 'test-key',
+        rateLimit: { maxConcurrent: 1 },
+        retry: { maxAttempts: 1 },
+      });
+
+      const mockProfile: GravatarProfile = {
+        hash: 'abc123',
+        profile_url: 'https://gravatar.com/abc123',
+        avatar_url: 'https://gravatar.com/avatar/abc123',
+        avatar_alt_text: 'Avatar',
+        display_name: 'Test User',
+      };
+
+      let callCount = 0;
+      fetchMock.mockImplementation(async () => {
+        const idx = callCount++;
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        if (idx === 0 || idx === 2) {
+          throw new Error('Network error');
+        }
+
+        return {
+          ok: true,
+          status: 200,
+          json: async () => mockProfile,
+          headers: new Headers(),
+        } as Response;
+      });
+
+      const emails = ['fail1@example.com', 'success@example.com', 'fail2@example.com'];
+      const results = await queueClient.getProfiles(emails, { concurrency: 3 });
+
+      expect(callCount).toBe(3);
+      expect(results[1]!.profile).toEqual(mockProfile);
+      expect(results[0]!.error).toBeInstanceOf(GravatarError);
+      expect(results[2]!.error).toBeInstanceOf(GravatarError);
+    });
+
+    test('should expose queue stats via getQueueStats()', () => {
+      const queueClient = new GravatarClient({
+        apiKey: 'test-key',
+        rateLimit: { maxConcurrent: 3 },
+      });
+
+      // Check that getQueueStats exists and returns expected structure
+      const stats = queueClient.getQueueStats();
+      expect(stats).toHaveProperty('pending');
+      expect(stats).toHaveProperty('active');
+      expect(stats).toHaveProperty('maxConcurrent');
+      expect(stats.maxConcurrent).toBe(3);
+    });
+
+    test('should wait for slot when queue is full', async () => {
+      const queueClient = new GravatarClient({
+        apiKey: 'test-key',
+        rateLimit: { maxConcurrent: 2 },
+        retry: { maxAttempts: 1 },
+      });
+
+      const mockProfile: GravatarProfile = {
+        hash: 'abc123',
+        profile_url: 'https://gravatar.com/abc123',
+        avatar_url: 'https://gravatar.com/avatar/abc123',
+        avatar_alt_text: 'Avatar',
+        display_name: 'Test User',
+      };
+
+      const resolvers: Array<() => void> = [];
+      let startedCount = 0;
+
+      fetchMock.mockImplementation(async () => {
+        startedCount++;
+        await new Promise<void>((resolve) => {
+          resolvers.push(resolve);
+        });
+        return {
+          ok: true,
+          status: 200,
+          json: async () => mockProfile,
+          headers: new Headers(),
+        } as Response;
+      });
+
+      const emails = ['user1@example.com', 'user2@example.com', 'user3@example.com'];
+      const promise = queueClient.getProfiles(emails, { concurrency: 3 });
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(startedCount).toBe(2);
+
+      resolvers[0]!();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(startedCount).toBe(3);
+
+      resolvers[1]!();
+      resolvers[2]!();
+      await promise;
+    });
   });
 });

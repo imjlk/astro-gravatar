@@ -9,33 +9,18 @@ export default {
     preload: ['./src/__tests__/setup.ts'],
 
     // Test file patterns
-    testMatch: [
-      '**/__tests__/**/*.test.ts',
-      '**/*.test.ts',
-      '**/*.spec.ts',
-    ],
+    testMatch: ['**/__tests__/**/*.test.ts', '**/*.test.ts', '**/*.spec.ts'],
 
     // Ignore patterns
-    ignore: [
-      '**/node_modules/**',
-      '**/dist/**',
-    ],
+    ignore: ['**/node_modules/**', '**/dist/**'],
 
     // Coverage configuration
     coverage: {
       // Include these files in coverage
-      include: [
-        'src/**/*.ts',
-        'src/**/*.astro',
-      ],
+      include: ['src/**/*.ts', 'src/**/*.astro'],
 
       // Exclude these files from coverage
-      exclude: [
-        'src/**/*.d.ts',
-        'src/**/*.test.ts',
-        'src/**/*.spec.ts',
-        'src/**/__tests__/**',
-      ],
+      exclude: ['src/**/*.d.ts', 'src/**/*.test.ts', 'src/**/*.spec.ts', 'src/**/__tests__/**'],
 
       // Coverage thresholds
       thresholds: {

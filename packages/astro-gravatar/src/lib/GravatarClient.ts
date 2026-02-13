@@ -11,15 +11,9 @@ import type {
 } from './types.js'; // Import types
 import { GravatarError, GRAVATAR_ERROR_CODES } from './types.js'; // Import values
 
-import type {
-  CacheEntry,
-} from './types.js';
+import type { CacheEntry } from './types.js';
 import { hashEmailWithCache } from '../utils/hash.js';
-import {
-  GRAVATAR_API_BASE,
-  DEFAULT_TIMEOUT,
-  buildProfileUrl
-} from './gravatar.js';
+import { GRAVATAR_API_BASE, DEFAULT_TIMEOUT, buildProfileUrl } from './gravatar.js';
 import {
   DEFAULT_CACHE_TTL_SECONDS,
   DEFAULT_CACHE_MAX_SIZE,
@@ -30,8 +24,107 @@ import {
   DEFAULT_SAFETY_BUFFER,
   DEFAULT_RATE_LIMIT_MAX_CONCURRENT,
   DEFAULT_CONCURRENCY,
-  RETRY_INTERVAL_MS
 } from '../constants.js';
+
+// ============================================================================
+// RateLimitQueue Class
+// ============================================================================
+
+/** Queue item with priority support */
+interface QueueItem<T> {
+  /** Function to execute */
+  fn: () => Promise<T>;
+  /** Priority (higher = more important, default: 0) */
+  priority: number;
+  /** Resolve callback */
+  resolve: (value: T) => void;
+  /** Reject callback */
+  reject: (error: Error) => void;
+}
+
+/** Queue statistics */
+export interface QueueStats {
+  /** Number of pending requests in queue */
+  pending: number;
+  /** Number of currently active requests */
+  active: number;
+  /** Maximum concurrent requests allowed */
+  maxConcurrent: number;
+}
+
+/**
+ * Rate limit queue with priority support
+ * Manages concurrent request execution with configurable limits
+ */
+class RateLimitQueue {
+  private pending: Array<QueueItem<unknown>> = [];
+  private active: number = 0;
+  private readonly maxConcurrent: number;
+
+  constructor(maxConcurrent: number = DEFAULT_RATE_LIMIT_MAX_CONCURRENT) {
+    this.maxConcurrent = maxConcurrent;
+  }
+
+  /** Add a request to the queue with optional priority */
+  async enqueue<T>(fn: () => Promise<T>, priority: number = 0): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const item: QueueItem<T> = {
+        fn,
+        priority,
+        resolve: resolve as (value: unknown) => void,
+        reject,
+      };
+      this.addToQueue(item);
+      this.process();
+    });
+  }
+
+  /** Add item to queue, maintaining priority order */
+  private addToQueue<T>(item: QueueItem<T>): void {
+    let inserted = false;
+    for (let i = 0; i < this.pending.length; i++) {
+      if (item.priority > (this.pending[i]!.priority ?? 0)) {
+        this.pending.splice(i, 0, item as QueueItem<unknown>);
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) {
+      this.pending.push(item as QueueItem<unknown>);
+    }
+  }
+
+  /** Process queue items up to maxConcurrent */
+  private process(): void {
+    while (this.active < this.maxConcurrent && this.pending.length > 0) {
+      const item = this.pending.shift();
+      if (!item) break;
+
+      this.active++;
+      item
+        .fn()
+        .then((result) => {
+          item.resolve(result);
+        })
+        .catch((error) => {
+          item.reject(error);
+        })
+        .finally(() => {
+          this.active--;
+          this.process();
+        });
+    }
+  }
+
+  /** Get queue statistics */
+  getStats(): QueueStats {
+    return {
+      pending: this.pending.length,
+      active: this.active,
+      maxConcurrent: this.maxConcurrent,
+    };
+  }
+}
 
 // ============================================================================
 // Interfaces
@@ -145,7 +238,8 @@ export class GravatarClient {
   private config: Required<GravatarClientOptions>;
   private cache: Map<string, CacheEntry>;
   private stats: ClientRequestStats;
-  private currentRequests: number = 0; // Track concurrent requests
+  private currentRequests: number = 0;
+  private queue: RateLimitQueue;
 
   // Default configuration
   private static readonly DEFAULTS: Required<GravatarClientOptions> = {
@@ -209,6 +303,7 @@ export class GravatarClient {
       averageResponseTime: 0,
       totalRetries: 0,
     };
+    this.queue = new RateLimitQueue(this.config.rateLimit.maxConcurrent);
   }
 
   // ============================================================================
@@ -247,15 +342,10 @@ export class GravatarClient {
       );
 
       if (!response.data) {
-        throw new GravatarError(
-          'No profile data received',
-          GRAVATAR_ERROR_CODES.INVALID_RESPONSE
-        );
+        throw new GravatarError('No profile data received', GRAVATAR_ERROR_CODES.INVALID_RESPONSE);
       }
 
       return response.data;
-    } catch (error) {
-      throw error;
     } finally {
       this.currentRequests--;
     }
@@ -270,16 +360,18 @@ export class GravatarClient {
   async getProfiles(
     emails: string[],
     options: BatchOptions & { clientOptions?: Partial<GravatarClientOptions> } = {}
-  ): Promise<Array<{
-    email: string;
-    profile?: GravatarProfile;
-    error?: GravatarError;
-  }>> {
+  ): Promise<
+    Array<{
+      email: string;
+      profile?: GravatarProfile;
+      error?: GravatarError;
+    }>
+  > {
     const {
       concurrency = DEFAULT_CONCURRENCY,
       failFast = false,
       batchDelay = 0,
-      clientOptions = {}
+      clientOptions = {},
     } = options;
 
     const results: Array<{
@@ -288,40 +380,31 @@ export class GravatarClient {
       error?: GravatarError;
     }> = [];
 
-    // Process emails in batches
     for (let i = 0; i < emails.length; i += concurrency) {
       const batch = emails.slice(i, i + concurrency);
 
-      const batchPromises = batch.map(async (email) => {
-        try {
-          // Wait for a slot to free up if maxConcurrent is exceeded
-          if (this.currentRequests >= (this.config.rateLimit?.maxConcurrent ?? DEFAULT_RATE_LIMIT_MAX_CONCURRENT)) {
-            await new Promise<void>(resolve => {
-              const interval = setInterval(() => {
-                if (this.currentRequests < (this.config.rateLimit?.maxConcurrent ?? DEFAULT_RATE_LIMIT_MAX_CONCURRENT)) {
-                  clearInterval(interval);
-                  resolve();
-                }
-              }, RETRY_INTERVAL_MS);
-            });
-          }
-          const profile = await this.getProfile(email, clientOptions);
-          return { email, profile };
-        } catch (error) {
-          const gravatarError = error instanceof GravatarError
-            ? error
-            : new GravatarError(
-              `Failed to fetch profile for ${email}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-              GRAVATAR_ERROR_CODES.API_ERROR
-            );
+      const batchPromises = batch.map((email) =>
+        this.queue.enqueue(async () => {
+          try {
+            const profile = await this.getProfile(email, clientOptions);
+            return { email, profile };
+          } catch (error) {
+            const gravatarError =
+              error instanceof GravatarError
+                ? error
+                : new GravatarError(
+                    `Failed to fetch profile for ${email}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                    GRAVATAR_ERROR_CODES.API_ERROR
+                  );
 
-          if (failFast) {
-            throw gravatarError;
-          }
+            if (failFast) {
+              throw gravatarError;
+            }
 
-          return { email, error: gravatarError };
-        }
-      });
+            return { email, error: gravatarError };
+          }
+        })
+      );
 
       try {
         const batchResults = await Promise.allSettled(batchPromises);
@@ -333,21 +416,20 @@ export class GravatarClient {
             if (failFast && result.reason instanceof GravatarError) {
               throw result.reason;
             }
-            // Extract email from the batch to maintain order (Promise.allSettled preserves order)
             const email = batch[index] || 'unknown';
             results.push({
               email,
-              error: result.reason instanceof GravatarError
-                ? result.reason
-                : new GravatarError(
-                  `Unexpected error for ${email}`,
-                  GRAVATAR_ERROR_CODES.API_ERROR
-                )
+              error:
+                result.reason instanceof GravatarError
+                  ? result.reason
+                  : new GravatarError(
+                      `Unexpected error for ${email}`,
+                      GRAVATAR_ERROR_CODES.API_ERROR
+                    ),
             });
           }
         });
 
-        // Add delay between batches if specified
         if (batchDelay > 0 && i + concurrency < emails.length) {
           await this.delay(batchDelay);
         }
@@ -355,7 +437,6 @@ export class GravatarClient {
         if (failFast) {
           throw error;
         }
-        // Continue processing other batches
       }
     }
 
@@ -389,8 +470,8 @@ export class GravatarClient {
 
     return {
       size: this.cache.size,
-      ttl: (this.config.cache?.ttl ?? 3600000),
-      maxSize: (this.config.cache?.maxSize ?? DEFAULT_CACHE_MAX_SIZE),
+      ttl: this.config.cache?.ttl ?? 3600000,
+      maxSize: this.config.cache?.maxSize ?? DEFAULT_CACHE_MAX_SIZE,
       hits: this.stats.cacheHits,
       misses: cacheMisses,
       hitRatio,
@@ -404,6 +485,10 @@ export class GravatarClient {
    */
   getRequestStats(): ClientRequestStats {
     return { ...this.stats };
+  }
+
+  getQueueStats(): QueueStats {
+    return this.queue.getStats();
   }
 
   /**
@@ -434,7 +519,7 @@ export class GravatarClient {
    * @returns Current configuration (without sensitive data)
    */
   getConfig(): Omit<GravatarClientOptions, 'apiKey'> {
-    const { apiKey, ...configWithoutApiKey } = this.config;
+    const { apiKey: _apiKey, ...configWithoutApiKey } = this.config;
     return configWithoutApiKey;
   }
 
@@ -471,10 +556,13 @@ export class GravatarClient {
         this.stats.successfulRequests++;
         return response;
       } catch (error) {
-        lastError = error instanceof GravatarError ? error : new GravatarError(
-          `Request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          GRAVATAR_ERROR_CODES.API_ERROR
-        );
+        lastError =
+          error instanceof GravatarError
+            ? error
+            : new GravatarError(
+                `Request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                GRAVATAR_ERROR_CODES.API_ERROR
+              );
 
         attempt++;
 
@@ -490,9 +578,11 @@ export class GravatarClient {
         const delay = this.calculateRetryDelay(attempt, config);
 
         // Handle rate limits
-        if (lastError.code === GRAVATAR_ERROR_CODES.RATE_LIMITED &&
+        if (
+          lastError.code === GRAVATAR_ERROR_CODES.RATE_LIMITED &&
           lastError.rateLimit &&
-          config.rateLimit?.autoHandle) {
+          config.rateLimit?.autoHandle
+        ) {
           const rateLimitDelay = this.calculateRateLimitDelay(lastError.rateLimit, config);
           await this.delay(Math.max(delay, rateLimitDelay));
         } else {
@@ -505,9 +595,9 @@ export class GravatarClient {
 
     // All attempts failed - count as failed request
     this.stats.failedRequests++;
-    throw lastError || new GravatarError(
-      'Request failed after all retry attempts',
-      GRAVATAR_ERROR_CODES.API_ERROR
+    throw (
+      lastError ||
+      new GravatarError('Request failed after all retry attempts', GRAVATAR_ERROR_CODES.API_ERROR)
     );
   }
 
@@ -523,7 +613,7 @@ export class GravatarClient {
   ): Promise<GravatarApiResponse<T>> {
     const headers: Record<string, string> = {
       'User-Agent': `astro-gravatar-client/1.0.0`,
-      'Accept': 'application/json',
+      Accept: 'application/json',
       'Content-Type': 'application/json',
       ...config.headers,
     };
@@ -564,10 +654,13 @@ export class GravatarClient {
 
         throw new GravatarError(
           errorMessage,
-          response.status === 429 ? GRAVATAR_ERROR_CODES.RATE_LIMITED :
-            response.status === 401 ? GRAVATAR_ERROR_CODES.AUTH_ERROR :
-              response.status === 404 ? GRAVATAR_ERROR_CODES.NOT_FOUND :
-                GRAVATAR_ERROR_CODES.API_ERROR,
+          response.status === 429
+            ? GRAVATAR_ERROR_CODES.RATE_LIMITED
+            : response.status === 401
+              ? GRAVATAR_ERROR_CODES.AUTH_ERROR
+              : response.status === 404
+                ? GRAVATAR_ERROR_CODES.NOT_FOUND
+                : GRAVATAR_ERROR_CODES.API_ERROR,
           response.status,
           rateLimit
         );
@@ -577,9 +670,8 @@ export class GravatarClient {
 
       return {
         data,
-        headers: Object.fromEntries((response.headers as any).entries()),
+        headers: Object.fromEntries(response.headers.entries()),
       };
-
     } catch (error) {
       clearTimeout(timeoutId);
 
@@ -641,8 +733,10 @@ export class GravatarClient {
     }
 
     // Retry on network errors and API errors
-    if (error.code === GRAVATAR_ERROR_CODES.NETWORK_ERROR ||
-      error.code === GRAVATAR_ERROR_CODES.API_ERROR) {
+    if (
+      error.code === GRAVATAR_ERROR_CODES.NETWORK_ERROR ||
+      error.code === GRAVATAR_ERROR_CODES.API_ERROR
+    ) {
       return true;
     }
 
@@ -656,24 +750,25 @@ export class GravatarClient {
    * @param config - Client configuration
    * @returns Delay in milliseconds
    */
-  private calculateRetryDelay(
-    attempt: number,
-    config: Required<GravatarClientOptions>
-  ): number {
+  private calculateRetryDelay(attempt: number, config: Required<GravatarClientOptions>): number {
     const retryConfig = config.retry ?? GravatarClient.DEFAULTS.retry;
-    const baseDelay = retryConfig.baseDelay ?? GravatarClient.DEFAULTS.retry.baseDelay ?? DEFAULT_RETRY_BASE_DELAY_MS;
-    const backoffFactor = retryConfig.backoffFactor ?? GravatarClient.DEFAULTS.retry.backoffFactor ?? DEFAULT_BACKOFF_FACTOR;
-    const maxDelay = retryConfig.maxDelay ?? GravatarClient.DEFAULTS.retry.maxDelay ?? DEFAULT_RETRY_MAX_DELAY_MS;
+    const baseDelay =
+      retryConfig.baseDelay ??
+      GravatarClient.DEFAULTS.retry.baseDelay ??
+      DEFAULT_RETRY_BASE_DELAY_MS;
+    const backoffFactor =
+      retryConfig.backoffFactor ??
+      GravatarClient.DEFAULTS.retry.backoffFactor ??
+      DEFAULT_BACKOFF_FACTOR;
+    const maxDelay =
+      retryConfig.maxDelay ?? GravatarClient.DEFAULTS.retry.maxDelay ?? DEFAULT_RETRY_MAX_DELAY_MS;
 
     const exponentialDelay = baseDelay * Math.pow(backoffFactor, attempt - 1);
 
     // Add jitter to prevent thundering herd
     const jitter = Math.random() * 0.1 * exponentialDelay;
 
-    return Math.min(
-      exponentialDelay + jitter,
-      maxDelay
-    );
+    return Math.min(exponentialDelay + jitter, maxDelay);
   }
 
   /**
@@ -689,7 +784,7 @@ export class GravatarClient {
     const now = Date.now(); // Current time in milliseconds
     const resetTime = rateLimit.reset * 1000; // Convert to milliseconds
 
-    const safetyBuffer = (config.rateLimit?.safetyBuffer ?? DEFAULT_SAFETY_BUFFER);
+    const safetyBuffer = config.rateLimit?.safetyBuffer ?? DEFAULT_SAFETY_BUFFER;
     const bufferAmount = (resetTime - now) * safetyBuffer;
 
     const delayUntilReset = Math.max(0, resetTime - now + bufferAmount);
@@ -724,7 +819,10 @@ export class GravatarClient {
    * @param config - Request configuration
    * @returns Cache key
    */
-  private async getCacheKey(email: string, config: Required<GravatarClientOptions>): Promise<string> {
+  private async getCacheKey(
+    email: string,
+    config: Required<GravatarClientOptions>
+  ): Promise<string> {
     const emailHash = await hashEmailWithCache(email);
     const configHash = this.hashConfig(config);
     return `${emailHash}:${configHash}`;
@@ -745,7 +843,9 @@ export class GravatarClient {
     };
 
     // Simple hash for now - in production you might want a more sophisticated approach
-    return btoa(JSON.stringify(normalizedConfig)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+    return btoa(JSON.stringify(normalizedConfig))
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .substring(0, 16);
   }
 
   /**
@@ -832,6 +932,6 @@ export class GravatarClient {
    * @param ms - Milliseconds to delay
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

@@ -62,11 +62,7 @@ async function advancedExample() {
 
   try {
     // Fetch profiles in batch
-    const emails = [
-      'user1@example.com',
-      'user2@example.com',
-      'user3@example.com',
-    ];
+    const emails = ['user1@example.com', 'user2@example.com', 'user3@example.com'];
 
     const results = await client.getProfiles(emails, {
       concurrency: 5,
@@ -81,7 +77,6 @@ async function advancedExample() {
         console.error(`${email}: Failed - ${(error as Error)?.message}`);
       }
     });
-
   } catch (error) {
     console.error('Batch request failed:', error);
   }
@@ -127,7 +122,6 @@ async function monitoringExample() {
       console.log(`  Limit: ${requestStats.currentRateLimit.limit}`);
       console.log(`  Remaining: ${requestStats.currentRateLimit.remaining}`);
     }
-
   } catch (error) {
     console.error('Monitoring example failed:', error);
   }
@@ -196,7 +190,6 @@ async function dynamicConfigExample() {
     // Make another request with new configuration
     await client.getProfile('user@example.com');
     console.log('Request with new config completed');
-
   } catch (error) {
     console.error('Dynamic config example failed:', error);
   }
@@ -242,7 +235,7 @@ function integrationExample() {
     async getMultipleProfiles(emails: string[]) {
       try {
         const results = await gravatarClient.getProfiles(emails);
-        return results.filter(result => result.profile).map(result => result.profile!);
+        return results.filter((result) => result.profile).map((result) => result.profile!);
       } catch (error) {
         console.error('Failed to fetch profiles:', error);
         return [];
@@ -261,9 +254,10 @@ function integrationExample() {
         },
         requests: {
           total: requestStats.totalRequests,
-          successRate: requestStats.totalRequests > 0
-            ? requestStats.successfulRequests / requestStats.totalRequests
-            : 0,
+          successRate:
+            requestStats.totalRequests > 0
+              ? requestStats.successfulRequests / requestStats.totalRequests
+              : 0,
         },
       };
     },
@@ -302,7 +296,7 @@ function performanceOptimizedClient() {
     // Custom headers for CDN/proxy integration
     headers: {
       'X-CDN-Cache': 'bypass',
-      'Connection': 'keep-alive',
+      Connection: 'keep-alive',
     },
 
     // Conservative rate limit handling
@@ -340,7 +334,6 @@ async function runExamples() {
     const optimizedClient = performanceOptimizedClient();
     console.log('\n=== Performance Optimized Client Created ===');
     console.log('Config:', optimizedClient.getConfig());
-
   } catch (error) {
     console.error('Examples failed:', error);
   }

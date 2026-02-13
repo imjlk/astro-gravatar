@@ -3,7 +3,11 @@
  */
 
 import { test, expect, describe } from 'bun:test';
-import { setupTestEnvironment, generateRandomEmail, generateEmailHash } from '../../test-utils/test-helpers';
+import {
+  setupTestEnvironment,
+  generateRandomEmail,
+  generateEmailHash,
+} from '../../test-utils/test-helpers';
 import { mockGravatarProfile, mockSuccessfulProfileResponse } from './mocks';
 import { VALID_EMAILS, INVALID_EMAILS } from './fixtures';
 
@@ -48,12 +52,12 @@ describe('Test Infrastructure', () => {
     expect(INVALID_EMAILS).toHaveLength(6);
 
     // All valid emails should pass regex test
-    VALID_EMAILS.forEach(email => {
+    VALID_EMAILS.forEach((email) => {
       expect(email).toMatch(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
     });
 
     // All invalid emails should fail regex test
-    INVALID_EMAILS.forEach(email => {
+    INVALID_EMAILS.forEach((email) => {
       expect(email).not.toMatch(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
     });
   });

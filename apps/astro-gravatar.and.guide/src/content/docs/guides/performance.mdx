@@ -48,9 +48,9 @@ import { GravatarClient } from 'astro-gravatar';
 const client = new GravatarClient({
   apiKey: 'your-api-key',
   cache: {
-    ttl: 300,        // 5 minutes cache time
-    maxSize: 1000   // Maximum cached items
-  }
+    ttl: 300, // 5 minutes cache time
+    maxSize: 1000, // Maximum cached items
+  },
 });
 ```
 
@@ -169,6 +169,7 @@ import GravatarAvatar from 'astro-gravatar';
 ```
 
 **Lazy Loading Features:**
+
 - Skeleton loading animation while image loads
 - Smooth fade-in transition when loaded
 - Native browser lazy loading (`loading="lazy"`)
@@ -507,7 +508,7 @@ export const ProfileAvatar = ({ email, size = 80, ...props }) => (
 
 ### Skeleton Loading
 
-```astro
+````astro
 ---
 import GravatarAvatar from 'astro-gravatar';
 ---
@@ -541,7 +542,7 @@ Create a separate CSS file for skeleton loading:
 .avatar-skeleton {
   display: none; /* Hidden when real avatar loads */
 }
-```
+````
 
 Then import it in your Astro component:
 
@@ -554,7 +555,7 @@ import GravatarAvatar from 'astro-gravatar';
 
 ### Error Fallbacks
 
-```astro
+````astro
 ---
 import GravatarAvatar from 'astro-gravatar';
 
@@ -595,7 +596,7 @@ const emails = ['user1@example.com', 'user2@example.com'];
 .avatar-fallback {
   font-size: 1.5rem;
 }
-```
+````
 
 ```astro
 ---
@@ -654,13 +655,17 @@ const avatar = measureComponent('GravatarAvatar', () =>
 
 <CardGrid>
   <Card title="Cache Aggressively" icon="database">
-    <p style="margin: 0;">Use built-in caching and avoid repeated API calls for the same user data.</p>
+    <p style="margin: 0;">
+      Use built-in caching and avoid repeated API calls for the same user data.
+    </p>
   </Card>
   <Card title="Lazy Load Below Fold" icon="eye">
     <p style="margin: 0;">Enable lazy loading for avatars that aren't immediately visible.</p>
   </Card>
   <Card title="Use Appropriate Sizes" icon="ruler">
-    <p style="margin: 0;">Don't use unnecessarily large avatar sizes. Stick to 32-200px for optimal performance.</p>
+    <p style="margin: 0;">
+      Don't use unnecessarily large avatar sizes. Stick to 32-200px for optimal performance.
+    </p>
   </Card>
   <Card title="Batch Operations" icon="layers">
     <p style="margin: 0;">Fetch multiple profiles in parallel rather than sequentially.</p>
