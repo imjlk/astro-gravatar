@@ -230,7 +230,7 @@ All PRs that affect the published package should include a changeset file. This 
 bun run changeset
 ```
 
-Alternatively, you can install the [Sampo GitHub App](https://github.com/apps/sampo) to get reminders on your PRs.
+Sampo Bot is now wired through GitHub Actions (`.github/workflows/sampo-bot.yml`) so PRs automatically get changeset reminders and release guidance comments.
 
 ### 2. Release Process (Automated)
 

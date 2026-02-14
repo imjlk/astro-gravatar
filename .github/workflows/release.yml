@@ -1,4 +1,4 @@
-name: Release
+name: Sampo Release
 
 on:
   push:
@@ -14,17 +14,34 @@ permissions:
 
 jobs:
   release:
-    name: Release
+    name: Create/Update Release PR
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sampo Release
-        id: sampo
+        uses: bruits/sampo/crates/sampo-github-action@main
+        with:
+          command: release
+          create-github-release: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  prerelease:
+    name: Create pre-release notes
+    if: github.ref_name == 'beta' || github.ref_name == 'alpha'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sampo Pre-release
         uses: bruits/sampo/crates/sampo-github-action@main
         with:
           command: release
