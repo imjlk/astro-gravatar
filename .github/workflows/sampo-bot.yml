@@ -1,0 +1,22 @@
+name: Sampo Bot
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  bot:
+    name: Comment changeset guidance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Sampo GitHub Bot
+        uses: bruits/sampo/crates/sampo-github-bot@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
