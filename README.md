@@ -114,7 +114,7 @@ This repo uses Bun for local validation and a tag-driven GitHub Actions workflow
 
 1. Run `bun run lint`, `bun run typecheck`, `bun run test`, and `bun run build`.
 2. Confirm publish output with `cd packages/astro-gravatar && bun pm pack --dry-run`.
-3. Add a changeset when the published package changes: `bun run changeset`.
+3. Add a Sampo release entry when the published package changes: `bun run sampo:add`.
 4. Create and push a version tag like `v0.0.16` to trigger `.github/workflows/publish.yml`.
 
 ## License

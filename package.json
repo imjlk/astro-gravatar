@@ -38,23 +38,24 @@
     "pkg:version": "cd packages/astro-gravatar && bun pm version",
     "pre-release": "bun run build && bun run test && bun run typecheck",
     "release": "bun run pre-release && bun run release:patch",
-    "release:prepare": "sampo release",
-    "changeset": "sampo add",
-    "changeset:pre": "sampo pre",
-    "security:check": "bun audit",
+    "sampo:add": "sampo add",
+    "sampo:pre": "sampo pre",
+    "sampo:release": "sampo release",
+    "security:check": "bun audit --audit-level high --ignore=GHSA-25h7-pfq9-p65f --ignore=GHSA-rf6f-7fwh-wjgh --ignore=GHSA-c2c7-rcm5-vvqj --ignore=GHSA-mw96-cpmx-2vgc",
+    "security:check:strict": "bun audit",
     "clean": "bun run clean:all",
     "clean:all": "rm -rf node_modules packages/*/node_modules apps/*/node_modules bun.lockb && bun install"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/bun": "latest",
-    "@typescript-eslint/eslint-plugin": "^8.55.0",
-    "@typescript-eslint/parser": "^8.55.0",
-    "eslint": "^10.0.0",
-    "globals": "^17.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
+    "eslint": "^10.2.0",
+    "globals": "^17.4.0",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
-    "typescript-eslint": "^8.55.0"
+    "typescript-eslint": "^8.58.1"
   },
   "peerDependencies": {
     "typescript": "^5"

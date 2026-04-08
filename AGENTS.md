@@ -74,6 +74,7 @@ alwaysApply: false
 - Do not hand-edit generated output in `packages/astro-gravatar/dist/`.
 - Do not commit or manually edit transient coverage output in `packages/astro-gravatar/coverage/` unless the workflow explicitly requires it.
 - Keep lockfile updates intentional. If dependencies change, prefer `bun install` so `bun.lock` stays consistent.
+- Sampo release entries live in `.sampo/changesets/`. Do not reintroduce the old top-level `.changesets/` directory.
 
 ## CI and release notes
 
@@ -81,7 +82,7 @@ alwaysApply: false
 - Coverage enforcement is implemented by `packages/astro-gravatar/package.json` plus `scripts/check-coverage.ts`.
 - Package publishing is tag-driven through `.github/workflows/publish.yml`.
 - The publish workflow uses `npm publish --provenance --access public` from `packages/astro-gravatar`.
-- Changes that affect the published package should usually include a Sampo changeset via `bun run changeset`.
+- Changes that affect the published package should usually include a Sampo release entry via `bun run sampo:add`.
 
 ## Documentation expectations
 
