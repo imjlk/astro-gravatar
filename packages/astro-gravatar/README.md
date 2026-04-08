@@ -19,7 +19,7 @@ Astro components and utilities for Gravatar avatars, profile cards, and QR codes
 bun add astro-gravatar
 ```
 
-Supports Astro `^4.0.0 || ^5.0.0`.
+Supports Astro `^4.0.0 || ^5.0.0 || ^6.0.0`.
 
 ## Quick start
 

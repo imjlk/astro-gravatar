@@ -11,7 +11,7 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.37.1",
+    "@astrojs/starlight": "^0.38.3",
     "astro-gravatar": "workspace:*",
     "astro": "catalog:",
     "sharp": "^0.34.2"
