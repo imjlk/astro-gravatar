@@ -33,24 +33,40 @@
     }
   },
   "files": [
-    "src/**/*",
+    "src/cli/index.ts",
+    "src/components/*.astro",
+    "src/constants.ts",
+    "src/env.d.ts",
+    "src/lib/*.ts",
+    "src/utils/*.ts",
     "index.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
     "tsconfig.json"
   ],
   "keywords": [
     "astro",
     "astro-component",
+    "withastro",
+    "ui",
+    "image",
+    "images",
+    "utility",
     "gravatar",
     "avatar",
     "profile",
+    "profile-card",
+    "qr-code",
     "component"
   ],
-  "description": "Astro components for integrating Gravatar avatars and profiles",
+  "description": "Astro components and utilities for Gravatar avatars, profile cards, and QR codes",
   "author": "imjlk",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/imjlk/astro-gravatar.git"
+    "url": "git+https://github.com/imjlk/astro-gravatar.git",
+    "directory": "packages/astro-gravatar"
   },
   "bugs": {
     "url": "https://github.com/imjlk/astro-gravatar/issues"

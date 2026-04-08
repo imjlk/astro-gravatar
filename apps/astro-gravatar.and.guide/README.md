@@ -1,49 +1,28 @@
-# Starlight Starter Kit: Basics
+# astro-gravatar.and.guide
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+Documentation site for [`astro-gravatar`](https://www.npmjs.com/package/astro-gravatar), built with Astro and Starlight.
 
-```
-bun create astro@latest -- --template starlight
-```
+## Commands
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+- `bun run dev` starts the docs site locally
+- `bun run build` builds the static site
+- `bun run preview` previews the production build
 
-## 🚀 Project Structure
+From the monorepo root, the most common command is:
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
-
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+```bash
+bun run dev
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+## Content layout
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+- `src/content/docs/guides` contains getting-started and workflow docs
+- `src/content/docs/reference` contains API and component reference material
+- `src/assets` contains images used by the docs site
+- `public` contains static assets such as the favicon and hero image
 
-Static assets, like favicons, can be placed in the `public/` directory.
+## Links
 
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `bun install`             | Installs dependencies                            |
-| `bun dev`             | Starts local dev server at `localhost:4321`      |
-| `bun build`           | Build your production site to `./dist/`          |
-| `bun preview`         | Preview your build locally, before deploying     |
-| `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `bun astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+- Docs: https://astro-gravatar.and.guide
+- Package: https://www.npmjs.com/package/astro-gravatar
+- Repo: https://github.com/imjlk/astro-gravatar

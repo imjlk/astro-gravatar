@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install Bun (for tests/build)
@@ -32,11 +32,11 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run tests
-        run: bun test
+        run: bun run test
 
       - name: Build package
-        run: cd packages/astro-gravatar && bun run build
+        run: bun run build
 
       - name: Publish to npm
-        run: cd packages/astro-gravatar && npm publish --access public
+        run: npm publish --provenance --access public
         working-directory: packages/astro-gravatar
