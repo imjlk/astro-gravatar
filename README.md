@@ -96,6 +96,8 @@ bun run format:check
 bun run typecheck
 bun run test
 bun run test:coverage
+bun run build:package
+bun run docs:build
 bun run build
 bun run release:check
 bun run sampo:add
@@ -110,6 +112,7 @@ bun run sampo:release
 - Component reference: https://astro-gravatar.and.guide/reference/components/
 - Utilities reference: https://astro-gravatar.and.guide/reference/utilities/
 - API endpoints: https://astro-gravatar.and.guide/reference/api-endpoints/
+- Cloudflare Pages ops: `docs/cloudflare-pages.md`
 
 ## Release workflow
 

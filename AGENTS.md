@@ -31,7 +31,9 @@ alwaysApply: false
 - Typecheck the package: `bun run typecheck`
 - Run package tests: `bun run test`
 - Run coverage enforcement: `bun run test:coverage`
-- Build the package: `bun run build`
+- Build the package only: `bun run build:package`
+- Build the docs site only: `bun run docs:build`
+- Build package + docs together: `bun run build`
 - Preview publish contents: `cd packages/astro-gravatar && bun pm pack --dry-run`
 - Run full release checks: `bun run release:check`
 - Preview the next Sampo release: `bun run sampo:preview`
@@ -43,7 +45,7 @@ alwaysApply: false
   - `bun run lint`
   - `bun run typecheck`
   - `bun run test`
-  - `bun run build`
+  - `bun run build:package`
 - If you change coverage logic, CI scripts, or test infrastructure, run `bun run test:coverage`.
 - If you change docs content, Astro config, or the Starlight app, run `cd apps/astro-gravatar.and.guide && bun run build`.
 - If you change packaging, exports, release scripts, or publish-related files, also run `cd packages/astro-gravatar && bun pm pack --dry-run`.

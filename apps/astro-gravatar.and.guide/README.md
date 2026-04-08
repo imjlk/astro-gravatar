@@ -7,6 +7,7 @@ Documentation site for [`astro-gravatar`](https://www.npmjs.com/package/astro-gr
 - `bun run dev` starts the docs site locally
 - `bun run build` builds the static site
 - `bun run preview` previews the production build
+- `bun run docs:build` from the repo root builds the docs site for CI or Cloudflare Pages
 
 From the monorepo root, the most common command is:
 
@@ -26,3 +27,4 @@ bun run dev
 - Docs: https://astro-gravatar.and.guide
 - Package: https://www.npmjs.com/package/astro-gravatar
 - Repo: https://github.com/imjlk/astro-gravatar
+- Cloudflare Pages ops: ../../docs/cloudflare-pages.md

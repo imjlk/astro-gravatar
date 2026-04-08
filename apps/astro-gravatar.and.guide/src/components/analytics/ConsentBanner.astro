@@ -1,0 +1,149 @@
+---
+const gaMeasurementId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID?.trim() || '';
+---
+
+{
+  gaMeasurementId && (
+    <>
+      <aside
+        id="ag-analytics-consent"
+        class="ag-consent-banner"
+        data-ga-id={gaMeasurementId}
+        hidden
+        aria-labelledby="ag-analytics-consent-title"
+        aria-describedby="ag-analytics-consent-copy"
+      >
+        <div class="ag-consent-banner__copy">
+          <p id="ag-analytics-consent-title" class="ag-consent-banner__eyebrow">
+            Analytics preferences
+          </p>
+          <p id="ag-analytics-consent-copy">
+            We only load Google Analytics after consent so we can measure which docs and examples help people adopt the package.
+          </p>
+        </div>
+
+        <div class="ag-consent-banner__actions">
+          <button type="button" class="ag-consent-banner__button ag-consent-banner__button--ghost" data-consent-action="declined">
+            Decline
+          </button>
+          <button type="button" class="ag-consent-banner__button" data-consent-action="accepted">
+            Accept analytics
+          </button>
+        </div>
+      </aside>
+
+      <script is:inline>
+        (() => {
+          const root = document.getElementById('ag-analytics-consent');
+          if (!root) return;
+
+          const storageKey = 'astro-gravatar:analytics-consent';
+          const gaId = root.dataset.gaId || '';
+          const ACCEPTED = 'accepted';
+          const DECLINED = 'declined';
+
+          const showBanner = () => {
+            root.hidden = false;
+            root.setAttribute('aria-hidden', 'false');
+          };
+
+          const hideBanner = () => {
+            root.hidden = true;
+            root.setAttribute('aria-hidden', 'true');
+          };
+
+          const ensureAnalytics = () => {
+            if (!gaId) return;
+
+            window.dataLayer = window.dataLayer || [];
+            window.gtag =
+              window.gtag ||
+              function gtag() {
+                window.dataLayer.push(arguments);
+              };
+
+            window.gtag('consent', 'default', { analytics_storage: 'denied' });
+
+            if (!window.__astroGravatarAnalyticsLoaded) {
+              const script = document.createElement('script');
+              script.async = true;
+              script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`;
+              document.head.appendChild(script);
+              window.gtag('js', new Date());
+              window.gtag('config', gaId);
+              window.__astroGravatarAnalyticsLoaded = true;
+            }
+
+            window.gtag('consent', 'update', { analytics_storage: 'granted' });
+          };
+
+          const disableAnalytics = () => {
+            if (window.gtag) {
+              window.gtag('consent', 'update', { analytics_storage: 'denied' });
+            }
+          };
+
+          const writeConsent = (value) => {
+            try {
+              window.localStorage.setItem(storageKey, value);
+            } catch {}
+          };
+
+          const readConsent = () => {
+            try {
+              return window.localStorage.getItem(storageKey);
+            } catch {
+              return null;
+            }
+          };
+
+          const applyConsent = (value) => {
+            if (value === ACCEPTED) {
+              writeConsent(ACCEPTED);
+              ensureAnalytics();
+              hideBanner();
+              return;
+            }
+
+            if (value === DECLINED) {
+              writeConsent(DECLINED);
+              disableAnalytics();
+              hideBanner();
+              return;
+            }
+
+            showBanner();
+          };
+
+          document.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+
+            const consentButton = target.closest('[data-consent-action]');
+            if (consentButton instanceof HTMLElement) {
+              applyConsent(consentButton.dataset.consentAction);
+              return;
+            }
+
+            const settingsButton = target.closest('[data-open-privacy-settings]');
+            if (settingsButton) {
+              event.preventDefault();
+              showBanner();
+            }
+          });
+
+          window.addEventListener('analytics-consent:open', showBanner);
+
+          const initialConsent = readConsent();
+          if (initialConsent === ACCEPTED) {
+            applyConsent(ACCEPTED);
+          } else if (initialConsent === DECLINED) {
+            hideBanner();
+          } else {
+            showBanner();
+          }
+        })();
+      </script>
+    </>
+  )
+}

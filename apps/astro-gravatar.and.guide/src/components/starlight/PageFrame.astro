@@ -1,0 +1,18 @@
+---
+import DefaultPageFrame from '@astrojs/starlight/components/PageFrame.astro';
+import ConsentBanner from '../analytics/ConsentBanner.astro';
+---
+
+<DefaultPageFrame>
+  <Fragment slot="header">
+    <slot name="header" />
+  </Fragment>
+  {Astro.slots.has('sidebar') && (
+    <Fragment slot="sidebar">
+      <slot name="sidebar" />
+    </Fragment>
+  )}
+  <slot />
+</DefaultPageFrame>
+
+<ConsentBanner />

@@ -1,0 +1,42 @@
+---
+title: Privacy
+description: How analytics consent works on astro-gravatar.and.guide and how to control your preferences.
+---
+
+# Privacy
+
+astro-gravatar.and.guide is a documentation and package marketing site. We aim to keep the site usable without forcing analytics on visitors.
+
+## What we collect
+
+When analytics is enabled, we use Google Analytics to measure broad site usage such as:
+
+- page views
+- top documentation paths
+- referral and campaign traffic
+- device and browser trends
+
+We do not load Google Analytics until you explicitly accept analytics from the consent banner.
+
+## How consent works
+
+- If `PUBLIC_GA_MEASUREMENT_ID` is not configured, analytics stays fully disabled.
+- If it is configured, the site asks for analytics consent on first visit.
+- Selecting **Accept analytics** loads Google Analytics and stores your choice locally in your browser.
+- Selecting **Decline** keeps analytics disabled and stores that preference locally.
+- You can reopen the consent prompt at any time from the **Privacy settings** button in the site footer.
+
+## Managing your preference
+
+Use the **Privacy settings** control in the footer to change your choice. If you decline after previously accepting, future analytics collection from this site is disabled from that point onward.
+
+## Support and questions
+
+If you have a privacy or site operations question, open an issue in the repository:
+
+- [GitHub Issues](https://github.com/imjlk/astro-gravatar/issues)
+
+For package usage and API details, continue with:
+
+- [Quick Start](/guides/quick-start/)
+- [Component Reference](/reference/components/)

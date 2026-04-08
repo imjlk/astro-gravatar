@@ -1,0 +1,79 @@
+---
+import DefaultHero from '@astrojs/starlight/components/Hero.astro';
+import GravatarAvatar from 'astro-gravatar';
+import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+import GravatarQR from 'astro-gravatar/GravatarQR';
+
+const isHome = Astro.url.pathname === '/';
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero || {};
+const trustSignals = ['Astro 4-6', 'TypeScript ready', 'Bun-first', 'MIT licensed'];
+const showcaseEmail = 'i@m.junglei.kim';
+---
+
+{
+  isHome ? (
+    <section class="ag-home-hero">
+      <div class="ag-home-hero__copy">
+        <p class="ag-home-hero__eyebrow">Production-ready Astro package</p>
+        <h1 id="_top" data-page-title class="ag-home-hero__title">
+          {title}
+        </h1>
+        <p class="ag-home-hero__tagline">{tagline}</p>
+
+        <div class="ag-home-hero__command">
+          <span>Install</span>
+          <code>bun add astro-gravatar</code>
+        </div>
+
+        <div class="ag-home-hero__actions">
+          {actions.map((action) => (
+            <a
+              href={action.link}
+              class:list={[
+                'ag-home-hero__action',
+                action.variant === 'minimal'
+                  ? 'ag-home-hero__action--minimal'
+                  : 'ag-home-hero__action--primary',
+              ]}
+            >
+              {action.text}
+            </a>
+          ))}
+        </div>
+
+        <ul class="ag-home-hero__signals">
+          {trustSignals.map((signal) => (
+            <li>{signal}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="ag-home-hero__showcase" aria-label="astro-gravatar component previews">
+        <div class="ag-home-hero__avatar-band">
+          <GravatarAvatar email={showcaseEmail} size={76} class="rounded-full" />
+          <GravatarAvatar email="support@gravatar.com" size={58} default="identicon" class="rounded-full" />
+          <GravatarAvatar email="hello@wordpress.com" size={44} default="retro" class="rounded-full" />
+        </div>
+
+        <div class="ag-home-hero__profile-card">
+          <GravatarProfileCard
+            email={showcaseEmail}
+            layout="card"
+            avatarSize={84}
+            template="compact"
+            showVerified={false}
+            showLinks={false}
+          />
+        </div>
+
+        <div class="ag-home-hero__qr-card">
+          <div class="ag-home-hero__qr-label">Share-ready QR output</div>
+          <GravatarQR email={showcaseEmail} size={132} version={3} type="gravatar" />
+        </div>
+      </div>
+    </section>
+  ) : (
+    <DefaultHero />
+  )
+}

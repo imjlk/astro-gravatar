@@ -1,130 +1,156 @@
 ---
-title: Welcome to astro-gravatar
-description: Beautiful, performant Gravatar components for your Astro site.
-template: splash # Remove or comment out this line to display the site sidebar on this page.
+title: Astro-native Gravatar components for production sites
+description: Ship avatars, profile cards, and QR codes in Astro with clean components, TypeScript support, and Bun-first tooling.
+template: splash
 hero:
-  tagline: Beautiful, performant Gravatar components for your Astro site
+  tagline: Ship avatars, profile cards, and QR codes in Astro with clean components, fast setup, and production-ready defaults.
   actions:
-    - text: Quick Start
+    - text: Install + Quick Start
       link: /guides/quick-start/
       icon: right-arrow
       iconClass: gradient
-    - text: View Components
+    - text: Browse Components
       link: /reference/components/
       icon: open-book
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
 import GravatarAvatar from 'astro-gravatar';
 import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
+import GravatarQR from 'astro-gravatar/GravatarQR';
 
-## Beautiful Components, Zero Configuration
+## Why Astro Gravatar
 
-<CardGrid stagger>
-  <Card title="Simple Integration" icon="rocket">
-    <div style="display: flex; gap: 1rem; align-items: center; margin: 1rem 0;">
-      <GravatarAvatar email="user@example.com" size={40} class="rounded-full" />
-      <span style="font-size: 0.875rem;">Just one line of code to display avatars</span>
+<section class="ag-home-section ag-home-proof">
+  <p class="ag-home-eyebrow">Built for fast adoption</p>
+  <div class="ag-home-proof-grid">
+    <article>
+      <h3>Astro-native API surface</h3>
+      <p>Use focused components and utility helpers without wrapping another client-side widget layer.</p>
+    </article>
+    <article>
+      <h3>Production-friendly defaults</h3>
+      <p>Lazy loading, responsive imagery, and clean fallback behavior come out of the box.</p>
+    </article>
+    <article>
+      <h3>Profile-aware when you need it</h3>
+      <p>Stay lightweight for simple avatars, or pull richer profile information for cards and links.</p>
+    </article>
+    <article>
+      <h3>Bun-first workflow</h3>
+      <p>The package, docs, and release flow stay aligned with the Bun-based monorepo that ships it.</p>
+    </article>
+  </div>
+</section>
+
+## The three components that carry the package
+
+<section class="ag-home-section">
+  <div class="ag-home-grid ag-home-grid--components">
+    <article class="ag-component-card">
+      <div class="ag-component-card__eyebrow">GravatarAvatar</div>
+      <h3>Compact, reliable avatar rendering</h3>
+      <p>Render avatars with sensible defaults, fallback modes, and responsive sizing in a single line.</p>
+      <div class="ag-avatar-row">
+        <GravatarAvatar email="i@m.junglei.kim" size={80} class="rounded-full" />
+        <GravatarAvatar email="support@gravatar.com" size={64} default="identicon" class="rounded-full" />
+        <GravatarAvatar email="hello@wordpress.com" size={48} default="retro" class="rounded-full" />
+      </div>
+    </article>
+
+    <article class="ag-component-card">
+      <div class="ag-component-card__eyebrow">GravatarProfileCard</div>
+      <h3>Profile cards without extra plumbing</h3>
+      <p>Surface a public profile, avatar, and supporting details with one Astro component.</p>
+      <div class="ag-profile-card-preview">
+        <GravatarProfileCard
+          email="i@m.junglei.kim"
+          layout="card"
+          avatarSize={84}
+          template="compact"
+          showVerified={false}
+          showLinks={false}
+        />
+      </div>
+    </article>
+
+    <article class="ag-component-card">
+      <div class="ag-component-card__eyebrow">GravatarQR</div>
+      <h3>QR codes that stay on-brand</h3>
+      <p>Generate shareable profile QR codes with icon styles and campaign parameters when you need them.</p>
+      <div class="ag-qr-preview">
+        <GravatarQR email="i@m.junglei.kim" size={132} version={3} type="gravatar" />
+      </div>
+    </article>
+  </div>
+</section>
+
+## Adopt it in about 30 seconds
+
+<section class="ag-home-section">
+  <div class="ag-adoption-layout">
+    <div>
+      <p class="ag-home-eyebrow">Minimal setup</p>
+      <h3>Install, import, render.</h3>
+      <ol class="ag-step-list">
+        <li>Install the package in your Astro project.</li>
+        <li>Import the component you need in a page or content module.</li>
+        <li>Pass an email and style it like the rest of your site.</li>
+      </ol>
     </div>
-  </Card>
-  <Card title="Profile Cards" icon="user">
-    <GravatarProfileCard email="hello@automattic.com" layout="card" avatarSize={60} showName />
-  </Card>
-  <Card title="TypeScript Ready" icon="code-2">
-    <p style="margin: 0;">Full TypeScript support with comprehensive types and intellisense</p>
-  </Card>
-  <Card title="Performance Optimized" icon="zap">
-    <p style="margin: 0;">Built-in caching, lazy loading, and responsive images out of the box</p>
-  </Card>
-</CardGrid>
 
-## Features
-
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
-  <div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
-    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
-      🎨 Customizable
-    </h3>
-    <p style="margin: 0; color: var(--sl-color-text-secondary);">
-      Flexible components with multiple layout options and built-in error handling for robust
-      implementations.
-    </p>
-  </div>
-  <div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
-    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
-      🚀 Performant
-    </h3>
-    <p style="margin: 0; color: var(--sl-color-text-secondary);">
-      Built-in caching, lazy loading, and optimized Gravatar URLs with automatic srcset generation.
-    </p>
-  </div>
-  <div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
-    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
-      🔒 TypeScript
-    </h3>
-    <p style="margin: 0; color: var(--sl-color-text-secondary);">
-      Full TypeScript support with comprehensive types and excellent intellisense.
-    </p>
-  </div>
-  <div style="padding: 1.5rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; border: 1px solid var(--sl-color-border);">
-    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--sl-color-text-accent);">
-      🌐 SSR Ready
-    </h3>
-    <p style="margin: 0; color: var(--sl-color-text-secondary);">
-      Works seamlessly with Astro's server-side rendering and static generation.
-    </p>
-  </div>
-</div>
-
-## Quick Examples
-
-### Avatar Display
-
-<div style="display: flex; gap: 1rem; align-items: center; padding: 1rem; background: var(--sl-color-bg-secondary); border-radius: 0.5rem; margin: 1rem 0;">
-  <GravatarAvatar email="team@company.com" size={60} class="rounded-full" />
-  <GravatarAvatar email="team@company.com" size={50} default="identicon" class="rounded-full" />
-  <GravatarAvatar email="team@company.com" size={40} default="retro" class="rounded-full" />
-  <GravatarAvatar email="team@company.com" size={30} default="monsterid" class="rounded-full" />
-</div>
-
-```astro
----
+    <div class="ag-snippet-shell">
+      <div class="ag-snippet-shell__label">30-second example</div>
+      <pre><code>{`---
 import GravatarAvatar from 'astro-gravatar';
 ---
 
-<GravatarAvatar email="user@example.com" size={80} class="rounded-full" />
-```
+<GravatarAvatar email="user@example.com" size={80} class="rounded-full" />`}</code></pre>
+    </div>
+  </div>
+</section>
 
-### Profile Cards
+## Start from the right doc
 
-<div style="display: flex; gap: 2rem; align-items: center; justify-content: center; margin: 1rem 0;">
-  <GravatarProfileCard
-    email="developer@example.com"
-    layout="vertical"
-    avatarSize={80}
-    showName
-    template="compact"
-  />
-  <GravatarProfileCard
-    email="designer@example.com"
-    layout="card"
-    avatarSize={80}
-    showName
-    showBio
-  />
-</div>
+<section class="ag-home-section">
+  <div class="ag-doc-grid">
+    <a class="ag-doc-link" href="/guides/installation/">
+      <span>Installation</span>
+      <strong>Get the package into a working Astro project.</strong>
+    </a>
+    <a class="ag-doc-link" href="/guides/quick-start/">
+      <span>Quick Start</span>
+      <strong>Copy the minimum setup for avatars, cards, and QR codes.</strong>
+    </a>
+    <a class="ag-doc-link" href="/guides/basic-usage/">
+      <span>Basic Usage</span>
+      <strong>See practical patterns for teams, profiles, and media blocks.</strong>
+    </a>
+    <a class="ag-doc-link" href="/reference/components/">
+      <span>Component Reference</span>
+      <strong>Check props, defaults, and example usage for the core components.</strong>
+    </a>
+    <a class="ag-doc-link" href="/reference/utilities/">
+      <span>Utilities</span>
+      <strong>Use hashing, URL builders, profile helpers, and cache utilities.</strong>
+    </a>
+    <a class="ag-doc-link" href="/guides/troubleshooting/">
+      <span>Troubleshooting</span>
+      <strong>Unblock common fallback, auth, and profile resolution issues fast.</strong>
+    </a>
+  </div>
+</section>
 
-```astro
----
-import GravatarProfileCard from 'astro-gravatar/GravatarProfileCard';
----
+## Support and operating links
 
-<GravatarProfileCard
-  email="user@example.com"
-  layout="vertical"
-  avatarSize={100}
-  showName
-  showBio
-/>
-```
+<section class="ag-home-section ag-support-strip">
+  <div>
+    <p class="ag-home-eyebrow">Need help or want to verify the package?</p>
+    <h3>Use the docs to ship, then rely on GitHub for support and release context.</h3>
+  </div>
+  <div class="ag-support-actions">
+    <a href="https://www.npmjs.com/package/astro-gravatar">View on npm</a>
+    <a href="https://github.com/imjlk/astro-gravatar">Browse repository</a>
+    <a href="https://github.com/imjlk/astro-gravatar/issues">Open an issue</a>
+  </div>
+</section>
