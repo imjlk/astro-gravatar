@@ -113,19 +113,20 @@ bun run sampo:release
 
 ## Release workflow
 
-This repo uses Bun for local validation, Sampo for release metadata preparation, and a tag-driven GitHub Actions workflow for actual npm publishing.
+This repo uses Bun for local validation, Sampo for release metadata preparation, and a single GitHub Actions workflow for actual npm publishing.
 
 1. Run `bun run release:check`.
-3. Add a Sampo release entry when the published package changes: `bun run sampo:add`.
-4. Run `bun run sampo:preview` if you want to inspect the planned version bump before changing files.
-5. Run `bun run sampo:release` to consume pending release entries and update version/changelog metadata.
-6. Review the resulting package version and `packages/astro-gravatar/CHANGELOG.md`.
-7. Create and push a version tag like `v0.0.16` to trigger `.github/workflows/publish.yml`.
+2. Add a Sampo release entry when the published package changes: `bun run sampo:add`.
+3. Run `bun run sampo:preview` if you want to inspect the planned version bump before changing files.
+4. Run `bun run sampo:release` to consume pending release entries and update version/changelog metadata.
+5. Review the resulting package version and `packages/astro-gravatar/CHANGELOG.md`.
+6. Push the release-prepared commit to `main`. `.github/workflows/release.yml` will publish to npm with OIDC when the committed package version is newer than npm, then create the `v<version>` tag automatically.
 
 ### Workflow responsibilities
 
-- `.github/workflows/release.yml` prepares release metadata with Sampo when `main`, `beta`, or `alpha` changes.
-- `.github/workflows/publish.yml` is the only workflow that actually publishes to npm, and it runs only on `v*` tags using npm Trusted Publishing (OIDC).
+- `.github/workflows/release.yml` is the single release automation workflow.
+- It compares the committed package version against the current npm dist-tag, runs release checks, publishes to npm with Trusted Publishing (OIDC), and creates the `v<version>` git tag when needed.
+- npm Trusted Publishing for `astro-gravatar` must point at `.github/workflows/release.yml`.
 
 ### Astro directory listing
 
