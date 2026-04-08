@@ -84,6 +84,7 @@ alwaysApply: false
 - Coverage enforcement is implemented by `packages/astro-gravatar/package.json` plus `scripts/check-coverage.ts`.
 - `release.yml` is the only release automation workflow. It performs release checks, publishes with npm Trusted Publishing (OIDC), and creates the version tag when npm is behind the committed package version.
 - Changes that affect the published package should usually include a Sampo release entry via `bun run sampo:add`.
+- `sampo-bot.yml` comments on PRs that touch publishable package source without adding a `.sampo/changesets/*.md` file. Use `skip-changeset`, `no-changeset`, or `release:skip` only when a release entry is intentionally unnecessary.
 - npm Trusted Publishing must be configured for `.github/workflows/release.yml`.
 - The operational release sequence is: `bun run release:check` -> `bun run sampo:add` -> optional `bun run sampo:preview` -> `bun run sampo:release` -> review version/changelog -> push the release-prepared commit to `main` -> let `release.yml` publish and create the `v<version>` tag.
 

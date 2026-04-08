@@ -127,6 +127,7 @@ This repo uses Bun for local validation, Sampo for release metadata preparation,
 - `.github/workflows/release.yml` is the single release automation workflow.
 - It compares the committed package version against the current npm dist-tag, runs release checks, publishes to npm with Trusted Publishing (OIDC), and creates the `v<version>` git tag when needed.
 - npm Trusted Publishing for `astro-gravatar` must point at `.github/workflows/release.yml`.
+- `.github/workflows/sampo-bot.yml` leaves a PR reminder when publishable package source changes without a `.sampo/changesets/*.md` entry. Add `skip-changeset`, `no-changeset`, or `release:skip` when a release entry is intentionally unnecessary.
 
 ### Astro directory listing
 

@@ -1,0 +1,125 @@
+name: Sampo Bot
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - edited
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  remind:
+    name: Changeset Reminder
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Remind when a changeset is missing
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const marker = '<!-- sampo-changeset-reminder -->';
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const labels = new Set(
+              (pr.labels || []).map((label) => label.name.toLowerCase()),
+            );
+
+            const skipLabels = new Set([
+              'skip-changeset',
+              'no-changeset',
+              'release:skip',
+            ]);
+
+            const shouldSkip = [...skipLabels].some((label) => labels.has(label));
+
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner,
+                repo,
+                pull_number: pr.number,
+                per_page: 100,
+              },
+              (response) => response.data,
+            );
+
+            const filenames = files.map((file) => file.filename);
+            const hasChangeset = filenames.some(
+              (name) =>
+                name.startsWith('.sampo/changesets/') && name.endsWith('.md'),
+            );
+
+            const touchesPublishablePackage = filenames.some((name) => {
+              if (name === 'packages/astro-gravatar/index.ts') return true;
+              if (name === 'packages/astro-gravatar/package.json') return true;
+              if (name.startsWith('packages/astro-gravatar/src/')) {
+                return !name.includes('/__tests__/');
+              }
+              return false;
+            });
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner,
+                repo,
+                issue_number: pr.number,
+                per_page: 100,
+              },
+              (response) => response.data,
+            );
+
+            const existingComment = comments.find(
+              (comment) =>
+                comment.user?.type === 'Bot' &&
+                comment.body?.includes(marker),
+            );
+
+            if (!touchesPublishablePackage || hasChangeset || shouldSkip) {
+              if (existingComment) {
+                await github.rest.issues.deleteComment({
+                  owner,
+                  repo,
+                  comment_id: existingComment.id,
+                });
+              }
+              return;
+            }
+
+            const body = `${marker}
+            This pull request changes the publishable \`astro-gravatar\` package but does not include a Sampo changeset in \`.sampo/changesets/\`.
+
+            Run \`bun run sampo:add\` and commit the generated file so release notes and versioning stay in sync.
+
+            If this PR intentionally does not need a release entry, add one of these labels to suppress the reminder:
+            - \`skip-changeset\`
+            - \`no-changeset\`
+            - \`release:skip\``;
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existingComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr.number,
+                body,
+              });
+            }
