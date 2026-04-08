@@ -8,6 +8,8 @@ Documentation site for [`astro-gravatar`](https://www.npmjs.com/package/astro-gr
 - `bun run build` builds the static site
 - `bun run preview` previews the production build
 - `bun run docs:build` from the repo root builds the docs site for CI or Cloudflare Pages
+- `bun run pages:check` from the repo root validates the Pages-ready build and Wrangler tooling
+- `bun run pages:deploy` from the repo root performs a direct upload deploy to Cloudflare Pages
 
 From the monorepo root, the most common command is:
 

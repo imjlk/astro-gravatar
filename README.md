@@ -99,6 +99,10 @@ bun run test:coverage
 bun run build:package
 bun run docs:build
 bun run build
+bun run pages:check
+bun run pages:dev
+bun run pages:deploy
+bun run pages:deploy:preview
 bun run release:check
 bun run sampo:add
 bun run sampo:preview
@@ -113,6 +117,17 @@ bun run sampo:release
 - Utilities reference: https://astro-gravatar.and.guide/reference/utilities/
 - API endpoints: https://astro-gravatar.and.guide/reference/api-endpoints/
 - Cloudflare Pages ops: `docs/cloudflare-pages.md`
+
+## Cloudflare Pages deployment
+
+The docs site is prepared for Cloudflare Pages Direct Upload with Wrangler. This keeps the build in Bun and lets you deploy from your local machine or GitHub Actions with a Cloudflare API token.
+
+1. Copy `.env.pages.example` into your local environment or CI secrets/variables.
+2. Run `bun run pages:check` to build the docs and verify Wrangler is ready.
+3. Run `bun run pages:deploy` for production or `bun run pages:deploy:preview` for a preview branch deploy.
+4. If you want a GitHub-driven deploy later, use `.github/workflows/deploy-docs-pages.yml` with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` secrets plus a `CLOUDFLARE_PAGES_PROJECT_NAME` repo variable.
+
+Because Direct Upload ships prebuilt assets, `PUBLIC_GA_MEASUREMENT_ID` must be present in the environment that runs the build when you want analytics enabled.
 
 ## Release workflow
 

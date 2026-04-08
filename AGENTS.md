@@ -34,6 +34,10 @@ alwaysApply: false
 - Build the package only: `bun run build:package`
 - Build the docs site only: `bun run docs:build`
 - Build package + docs together: `bun run build`
+- Check Cloudflare Pages readiness: `bun run pages:check`
+- Preview the built docs through Wrangler: `bun run pages:dev`
+- Deploy the docs to Pages: `bun run pages:deploy`
+- Deploy a preview branch to Pages: `bun run pages:deploy:preview`
 - Preview publish contents: `cd packages/astro-gravatar && bun pm pack --dry-run`
 - Run full release checks: `bun run release:check`
 - Preview the next Sampo release: `bun run sampo:preview`
@@ -48,6 +52,7 @@ alwaysApply: false
   - `bun run build:package`
 - If you change coverage logic, CI scripts, or test infrastructure, run `bun run test:coverage`.
 - If you change docs content, Astro config, or the Starlight app, run `cd apps/astro-gravatar.and.guide && bun run build`.
+- If you change Cloudflare Pages deployment scripts, docs hosting config, or static headers, run `bun run pages:check`.
 - If you change packaging, exports, release scripts, or publish-related files, also run `cd packages/astro-gravatar && bun pm pack --dry-run`.
 
 ## Codebase conventions
@@ -83,6 +88,7 @@ alwaysApply: false
 ## CI and release notes
 
 - CI currently checks lint, formatting, typechecking, coverage, build, security audit, pack dry-run, and bundle size.
+- Docs deployment readiness is checked with `bun run pages:check`, which builds the site and validates the local Wrangler setup without requiring Cloudflare secrets in CI.
 - Coverage enforcement is implemented by `packages/astro-gravatar/package.json` plus `scripts/check-coverage.ts`.
 - `release.yml` is the only release automation workflow. It performs release checks, publishes with npm Trusted Publishing (OIDC), and creates the version tag when npm is behind the committed package version.
 - Changes that affect the published package should usually include a Sampo release entry via `bun run sampo:add`.
@@ -94,3 +100,4 @@ alwaysApply: false
 
 - User-facing docs live under `apps/astro-gravatar.and.guide/src/content/docs`.
 - When you add or change components, props, utilities, error behavior, or CLI features, update the relevant docs and README content in the same change when practical.
+- Cloudflare Pages operational notes live in `docs/cloudflare-pages.md`. Keep them aligned with the actual deploy scripts and workflow in the repo.

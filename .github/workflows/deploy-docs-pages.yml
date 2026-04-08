@@ -1,0 +1,64 @@
+name: Deploy Docs to Cloudflare Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment target
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - preview
+      preview_branch:
+        description: Optional Pages preview branch name
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy docs site
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_PAGES_PROJECT_NAME: ${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME }}
+      PUBLIC_GA_MEASUREMENT_ID: ${{ vars.PUBLIC_GA_MEASUREMENT_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Preflight Pages deployment
+        run: bun run pages:check
+
+      - name: Select preview branch
+        if: ${{ inputs.target == 'preview' }}
+        run: echo "CLOUDFLARE_PAGES_BRANCH=${INPUT_PREVIEW_BRANCH:-$GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+        env:
+          INPUT_PREVIEW_BRANCH: ${{ inputs.preview_branch }}
+
+      - name: Deploy production build
+        if: ${{ inputs.target == 'production' }}
+        run: bun run pages:deploy
+
+      - name: Deploy preview build
+        if: ${{ inputs.target == 'preview' }}
+        run: bun run pages:deploy:preview

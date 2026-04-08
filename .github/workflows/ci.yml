@@ -92,8 +92,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build docs site
-        run: bun run docs:build
+      - name: Validate Cloudflare Pages build
+        run: bun run pages:check
 
   security:
     name: Security Scan

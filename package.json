@@ -9,6 +9,10 @@
     "build": "bun run build:package && bun run docs:build",
     "build:package": "cd packages/astro-gravatar && bun run build",
     "docs:build": "cd apps/astro-gravatar.and.guide && bun run build",
+    "pages:check": "bun scripts/cloudflare-pages.ts check",
+    "pages:dev": "bun scripts/cloudflare-pages.ts dev",
+    "pages:deploy": "bun scripts/cloudflare-pages.ts deploy",
+    "pages:deploy:preview": "bun scripts/cloudflare-pages.ts deploy-preview",
     "test": "cd packages/astro-gravatar && bun test",
     "test:watch": "cd packages/astro-gravatar && bun test --watch",
     "test:coverage": "cd packages/astro-gravatar && bun run test:coverage",
@@ -39,7 +43,8 @@
     "globals": "^17.4.0",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
-    "typescript-eslint": "^8.58.1"
+    "typescript-eslint": "^8.58.1",
+    "wrangler": "^4.81.0"
   },
   "peerDependencies": {
     "typescript": "^5"
