@@ -33,6 +33,8 @@ alwaysApply: false
 - Run coverage enforcement: `bun run test:coverage`
 - Build the package: `bun run build`
 - Preview publish contents: `cd packages/astro-gravatar && bun pm pack --dry-run`
+- Run full release checks: `bun run release:check`
+- Preview the next Sampo release: `bun run sampo:preview`
 - Build docs explicitly: `cd apps/astro-gravatar.and.guide && bun run build`
 
 ## Validation expectations
@@ -80,9 +82,11 @@ alwaysApply: false
 
 - CI currently checks lint, formatting, typechecking, coverage, build, security audit, pack dry-run, and bundle size.
 - Coverage enforcement is implemented by `packages/astro-gravatar/package.json` plus `scripts/check-coverage.ts`.
+- `release.yml` prepares release metadata through Sampo. Treat it as release-prep automation, not the npm publish step.
 - Package publishing is tag-driven through `.github/workflows/publish.yml`.
 - The publish workflow uses `npm publish --provenance --access public` from `packages/astro-gravatar`.
 - Changes that affect the published package should usually include a Sampo release entry via `bun run sampo:add`.
+- The operational release sequence is: `bun run release:check` -> `bun run sampo:add` -> optional `bun run sampo:preview` -> `bun run sampo:release` -> review version/changelog -> push `v<version>` tag -> let `publish.yml` publish to npm.
 
 ## Documentation expectations
 

@@ -97,7 +97,10 @@ bun run typecheck
 bun run test
 bun run test:coverage
 bun run build
-cd packages/astro-gravatar && bun pm pack --dry-run
+bun run release:check
+bun run sampo:add
+bun run sampo:preview
+bun run sampo:release
 ```
 
 ## Documentation
@@ -110,12 +113,25 @@ cd packages/astro-gravatar && bun pm pack --dry-run
 
 ## Release workflow
 
-This repo uses Bun for local validation and a tag-driven GitHub Actions workflow for npm publishing.
+This repo uses Bun for local validation, Sampo for release metadata preparation, and a tag-driven GitHub Actions workflow for actual npm publishing.
 
-1. Run `bun run lint`, `bun run typecheck`, `bun run test`, and `bun run build`.
-2. Confirm publish output with `cd packages/astro-gravatar && bun pm pack --dry-run`.
+1. Run `bun run release:check`.
 3. Add a Sampo release entry when the published package changes: `bun run sampo:add`.
-4. Create and push a version tag like `v0.0.16` to trigger `.github/workflows/publish.yml`.
+4. Run `bun run sampo:preview` if you want to inspect the planned version bump before changing files.
+5. Run `bun run sampo:release` to consume pending release entries and update version/changelog metadata.
+6. Review the resulting package version and `packages/astro-gravatar/CHANGELOG.md`.
+7. Create and push a version tag like `v0.0.16` to trigger `.github/workflows/publish.yml`.
+
+### Workflow responsibilities
+
+- `.github/workflows/release.yml` prepares release metadata with Sampo when `main`, `beta`, or `alpha` changes.
+- `.github/workflows/publish.yml` is the only workflow that actually publishes to npm, and it runs only on `v*` tags using npm Trusted Publishing (OIDC).
+
+### Astro directory listing
+
+- `astro-gravatar` is published as an Astro component package, not an `astro add` integration.
+- After a new npm version is published, Astro's integrations/components directory can pick it up from npm metadata such as `name`, `description`, `homepage`, `repository`, and ecosystem keywords.
+- If the listing needs a custom avatar or metadata override after publish, open an issue with the Astro team using the live npm package as the source of truth.
 
 ## License
 

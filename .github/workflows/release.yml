@@ -23,6 +23,8 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # This workflow prepares version/changelog metadata and release artifacts.
+      # It does not publish to npm directly; tagged publishes happen in publish.yml.
       - name: Sampo Release
         id: sampo
         uses: bruits/sampo/crates/sampo-github-action@main

@@ -37,6 +37,7 @@ jobs:
       - name: Build package
         run: bun run build
 
+      # This is the only workflow that publishes the package to npm.
       - name: Publish to npm
         run: npm publish --provenance --access public
         working-directory: packages/astro-gravatar

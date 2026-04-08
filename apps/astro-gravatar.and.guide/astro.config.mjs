@@ -4,6 +4,7 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://astro-gravatar.and.guide',
   integrations: [
     starlight({
       title: 'Astro Gravatar',
@@ -11,7 +12,7 @@ export default defineConfig({
         {
           icon: 'github',
           label: 'GitHub',
-          href: 'https://github.com/your-username/astro-gravatar',
+          href: 'https://github.com/imjlk/astro-gravatar',
         },
       ],
       sidebar: [
