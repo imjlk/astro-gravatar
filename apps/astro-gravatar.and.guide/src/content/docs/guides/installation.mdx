@@ -81,6 +81,26 @@ GRAVATAR_API_KEY=your-api-key-here
 
 Get your API key from [gravatar.com/developers](https://gravatar.com/developers).
 
+Adding the variable to `.env` does not automatically authenticate requests on its own. Pass it into `getProfile`, `getProfiles`, or `GravatarClient` when you make profile requests:
+
+```typescript
+import { getProfile } from 'astro-gravatar';
+
+const profile = await getProfile('user@example.com', {
+  apiKey: import.meta.env.GRAVATAR_API_KEY,
+});
+```
+
+For larger applications, the same environment variable can be wired into `GravatarClient`:
+
+```typescript
+import { GravatarClient } from 'astro-gravatar';
+
+const client = new GravatarClient({
+  apiKey: import.meta.env.GRAVATAR_API_KEY,
+});
+```
+
 ## TypeScript Support
 
 TypeScript types are included automatically. No additional setup needed.
@@ -89,6 +109,7 @@ TypeScript types are included automatically. No additional setup needed.
 
 - [Quick Start Guide](/guides/quick-start) - Learn the basics
 - [Basic Usage](/guides/basic-usage) - See common patterns
+- [CLI Guide](/guides/cli) - Generate URLs from the terminal
 - [Authentication](/guides/authentication) - Set up API keys
 - [Component Reference](/reference/components) - Complete API docs
 

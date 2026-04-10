@@ -1,0 +1,138 @@
+---
+title: CLI
+description: Use the astro-gravatar CLI to generate avatar and QR code URLs from the terminal.
+---
+
+Use the `astro-gravatar` CLI when you want Gravatar URLs from the terminal without wiring the package into an Astro page first.
+
+## Install or run
+
+The package exposes an `astro-gravatar` binary.
+
+```bash
+# Run without installing globally
+bunx astro-gravatar --help
+
+# Or install in a project first
+bun add astro-gravatar
+bunx astro-gravatar --help
+```
+
+If you prefer a global binary:
+
+```bash
+bun add -g astro-gravatar
+astro-gravatar --help
+```
+
+## Commands
+
+### generate-avatar
+
+Generate a Gravatar avatar URL.
+
+```bash
+bunx astro-gravatar generate-avatar --email user@example.com
+```
+
+Supported options:
+
+| Option | Description |
+| --- | --- |
+| `--email <email>` | Required email address |
+| `--size <pixels>` | Avatar size from `1` to `2048` |
+| `--rating <rating>` | `g`, `pg`, `r`, or `x` |
+| `--default <type>` | `404`, `mp`, `identicon`, `monsterid`, `wavatar`, `retro`, `robohash`, or `blank` |
+| `--force-default` | Force the default avatar even when a real avatar exists |
+
+Example:
+
+```bash
+bunx astro-gravatar generate-avatar \
+  --email user@example.com \
+  --size 200 \
+  --rating pg \
+  --default identicon \
+  --force-default
+```
+
+### generate-qr
+
+Generate a Gravatar QR code URL.
+
+```bash
+bunx astro-gravatar generate-qr --email user@example.com
+```
+
+Supported options:
+
+| Option | Description |
+| --- | --- |
+| `--email <email>` | Required email address |
+| `--size <pixels>` | QR image size from `1` to `1000` |
+| `--qr-version <1\|3>` | QR style version |
+| `--type <type>` | `user`, `gravatar`, or `none` |
+| `--utm-medium <medium>` | Optional UTM medium |
+| `--utm-campaign <name>` | Optional UTM campaign |
+
+Example:
+
+```bash
+bunx astro-gravatar generate-qr \
+  --email user@example.com \
+  --size 150 \
+  --qr-version 3 \
+  --type gravatar \
+  --utm-medium docs \
+  --utm-campaign launch
+```
+
+## Output format
+
+Both commands print JSON so the result can be piped into other tools.
+
+```json
+{
+  "url": "https://..."
+}
+```
+
+That makes the CLI easy to use in shell scripts:
+
+```bash
+bunx astro-gravatar generate-avatar --email user@example.com | jq -r '.url'
+```
+
+## Help, version, and argument styles
+
+The CLI supports:
+
+- `--help` and `-h`
+- `--version` and `-v`
+- `--option value` and `--option=value`
+
+Example:
+
+```bash
+bunx astro-gravatar generate-avatar --email=user@example.com --size=128
+```
+
+## When to use the CLI vs the library
+
+Use the CLI when:
+
+- you need a URL quickly from a shell or script
+- you are debugging avatar or QR parameters outside the app
+- you want JSON output for automation
+
+Use the library when:
+
+- you are rendering Astro components directly
+- you need profile fetching with `getProfile`, `getProfiles`, or `GravatarClient`
+- you want to manage caching, retries, or UI behavior in application code
+
+## Next steps
+
+- [Utilities Reference](/reference/utilities) for the matching JavaScript APIs
+- [Quick Start](/guides/quick-start) for Astro component usage
+- [Authentication](/guides/authentication) if you need API-key-backed profile requests

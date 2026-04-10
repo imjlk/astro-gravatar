@@ -1,43 +1,15 @@
 ---
 title: Utilities Reference
-description: Complete API documentation for astro-gravatar utility functions
+description: Reference for astro-gravatar URL helpers, profile APIs, hashing helpers, client APIs, errors, and exported constants.
 ---
 
-Complete API documentation for astro-gravatar utility functions.
+Reference for the non-component exports exposed by `astro-gravatar`.
 
-## Core Functions
-
-### hashEmail
-
-Hash an email address for Gravatar API requests using SHA256.
-
-```typescript
-import { hashEmail } from 'astro-gravatar';
-
-const hash = await hashEmail('user@example.com');
-// Returns: '27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109'
-```
-
-**Parameters:**
-
-- `email` (string): Email address to hash
-
-**Returns:**
-
-- `Promise<string>`: 64-character SHA256 hash
-
-**Example:**
-
-```typescript
-// Direct use in avatar URL
-const email = 'user@example.com';
-const hash = await hashEmail(email);
-const avatarUrl = `https://www.gravatar.com/avatar/${hash}?s=200`;
-```
+## URL and Profile Helpers
 
 ### buildAvatarUrl
 
-Build a complete Gravatar avatar URL with parameters.
+Build a Gravatar avatar URL from an email address.
 
 ```typescript
 import { buildAvatarUrl } from 'astro-gravatar';
@@ -46,321 +18,372 @@ const url = await buildAvatarUrl('user@example.com', {
   size: 200,
   rating: 'pg',
   default: 'identicon',
-  forceDefault: false,
+  forceDefault: true,
 });
-// Returns: 'https://www.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109?s=200&r=pg&d=identicon'
 ```
 
-**Parameters:**
+**Options**
 
-- `email` (string): Email address for the avatar
-- `options` (object): Avatar configuration options
-
-**Options:**
 | Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `size` | `number` | `80` | Avatar size in pixels (1-2048) |
+| --- | --- | --- | --- |
+| `size` | `number` | `80` | Avatar size in pixels (`1-2048`) |
 | `rating` | `'g' \| 'pg' \| 'r' \| 'x'` | `'g'` | Maximum rating level |
-| `default` | `string` | `'mp'` | Default image type |
-| `forceDefault` | `boolean` | `false` | Force default image |
+| `default` | `DefaultAvatar` | `'mp'` | Default avatar type or custom URL |
+| `forceDefault` | `boolean` | `false` | Force the default image even when a real avatar exists |
 
-**Returns:**
+**Returns**
 
-- `Promise<string>`: Complete Gravatar avatar URL
+- `Promise<string>`: Complete avatar URL
+
+### buildProfileUrl
+
+Build the Gravatar API profile endpoint URL for an email address.
+
+```typescript
+import { buildProfileUrl } from 'astro-gravatar';
+
+const url = await buildProfileUrl('user@example.com', {
+  baseUrl: 'https://api.gravatar.com/v3',
+});
+```
+
+**Options**
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `baseUrl` | `string` | `https://api.gravatar.com/v3` | Override the profile API base URL |
+
+### buildQRCodeUrl
+
+Build a Gravatar QR code URL from an email address.
+
+```typescript
+import { buildQRCodeUrl } from 'astro-gravatar';
+
+const url = await buildQRCodeUrl('user@example.com', {
+  size: 160,
+  version: 3,
+  type: 'gravatar',
+  utmMedium: 'docs',
+  utmCampaign: 'launch',
+});
+```
+
+**Options**
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | `number` | `80` | QR code size in pixels (`1-1000`) |
+| `version` | `1 \| 3` | `1` | QR style version |
+| `type` | `'user' \| 'gravatar' \| 'none'` | `'none'` | Center icon |
+| `utmMedium` | `string` | `undefined` | `utm_medium` query value |
+| `utmCampaign` | `string` | `undefined` | `utm_campaign` query value |
 
 ### getProfile
 
-Fetch user profile data from Gravatar API v3.
+Fetch a single Gravatar profile.
 
 ```typescript
 import { getProfile } from 'astro-gravatar';
 
 const profile = await getProfile('user@example.com', {
-  apiKey: 'your-api-key', // Optional but recommended
+  apiKey: import.meta.env.GRAVATAR_API_KEY,
 });
-
-// Returns GravatarProfile object or null if not found
 ```
 
-**Parameters:**
+**Options**
 
-- `email` (string): Email address of the user
-- `options` (object, optional): Request configuration
-
-**Options:**
 | Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `apiKey` | `string` | `undefined` | API key for enhanced profile data |
-| `cache` | `boolean` | `true` | Enable response caching |
+| --- | --- | --- | --- |
+| `apiKey` | `string` | `undefined` | Bearer token for richer profile access |
+| `baseUrl` | `string` | `https://api.gravatar.com/v3` | Override API base URL |
+| `timeout` | `number` | `10000` | Request timeout in milliseconds |
+| `headers` | `Record<string, string>` | `undefined` | Extra request headers |
 
-**Returns:**
+**Returns**
 
-- `Promise<GravatarProfile \| null>`: Profile data or null if not found
-
-**Example with error handling:**
-
-```typescript
-import { getProfile, GravatarError } from 'astro-gravatar';
-
-try {
-  const profile = await getProfile('user@example.com', {
-    apiKey: import.meta.env.GRAVATAR_API_KEY,
-  });
-
-  if (profile) {
-    console.log('User:', profile.display_name);
-    console.log('Bio:', profile.description);
-  } else {
-    console.log('Profile not found');
-  }
-} catch (error) {
-  if (error instanceof GravatarError) {
-    console.error('API Error:', error.message);
-  }
-}
-```
+- `Promise<GravatarProfile>`: Parsed profile payload
 
 ### getProfiles
 
-Fetch multiple user profiles in parallel for better performance.
+Fetch multiple profiles in parallel.
 
 ```typescript
 import { getProfiles } from 'astro-gravatar';
 
-const emails = ['user1@example.com', 'user2@example.com', 'user3@example.com'];
-
-const profiles = await getProfiles(emails, {
-  apiKey: 'your-api-key',
-});
-
-// Returns array of GravatarProfile objects (null for missing profiles)
-```
-
-**Parameters:**
-
-- `emails` (string[]): Array of email addresses
-- `options` (object, optional): Request configuration (same as getProfile)
-
-**Returns:**
-
-- `Promise<(GravatarProfile \| null)[]>`: Array of profile data
-
-**Example:**
-
-```typescript
-const teamEmails = ['alice@example.com', 'bob@example.com', 'charlie@example.com'];
-
-const profiles = await getProfiles(teamEmails, {
+const profiles = await getProfiles(['alice@example.com', 'bob@example.com'], {
   apiKey: import.meta.env.GRAVATAR_API_KEY,
 });
-
-// Filter out null profiles (users without Gravatar)
-const validProfiles = profiles.filter(Boolean);
-console.log(`Found ${validProfiles.length} team members with profiles`);
 ```
 
-## Advanced Functions
+**Returns**
+
+- `Promise<GravatarProfile[]>`: Array of successful profile results. Failed lookups are skipped unless every lookup fails, in which case the first `GravatarError` is re-thrown.
+
+### validateAvatarParams
+
+Validate avatar sizing and rating before rendering or URL generation.
+
+```typescript
+import { validateAvatarParams } from 'astro-gravatar';
+
+validateAvatarParams(128, 'pg');
+```
+
+Throws `GravatarError` when the size or rating is invalid.
+
+### getDefaultAvatarConfig
+
+Read the package's default avatar settings.
+
+```typescript
+import { getDefaultAvatarConfig } from 'astro-gravatar';
+
+const defaults = getDefaultAvatarConfig();
+// { size: 80, rating: 'g', default: 'mp', forceDefault: false }
+```
+
+## Email and Hash Helpers
+
+### hashEmail
+
+Hash an email address with SHA256 for Gravatar usage.
+
+```typescript
+import { hashEmail } from 'astro-gravatar';
+
+const hash = await hashEmail('user@example.com');
+```
+
+### hashEmails
+
+Hash multiple email addresses in one call.
+
+```typescript
+import { hashEmails } from 'astro-gravatar';
+
+const hashes = await hashEmails(['alice@example.com', 'bob@example.com']);
+```
+
+### isValidEmail
+
+Validate email syntax before attempting a request.
+
+```typescript
+import { isValidEmail } from 'astro-gravatar';
+
+if (isValidEmail('user@example.com')) {
+  console.log('Looks valid');
+}
+```
+
+### normalizeEmail
+
+Trim and lowercase an email address using the same normalization rules the package uses internally.
+
+```typescript
+import { normalizeEmail } from 'astro-gravatar';
+
+const normalized = normalizeEmail(' User@Example.com ');
+// "user@example.com"
+```
+
+### extractHash
+
+Accept a Gravatar hash, a Gravatar profile URL, or an email address and resolve it to a SHA256 hash.
+
+```typescript
+import { extractHash } from 'astro-gravatar';
+
+const hashA = await extractHash('user@example.com');
+const hashB = await extractHash(
+  'https://gravatar.com/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109',
+);
+```
+
+### hashEmailWithCache
+
+Hash an email address with the built-in in-memory cache enabled by default.
+
+```typescript
+import { hashEmailWithCache } from 'astro-gravatar';
+
+const hash = await hashEmailWithCache('user@example.com');
+```
+
+Pass `false` as the second argument to bypass the cache.
+
+### clearEmailHashCache
+
+Clear the email hash cache.
+
+```typescript
+import { clearEmailHashCache } from 'astro-gravatar';
+
+clearEmailHashCache();
+```
+
+### getEmailHashCacheStats
+
+Inspect email hash cache size and limits.
+
+```typescript
+import { getEmailHashCacheStats } from 'astro-gravatar';
+
+const stats = getEmailHashCacheStats();
+// { size, maxSize, ttl }
+```
+
+## Client, Cache, and Errors
 
 ### clearApiCache
 
-Clear the internal API response cache.
+Clear the simple in-memory API cache used by the top-level profile helpers.
 
 ```typescript
 import { clearApiCache } from 'astro-gravatar';
 
-// Clear all cached profiles
 clearApiCache();
 ```
 
-**Use cases:**
-
-- Force refresh of profile data
-- Free memory in long-running applications
-- Handle user profile updates
-
 ### getApiCacheStats
 
-Get statistics about the internal API cache.
+Read API cache statistics for the top-level helpers.
 
 ```typescript
 import { getApiCacheStats } from 'astro-gravatar';
 
 const stats = getApiCacheStats();
-console.log('Cache hits:', stats.hits);
-console.log('Cache misses:', stats.misses);
-console.log('Cache size:', stats.size);
+console.log(stats.size);
+console.log(stats.entries);
 ```
 
-**Returns:**
-
-```typescript
-interface CacheStats {
-  hits: number; // Number of cache hits
-  misses: number; // Number of cache misses
-  size: number; // Number of cached items
-  hitRate: number; // Cache hit rate (0-1)
-}
-```
-
-## Configuration
+The top-level helper cache reports its current size and entry expiration metadata.
 
 ### GravatarClient
 
-Advanced client for custom configuration and multiple API keys.
+Use `GravatarClient` when you need advanced retry, cache, header, or rate-limit control beyond the top-level helpers.
 
 ```typescript
 import { GravatarClient } from 'astro-gravatar';
 
 const client = new GravatarClient({
-  apiKey: 'your-api-key',
-  baseUrl: 'https://api.gravatar.com/v3',
+  apiKey: import.meta.env.GRAVATAR_API_KEY,
   timeout: 15000,
   cache: {
-    ttl: 300, // 5 minutes
-    maxSize: 1000, // Maximum cached items
+    enabled: true,
+    ttl: 300,
+    maxSize: 1000,
   },
 });
 
 const profile = await client.getProfile('user@example.com');
 ```
 
-**Constructor Options:**
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `apiKey` | `string` | `undefined` | API key for requests |
-| `baseUrl` | `string` | `https://api.gravatar.com/v3` | Custom API base URL |
-| `timeout` | `number` | `10000` | Request timeout in milliseconds |
-| `cache` | `object` | `{ ttl: 300, maxSize: 100 }` | Cache configuration |
+Common methods:
 
-## Error Types
+- `client.getProfile(email, options?)`
+- `client.getProfiles(emails, options?)`
+- `client.clearCache()`
+- `client.getCacheStats()`
+- `client.getRequestStats()`
 
 ### GravatarError
 
-Custom error class for Gravatar API errors.
+`GravatarError` is thrown for invalid input, request failures, and API errors.
 
 ```typescript
-import { GravatarError } from 'astro-gravatar';
+import { getProfile, GravatarError, GRAVATAR_ERROR_CODES } from 'astro-gravatar';
 
 try {
-  const profile = await getProfile('user@example.com');
+  await getProfile('user@example.com');
 } catch (error) {
-  if (error instanceof GravatarError) {
-    console.error('Error code:', error.code);
-    console.error('HTTP status:', error.status);
-    console.error('Rate limit:', error.rateLimit);
+  if (
+    error instanceof GravatarError &&
+    error.code === GRAVATAR_ERROR_CODES.RATE_LIMITED
+  ) {
+    console.log('Retry later', error.rateLimit);
   }
 }
 ```
 
-**Properties:**
+Available properties:
 
-- `message`: string - Error message
-- `code`: string - Gravatar error code
-- `status`: number - HTTP status code
-- `rateLimit`: object - Rate limit information (if applicable)
+- `message`
+- `code`
+- `status`
+- `rateLimit`
 
-## Type Definitions
+### GRAVATAR_ERROR_CODES
 
-### GravatarProfile
+The exported error code map is useful when you want stable comparisons instead of raw strings.
 
 ```typescript
+import { GRAVATAR_ERROR_CODES } from 'astro-gravatar';
+
+console.log(GRAVATAR_ERROR_CODES.RATE_LIMITED);
+```
+
+## Exported Constants
+
+These constants are part of the public package surface:
+
+| Constant | Value |
+| --- | --- |
+| `GRAVATAR_AVATAR_BASE` | `https://0.gravatar.com/avatar` |
+| `GRAVATAR_API_BASE` | `https://api.gravatar.com/v3` |
+| `GRAVATAR_QR_BASE` | `https://api.gravatar.com/v3/qr-code` |
+| `DEFAULT_AVATAR_SIZE` | `80` |
+| `DEFAULT_AVATAR_RATING` | `'g'` |
+| `DEFAULT_AVATAR_IMAGE` | `'mp'` |
+| `DEFAULT_TIMEOUT` | `10000` |
+
+## Type Notes
+
+Representative public types from `astro-gravatar/types`:
+
+```typescript
+interface VerifiedAccount {
+  service_type: string;
+  service_label: string;
+  service_icon: string;
+  url: string;
+  is_hidden: boolean;
+}
+
+interface Link {
+  label: string;
+  url: string;
+}
+
 interface GravatarProfile {
   hash: string;
   profile_url: string;
   avatar_url: string;
   avatar_alt_text: string;
   display_name: string;
-  pronouns: string;
-  location: string;
-  job_title: string;
-  company: string;
-  description: string;
-  verified_accounts: VerifiedAccount[];
-  pronunciation: string;
-  timezone: string;
-  languages: string[];
-  first_name: string;
-  last_name: string;
-  is_organization: boolean;
-  header_image: string;
-  background_color: string;
-  links: Link[];
-  interests: Interest[];
-  payments: Payment[];
-  contact_info: ContactInfo;
-  gallery: Gallery[];
+  verified_accounts?: VerifiedAccount[];
+  links?: Link[];
+  is_organization?: boolean;
+  background_color?: string;
+  number_verified_accounts?: number;
 }
 ```
 
-### VerifiedAccount
+For the full exported type surface, import from:
 
 ```typescript
-interface VerifiedAccount {
-  type: string;
-  url: string;
-  name: string;
-  verified: boolean;
-}
+import type { GravatarProfile, GravatarAvatarProps } from 'astro-gravatar';
+import type { VerifiedAccount } from 'astro-gravatar/types';
 ```
 
-### Link
+## CLI
 
-```typescript
-interface Link {
-  url: string;
-  name: string;
-  icon: string;
-  type: string;
-}
-```
-
-## Performance Tips
-
-### Caching Strategy
-
-```typescript
-// Built-in caching is automatic and optimized
-// Cache TTL: 5 minutes for profiles
-// Cache size: 100 items by default
-// LRU eviction policy
-
-// Monitor cache performance
-const stats = getApiCacheStats();
-if (stats.hitRate < 0.8) {
-  console.log('Consider increasing cache TTL or size');
-}
-```
-
-### Batch Requests
-
-```typescript
-// Always use getProfiles() for multiple requests
-// This is much faster than individual getProfile() calls
-const profiles = await getProfiles(emailList);
-```
-
-### Error Recovery
-
-```typescript
-async function robustGetProfile(email: string, retries = 3): Promise<Profile | null> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await getProfile(email);
-    } catch (error) {
-      if (error.code === 'rate_limit_exceeded' && i < retries - 1) {
-        const delay = Math.pow(2, i) * 1000;
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        continue;
-      }
-      throw error;
-    }
-  }
-  return null;
-}
-```
+The package also ships a CLI for offline URL generation. See the [CLI guide](/guides/cli) for command usage and examples.
 
 ## Next Steps
 
-- [Component Reference](/reference/components) - Component APIs and props
-- [Authentication Guide](/guides/authentication) - API key setup and usage
-- [Performance Guide](/guides/performance) - Optimization techniques
+- [Component Reference](/reference/components) for component props and rendering patterns
+- [Authentication Guide](/guides/authentication) for API key usage
+- [CLI Guide](/guides/cli) for command-line URL generation
+- [Performance Guide](/guides/performance) for cache and batching strategies

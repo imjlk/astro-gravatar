@@ -71,7 +71,7 @@ const team = [
 </div>
 ```
 
-## 4. QR Code
+## 5. QR Code
 
 ```astro
 ---
@@ -102,15 +102,27 @@ import GravatarQR from 'astro-gravatar/GravatarQR';
 
 ## API Key (Optional)
 
-For enhanced profile data:
+For enhanced profile data, add the key to `.env` and pass it to the helper or client that performs the request:
 
 ```bash
 # .env
 GRAVATAR_API_KEY=your-key-here
 ```
 
+```typescript
+import { getProfile } from 'astro-gravatar';
+
+const profile = await getProfile('user@example.com', {
+  apiKey: import.meta.env.GRAVATAR_API_KEY,
+});
+```
+
+If you only render `GravatarAvatar` or `GravatarQR`, no API key is required. For a deeper walkthrough, continue to [Authentication](/guides/authentication).
+
 ## Next Steps
 
 - [Installation](/guides/installation) - Detailed setup guide
 - [Basic Usage](/guides/basic-usage) - More examples
+- [CLI Guide](/guides/cli) - Generate avatar and QR URLs from the terminal
+- [Authentication](/guides/authentication) - Wire `GRAVATAR_API_KEY` into profile requests
 - [Component Reference](/reference/components) - Full API docs

@@ -113,6 +113,7 @@ bun run sampo:release
 
 - Docs: https://astro-gravatar.and.guide
 - Quick start: https://astro-gravatar.and.guide/guides/quick-start/
+- CLI guide: https://astro-gravatar.and.guide/guides/cli/
 - Component reference: https://astro-gravatar.and.guide/reference/components/
 - Utilities reference: https://astro-gravatar.and.guide/reference/utilities/
 - API endpoints: https://astro-gravatar.and.guide/reference/api-endpoints/

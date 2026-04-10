@@ -78,6 +78,7 @@ export default defineConfig({
           label: 'Guides',
           items: [
             { label: 'Basic Usage', slug: 'guides/basic-usage' },
+            { label: 'CLI', slug: 'guides/cli' },
             { label: 'Authentication', slug: 'guides/authentication' },
             { label: 'Error Handling', slug: 'guides/error-handling' },
             { label: 'Performance', slug: 'guides/performance' },
