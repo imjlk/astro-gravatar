@@ -39,6 +39,7 @@ An example file lives at `.env.pages.example`.
 ## GitHub Actions setup
 
 The repo includes a manual workflow at `.github/workflows/deploy-docs-pages.yml`.
+`release.yml` also reuses that workflow automatically after a successful publish.
 
 Configure these values before using it:
 
@@ -50,6 +51,10 @@ Configure these values before using it:
   - `PUBLIC_GA_MEASUREMENT_ID` if analytics should be enabled in deployed builds
 
 Trigger the workflow with `target=production` or `target=preview`. Preview runs can also accept a custom `preview_branch`.
+When `release.yml` publishes a new package version, it will call the same workflow automatically:
+
+- `main` releases deploy the docs site to Pages production
+- `beta` and `alpha` releases deploy a Pages preview tied to the release branch
 
 ## Local deployment checklist
 

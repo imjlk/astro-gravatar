@@ -318,8 +318,11 @@ describe('GravatarClient', () => {
     const results = await client.getProfiles(['user1@example.com', 'user2@example.com']);
 
     expect(results).toHaveLength(2);
-    expect(results[0]!.profile).toEqual(mockProfiles[0]);
-    expect(results[1]!.profile).toEqual(mockProfiles[1]);
+
+    const profilesByEmail = new Map(results.map((result) => [result.email, result.profile]));
+
+    expect(profilesByEmail.get('user1@example.com')).toEqual(mockProfiles[0]);
+    expect(profilesByEmail.get('user2@example.com')).toEqual(mockProfiles[1]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 

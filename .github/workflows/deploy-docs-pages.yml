@@ -15,6 +15,16 @@ on:
         description: Optional Pages preview branch name
         required: false
         type: string
+  workflow_call:
+    inputs:
+      target:
+        description: Deployment target
+        required: true
+        type: string
+      preview_branch:
+        description: Optional Pages preview branch name
+        required: false
+        type: string
 
 permissions:
   contents: read
