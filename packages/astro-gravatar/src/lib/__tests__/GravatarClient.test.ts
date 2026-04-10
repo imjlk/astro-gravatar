@@ -286,34 +286,48 @@ describe('GravatarClient', () => {
   test('should fetch multiple profiles in batch', async () => {
     const mockProfiles: GravatarProfile[] = [
       {
-        hash: 'abc123',
-        profile_url: 'https://gravatar.com/abc123',
-        avatar_url: 'https://gravatar.com/avatar/abc123',
+        hash: 'b36a83701f1c3191e19722d6f90274bc1b5501fe69ebf33313e440fe4b0fe210',
+        profile_url:
+          'https://gravatar.com/b36a83701f1c3191e19722d6f90274bc1b5501fe69ebf33313e440fe4b0fe210',
+        avatar_url:
+          'https://gravatar.com/avatar/b36a83701f1c3191e19722d6f90274bc1b5501fe69ebf33313e440fe4b0fe210',
         avatar_alt_text: 'Avatar 1',
         display_name: 'User 1',
       },
       {
-        hash: 'def456',
-        profile_url: 'https://gravatar.com/def456',
-        avatar_url: 'https://gravatar.com/avatar/def456',
+        hash: '2b3b2b9ce842ab8b6a6c614cb1f9604bb8a0d502d1af49c526b72b10894e95b5',
+        profile_url:
+          'https://gravatar.com/2b3b2b9ce842ab8b6a6c614cb1f9604bb8a0d502d1af49c526b72b10894e95b5',
+        avatar_url:
+          'https://gravatar.com/avatar/2b3b2b9ce842ab8b6a6c614cb1f9604bb8a0d502d1af49c526b72b10894e95b5',
         avatar_alt_text: 'Avatar 2',
         display_name: 'User 2',
       },
     ];
 
-    fetchMock
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockProfiles[0],
-        headers: new Headers(),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockProfiles[1],
-        headers: new Headers(),
-      } as Response);
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+
+      if (url.includes(mockProfiles[0]!.hash)) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => mockProfiles[0],
+          headers: new Headers(),
+        } as Response;
+      }
+
+      if (url.includes(mockProfiles[1]!.hash)) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => mockProfiles[1],
+          headers: new Headers(),
+        } as Response;
+      }
+
+      throw new Error(`Unexpected profile request: ${url}`);
+    });
 
     const results = await client.getProfiles(['user1@example.com', 'user2@example.com']);
 
