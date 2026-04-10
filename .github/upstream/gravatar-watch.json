@@ -1,0 +1,32 @@
+{
+  "repo": {
+    "owner": "Automattic",
+    "name": "gravatar"
+  },
+  "docs": [
+    {
+      "label": "REST API",
+      "url": "https://docs.gravatar.com/rest-api/"
+    },
+    {
+      "label": "Profiles",
+      "url": "https://docs.gravatar.com/sdk/profiles/"
+    },
+    {
+      "label": "QR codes",
+      "url": "https://docs.gravatar.com/sdk/qr-codes/"
+    }
+  ],
+  "reviewTargets": [
+    "packages/astro-gravatar/src/lib/gravatar.ts",
+    "packages/astro-gravatar/src/lib/types.ts",
+    "packages/astro-gravatar/src/components/GravatarProfileCard.astro",
+    "apps/astro-gravatar.and.guide/src/content/docs/reference/api-endpoints.mdx",
+    "apps/astro-gravatar.and.guide/src/content/docs/reference/utilities.mdx",
+    "apps/astro-gravatar.and.guide/src/content/docs/guides/authentication.mdx"
+  ],
+  "issue": {
+    "title": "Upstream Gravatar watch",
+    "label": "upstream-watch"
+  }
+}

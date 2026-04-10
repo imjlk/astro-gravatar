@@ -1,0 +1,133 @@
+name: Upstream Gravatar Watch
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    name: Watch upstream changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Generate upstream report
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bun scripts/gravatar-upstream-watch.ts --out /tmp/gravatar-upstream-report.json
+
+      - name: Upload upstream report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gravatar-upstream-report
+          path: /tmp/gravatar-upstream-report.json
+
+      - name: Upsert tracking issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const fs = require('fs');
+            const path = '/tmp/gravatar-upstream-report.json';
+            const report = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const labelName = report.issue.label;
+            const title = report.issue.title;
+            const body =
+              `<!-- upstream-watch:gravatar -->\n` +
+              `<!-- upstream-watch:fingerprint=${report.fingerprint} -->\n\n` +
+              report.markdown;
+
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: labelName });
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name: labelName,
+                color: '1d76db',
+                description: 'Tracks upstream Gravatar changes that may require local review',
+              });
+            }
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              labels: labelName,
+              per_page: 100,
+            });
+
+            const managedIssue = issues.find((issue) =>
+              typeof issue.body === 'string' && issue.body.includes('<!-- upstream-watch:gravatar -->')
+            );
+
+            if (!managedIssue) {
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body,
+                labels: [labelName],
+              });
+              core.notice(`Created new upstream tracking issue for fingerprint ${report.fingerprint}.`);
+              return;
+            }
+
+            const previousFingerprint =
+              managedIssue.body?.match(/<!-- upstream-watch:fingerprint=([a-f0-9]+) -->/)?.[1] ?? null;
+
+            if (previousFingerprint === report.fingerprint) {
+              core.notice(`No upstream change detected. Fingerprint remains ${report.fingerprint}.`);
+              return;
+            }
+
+            const currentLabels = (managedIssue.labels || [])
+              .map((label) => (typeof label === 'string' ? label : label.name))
+              .filter(Boolean);
+
+            await github.rest.issues.update({
+              owner,
+              repo,
+              issue_number: managedIssue.number,
+              title,
+              body,
+              labels: Array.from(new Set([...currentLabels, labelName])),
+            });
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: managedIssue.number,
+              body: [
+                'Detected a new upstream Gravatar fingerprint.',
+                '',
+                `- Previous: \`${previousFingerprint ?? 'none'}\``,
+                `- Current: \`${report.fingerprint}\``,
+                `- Checked at: ${report.checkedAt}`,
+                '',
+                'Review the checklist in the issue body and patch local code or docs as needed.',
+              ].join('\n'),
+            });

@@ -13,6 +13,7 @@
     "pages:dev": "bun scripts/cloudflare-pages.ts dev",
     "pages:deploy": "bun scripts/cloudflare-pages.ts deploy",
     "pages:deploy:preview": "bun scripts/cloudflare-pages.ts deploy-preview",
+    "upstream:gravatar": "bun scripts/gravatar-upstream-watch.ts",
     "test": "cd packages/astro-gravatar && bun test",
     "test:watch": "cd packages/astro-gravatar && bun test --watch",
     "test:coverage": "cd packages/astro-gravatar && bun run test:coverage",
