@@ -426,6 +426,10 @@ body {
   border-radius: 1.2rem;
 }
 
+.ag-consent-banner[hidden] {
+  display: none;
+}
+
 .ag-consent-banner__copy p {
   margin: 0.4rem 0 0;
 }
