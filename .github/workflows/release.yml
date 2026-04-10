@@ -129,7 +129,7 @@ jobs:
   deploy_docs:
     name: Deploy docs to Cloudflare Pages
     needs: release
-    if: needs.release.outputs.should_publish == 'true'
+    if: needs.release.result == 'success'
     uses: ./.github/workflows/deploy-docs-pages.yml
     with:
       target: ${{ needs.release.outputs.release_branch == 'main' && 'production' || 'preview' }}

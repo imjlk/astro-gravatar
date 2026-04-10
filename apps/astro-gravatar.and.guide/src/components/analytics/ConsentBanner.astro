@@ -1,5 +1,9 @@
 ---
-const gaMeasurementId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID?.trim() || '';
+const rawGaMeasurementId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID?.trim() || '';
+const gaMeasurementId =
+  /^G-[A-Z0-9]+$/i.test(rawGaMeasurementId) && !/^G-X+$/i.test(rawGaMeasurementId)
+    ? rawGaMeasurementId
+    : '';
 ---
 
 {
