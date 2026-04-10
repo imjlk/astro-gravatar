@@ -305,7 +305,7 @@ describe('GravatarClient', () => {
       },
     ];
 
-    fetchMock.mockImplementation(async (input) => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
 
       if (url.includes(mockProfiles[0]!.hash)) {
