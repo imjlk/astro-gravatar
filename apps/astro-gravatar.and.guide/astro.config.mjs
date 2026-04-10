@@ -70,7 +70,6 @@ export default defineConfig({
         {
           label: 'Getting Started',
           items: [
-            { label: 'Introduction', slug: '' },
             { label: 'Installation', slug: 'guides/installation' },
             { label: 'Quick Start', slug: 'guides/quick-start' },
           ],

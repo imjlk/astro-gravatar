@@ -9,6 +9,10 @@ const { data } = Astro.locals.starlightRoute.entry;
 const { title = data.title, tagline, actions = [] } = data.hero || {};
 const trustSignals = ['Astro 4-6', 'TypeScript ready', 'Bun-first', 'MIT licensed'];
 const showcaseEmail = 'i@m.junglei.kim';
+const showcaseFallbackEmails = {
+  identicon: 'pattern@astro-gravatar.and.guide',
+  retro: 'pixel@astro-gravatar.and.guide',
+};
 ---
 
 {
@@ -52,8 +56,20 @@ const showcaseEmail = 'i@m.junglei.kim';
       <div class="ag-home-hero__showcase" aria-label="astro-gravatar component previews">
         <div class="ag-home-hero__avatar-band">
           <GravatarAvatar email={showcaseEmail} size={76} class="rounded-full" />
-          <GravatarAvatar email="support@gravatar.com" size={58} default="identicon" class="rounded-full" />
-          <GravatarAvatar email="hello@wordpress.com" size={44} default="retro" class="rounded-full" />
+          <GravatarAvatar
+            email={showcaseFallbackEmails.identicon}
+            size={58}
+            default="identicon"
+            forceDefault
+            class="rounded-full"
+          />
+          <GravatarAvatar
+            email={showcaseFallbackEmails.retro}
+            size={44}
+            default="retro"
+            forceDefault
+            class="rounded-full"
+          />
         </div>
 
         <div class="ag-home-hero__profile-card">

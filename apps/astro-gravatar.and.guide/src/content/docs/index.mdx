@@ -53,8 +53,20 @@ import GravatarQR from 'astro-gravatar/GravatarQR';
       <p>Render avatars with sensible defaults, fallback modes, and responsive sizing in a single line.</p>
       <div class="ag-avatar-row">
         <GravatarAvatar email="i@m.junglei.kim" size={80} class="rounded-full" />
-        <GravatarAvatar email="support@gravatar.com" size={64} default="identicon" class="rounded-full" />
-        <GravatarAvatar email="hello@wordpress.com" size={48} default="retro" class="rounded-full" />
+        <GravatarAvatar
+          email="pattern@astro-gravatar.and.guide"
+          size={64}
+          default="identicon"
+          forceDefault
+          class="rounded-full"
+        />
+        <GravatarAvatar
+          email="pixel@astro-gravatar.and.guide"
+          size={48}
+          default="retro"
+          forceDefault
+          class="rounded-full"
+        />
       </div>
     </article>
 

@@ -274,6 +274,9 @@ body {
 
 .ag-home-proof-grid article,
 .ag-component-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 1.35rem;
   border-radius: 1.2rem;
   border: 1px solid var(--ag-border);
@@ -296,18 +299,19 @@ body {
 }
 
 .ag-home-grid--components {
-  align-items: start;
+  align-items: stretch;
 }
 
 .ag-avatar-row,
 .ag-qr-preview,
 .ag-profile-card-preview {
-  margin-top: 1rem;
+  margin-top: auto;
+  padding-top: 1rem;
 }
 
 .ag-avatar-row {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.85rem;
 }
 
@@ -338,6 +342,18 @@ body {
 .ag-snippet-shell {
   padding: 1rem 1.1rem;
   border-radius: 1.2rem;
+}
+
+.ag-snippet-shell pre {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ag-snippet-shell code {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .ag-doc-grid {
