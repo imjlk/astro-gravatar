@@ -106,7 +106,6 @@ bun run pages:deploy:preview
 bun run release:check
 bun run sampo:add
 bun run sampo:preview
-bun run sampo:release
 ```
 
 ## Documentation
@@ -132,21 +131,22 @@ Because Direct Upload ships prebuilt assets, `PUBLIC_GA_MEASUREMENT_ID` must be 
 
 ## Release workflow
 
-This repo uses Bun for local validation, Sampo for release metadata preparation, and a single GitHub Actions workflow for actual npm publishing.
+This repo uses Bun for local validation, Sampo changesets for release intent, and a single GitHub Actions workflow that creates release PRs and publishes after those PRs are merged.
 
 1. Run `bun run release:check`.
 2. Add a Sampo release entry when the published package changes: `bun run sampo:add`.
 3. Run `bun run sampo:preview` if you want to inspect the planned version bump before changing files.
-4. Run `bun run sampo:release` to consume pending release entries and update version/changelog metadata.
-5. Review the resulting package version and `packages/astro-gravatar/CHANGELOG.md`.
-6. Push the release-prepared commit to `main`. `.github/workflows/release.yml` will publish to npm with OIDC when the committed package version is newer than npm, then create the `v<version>` tag automatically.
+4. Merge the feature PR into `main` once checks pass.
+5. `.github/workflows/release.yml` will create or refresh a release PR from the pending `.sampo/changesets/*.md` entries.
+6. Review and merge that release PR. The same workflow then publishes to npm with OIDC, creates tags, and opens GitHub Releases automatically.
 
 ### Workflow responsibilities
 
 - `.github/workflows/release.yml` is the single release automation workflow.
-- It compares the committed package version against the current npm dist-tag, runs release checks, publishes to npm with Trusted Publishing (OIDC), and creates the `v<version>` git tag when needed.
+- It runs Sampo in `auto` mode on `main`, `beta`, and `alpha`, which means it prepares release PRs when changesets exist and publishes after those PRs are merged.
 - npm Trusted Publishing for `astro-gravatar` must point at `.github/workflows/release.yml`.
 - `.github/workflows/sampo-bot.yml` leaves a PR reminder when publishable package source changes without a `.sampo/changesets/*.md` entry. Add `skip-changeset`, `no-changeset`, or `release:skip` when a release entry is intentionally unnecessary.
+- `bun run sampo:release` remains available as a manual escape hatch, but it is no longer the normal path for routine releases.
 
 ### Astro directory listing
 
