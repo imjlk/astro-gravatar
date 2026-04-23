@@ -144,6 +144,7 @@ This repo uses Bun for local validation, Sampo changesets for release intent, an
 
 - `.github/workflows/release.yml` is the single release automation workflow.
 - It runs Sampo in `auto` mode on `main`, `beta`, and `alpha`, which means it prepares release PRs when changesets exist and publishes after those PRs are merged.
+- `packages/astro-gravatar/package.json` intentionally declares `packageManager: "npm@11.5.1"` so Sampo uses `npm publish` for npm Trusted Publishing, while local repo workflows still use Bun.
 - npm Trusted Publishing for `astro-gravatar` must point at `.github/workflows/release.yml`.
 - `.github/workflows/sampo-bot.yml` leaves a PR reminder when publishable package source changes without a `.sampo/changesets/*.md` entry. Add `skip-changeset`, `no-changeset`, or `release:skip` when a release entry is intentionally unnecessary.
 - `bun run sampo:release` remains available as a manual escape hatch, but it is no longer the normal path for routine releases.

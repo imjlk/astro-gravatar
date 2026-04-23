@@ -1,6 +1,7 @@
 {
   "name": "astro-gravatar",
   "version": "0.0.17",
+  "packageManager": "npm@11.5.1",
   "type": "module",
   "main": "./index.ts",
   "bin": {

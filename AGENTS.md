@@ -71,6 +71,7 @@ alwaysApply: false
 ## Astro package submission expectations
 
 - Treat `packages/astro-gravatar/package.json` as submission-critical metadata for npm and Astro ecosystem discovery.
+- Keep `packages/astro-gravatar/package.json` on `packageManager: "npm@11.5.1"` so Sampo uses `npm publish` for Trusted Publishing, even though repo-local development stays Bun-first.
 - Keep Astro discovery keywords present: `astro-component` and `withastro`.
 - Keep category keywords aligned with package purpose when relevant, such as `ui`, `image`, `images`, and `utility`.
 - Maintain accurate `description`, `homepage`, `bugs`, and `repository` fields. Because this is a monorepo, keep `repository.directory` pointed at `packages/astro-gravatar`.
