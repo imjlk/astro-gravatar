@@ -1,5 +1,11 @@
 # astro-gravatar
 
+## 0.0.17 — 2026-04-23
+
+### Patch changes
+
+- [90cb37d](https://github.com/imjlk/astro-gravatar/commit/90cb37d89a7ae18b52622df21cf164a808e6a338) Align generated QR code URLs with Gravatar's documented `.qr` format and refresh GitHub Actions to Node 24-ready versions. — Thanks @imjlk!
+
 ## 0.0.16 — 2026-04-08
 
 ### Patch changes
