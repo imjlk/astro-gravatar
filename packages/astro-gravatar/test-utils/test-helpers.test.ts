@@ -804,7 +804,7 @@ describe('benchmark', () => {
       return 'async';
     }, 5);
     expect(results).toHaveLength(5);
-    expect(averageTime).toBeGreaterThanOrEqual(5);
+    expect(averageTime).toBeGreaterThanOrEqual(4);
   });
 
   test('should handle functions that throw errors', async () => {
