@@ -34,7 +34,7 @@ jobs:
         run: bun scripts/gravatar-upstream-watch.ts --out /tmp/gravatar-upstream-report.json
 
       - name: Upload upstream report artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: gravatar-upstream-report
           path: /tmp/gravatar-upstream-report.json

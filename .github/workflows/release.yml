@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
   id-token: write
 
 jobs:
@@ -18,7 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_branch: ${{ github.ref_name }}
-      should_publish: ${{ steps.release_meta.outputs.should_publish }}
+      released: ${{ steps.sampo.outputs.released }}
+      published: ${{ steps.sampo.outputs.published }}
 
     steps:
       - name: Checkout
@@ -40,91 +42,18 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Resolve release metadata
-        id: release_meta
-        run: |
-          set -euo pipefail
-
-          VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('packages/astro-gravatar/package.json', 'utf8')).version")"
-          BRANCH="${GITHUB_REF_NAME}"
-
-          case "$BRANCH" in
-            main) DIST_TAG="latest" ;;
-            beta) DIST_TAG="beta" ;;
-            alpha) DIST_TAG="alpha" ;;
-            *)
-              echo "Unsupported release branch: $BRANCH" >&2
-              exit 1
-              ;;
-          esac
-
-          NPM_VERSION="$(npm view astro-gravatar version --tag "$DIST_TAG" 2>/dev/null || true)"
-          TAG_NAME="v$VERSION"
-
-          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            TAG_EXISTS="true"
-          else
-            TAG_EXISTS="false"
-          fi
-
-          if [ "$VERSION" = "$NPM_VERSION" ]; then
-            SHOULD_PUBLISH="false"
-          else
-            SHOULD_PUBLISH="true"
-          fi
-
-          if [ "$BRANCH" = "main" ]; then
-            PRERELEASE="false"
-          else
-            PRERELEASE="true"
-          fi
-
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
-          echo "npm_version=$NPM_VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
-          echo "tag_exists=$TAG_EXISTS" >> "$GITHUB_OUTPUT"
-          echo "should_publish=$SHOULD_PUBLISH" >> "$GITHUB_OUTPUT"
-          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
-
-      - name: No release needed
-        if: steps.release_meta.outputs.should_publish != 'true'
-        run: |
-          echo "npm already has astro-gravatar@${{ steps.release_meta.outputs.version }} for tag ${{ steps.release_meta.outputs.dist_tag }}."
-          echo "Skipping publish."
-
       - name: Run release checks
-        if: steps.release_meta.outputs.should_publish == 'true'
         run: bun run release:check
 
-      - name: Publish to npm
-        if: steps.release_meta.outputs.should_publish == 'true'
-        run: npm publish --provenance --access public --tag "${{ steps.release_meta.outputs.dist_tag }}"
-        working-directory: packages/astro-gravatar
-
-      - name: Create and push git tag
-        if: steps.release_meta.outputs.should_publish == 'true' && steps.release_meta.outputs.tag_exists != 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "${{ steps.release_meta.outputs.tag_name }}" -m "Release ${{ steps.release_meta.outputs.tag_name }}"
-          git push origin "${{ steps.release_meta.outputs.tag_name }}"
-
-      - name: Create GitHub release
-        if: steps.release_meta.outputs.should_publish == 'true'
+      - name: Run Sampo release and publish automation
+        id: sampo
+        uses: bruits/sampo/crates/sampo-github-action@sampo-github-action-v0.15.4
+        with:
+          command: auto
+          create-github-release: true
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if gh release view "${{ steps.release_meta.outputs.tag_name }}" >/dev/null 2>&1; then
-            echo "GitHub release already exists for ${{ steps.release_meta.outputs.tag_name }}."
-            exit 0
-          fi
-
-          if [ "${{ steps.release_meta.outputs.prerelease }}" = "true" ]; then
-            gh release create "${{ steps.release_meta.outputs.tag_name }}" --generate-notes --prerelease
-          else
-            gh release create "${{ steps.release_meta.outputs.tag_name }}" --generate-notes
-          fi
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
 
   deploy_docs:
     name: Deploy docs to Cloudflare Pages

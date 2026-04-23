@@ -90,11 +90,11 @@ alwaysApply: false
 - CI currently checks lint, formatting, typechecking, coverage, build, security audit, pack dry-run, and bundle size.
 - Docs deployment readiness is checked with `bun run pages:check`, which builds the site and validates the local Wrangler setup without requiring Cloudflare secrets in CI.
 - Coverage enforcement is implemented by `packages/astro-gravatar/package.json` plus `scripts/check-coverage.ts`.
-- `release.yml` is the only release automation workflow. It performs release checks, publishes with npm Trusted Publishing (OIDC), and creates the version tag when npm is behind the committed package version.
+- `release.yml` is the only release automation workflow. It runs Sampo in `auto` mode, prepares or refreshes release PRs from `.sampo/changesets/*.md`, and publishes with npm Trusted Publishing (OIDC) after those release PRs are merged.
 - Changes that affect the published package should usually include a Sampo release entry via `bun run sampo:add`.
 - `sampo-bot.yml` comments on PRs that touch publishable package source without adding a `.sampo/changesets/*.md` file. Use `skip-changeset`, `no-changeset`, or `release:skip` only when a release entry is intentionally unnecessary.
 - npm Trusted Publishing must be configured for `.github/workflows/release.yml`.
-- The operational release sequence is: `bun run release:check` -> `bun run sampo:add` -> optional `bun run sampo:preview` -> `bun run sampo:release` -> review version/changelog -> push the release-prepared commit to `main` -> let `release.yml` publish and create the `v<version>` tag.
+- The operational release sequence is: `bun run release:check` -> `bun run sampo:add` -> optional `bun run sampo:preview` -> merge the feature PR into `main` -> let `release.yml` create or refresh the release PR -> review and merge that release PR -> let `release.yml` publish and create the `v<version>` tag.
 
 ## Documentation expectations
 
