@@ -215,10 +215,10 @@ Example Response:
   
   
 }
-7.2 QR Code Endpoints
+7.2 QR Code URLs
 Generates a QR code for a profile.
 
-Endpoint: GET /qr-code/{sha256_hash}
+URL Pattern: GET /{sha256_hash}.qr
 
 Authentication:
 
@@ -241,7 +241,7 @@ Response:
 Example Request:
 
 1
-curl -X GET "https://api.gravatar.com/v3/qr-code/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1?size=300&type=user&version=3"
+curl -X GET "https://gravatar.com/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579cc8d1.qr?size=300&type=user&version=3"
 8. Data Formats
 8.1 Profile Data Format Options
 Gravatar profiles can be requested in multiple formats for easier integration:

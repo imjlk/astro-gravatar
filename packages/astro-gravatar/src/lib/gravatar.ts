@@ -31,7 +31,7 @@ export const GRAVATAR_AVATAR_BASE = 'https://0.gravatar.com/avatar';
 export const GRAVATAR_API_BASE = 'https://api.gravatar.com/v3';
 
 /** Default Gravatar QR code base URL */
-export const GRAVATAR_QR_BASE = 'https://api.gravatar.com/v3/qr-code';
+export const GRAVATAR_QR_BASE = 'https://gravatar.com';
 
 /** Default avatar sizes */
 export const DEFAULT_AVATAR_SIZE = 80;
@@ -174,7 +174,7 @@ export async function buildQRCodeUrl(
   }
 
   const queryString = params.toString();
-  return `${GRAVATAR_QR_BASE}/${hash}${queryString ? `?${queryString}` : ''}`;
+  return `${GRAVATAR_QR_BASE}/${hash}.qr${queryString ? `?${queryString}` : ''}`;
 }
 
 // ============================================================================

@@ -196,7 +196,7 @@ describe('URL Building Functions', () => {
       const url = await buildQRCodeUrl(email);
       const hash = await hashEmailWithCache(email);
 
-      expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}`);
+      expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}.qr`);
     });
 
     test('should build QR code URL with size parameter', async () => {
@@ -204,7 +204,7 @@ describe('URL Building Functions', () => {
       const url = await buildQRCodeUrl(email, { size: 200 });
       const hash = await hashEmailWithCache(email);
 
-      expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}?size=200`);
+      expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}.qr?size=200`);
     });
 
     test('should build QR code URL with version parameter', async () => {
@@ -212,7 +212,7 @@ describe('URL Building Functions', () => {
       const url = await buildQRCodeUrl(email, { version: 3 });
       const hash = await hashEmailWithCache(email);
 
-      expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}?version=3`);
+      expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}.qr?version=3`);
     });
 
     test('should build QR code URL with type parameter', async () => {
@@ -220,7 +220,7 @@ describe('URL Building Functions', () => {
       const url = await buildQRCodeUrl(email, { type: 'user' });
       const hash = await hashEmailWithCache(email);
 
-      expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}?type=user`);
+      expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}.qr?type=user`);
     });
 
     test('should build QR code URL with UTM parameters', async () => {
@@ -231,7 +231,7 @@ describe('URL Building Functions', () => {
       });
       const hash = await hashEmailWithCache(email);
 
-      expect(url).toContain(`${GRAVATAR_QR_BASE}/${hash}?`);
+      expect(url).toContain(`${GRAVATAR_QR_BASE}/${hash}.qr?`);
       expect(url).toContain('utm_medium=social');
       expect(url).toContain('utm_campaign=profile_share');
     });
@@ -247,7 +247,7 @@ describe('URL Building Functions', () => {
       });
       const hash = await hashEmailWithCache(email);
 
-      expect(url).toContain(`${GRAVATAR_QR_BASE}/${hash}?`);
+      expect(url).toContain(`${GRAVATAR_QR_BASE}/${hash}.qr?`);
       expect(url).toContain('size=300');
       expect(url).toContain('version=3');
       expect(url).toContain('type=gravatar');
@@ -273,7 +273,7 @@ describe('URL Building Functions', () => {
       const url = await buildQRCodeUrl(email, { size: 80 }); // Default size
       const hash = await hashEmailWithCache(email);
 
-      expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}`);
+      expect(url).toBe(`${GRAVATAR_QR_BASE}/${hash}.qr`);
     });
   });
 });

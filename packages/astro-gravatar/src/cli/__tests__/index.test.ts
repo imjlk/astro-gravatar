@@ -158,7 +158,8 @@ describe('CLI', () => {
 
       const output = JSON.parse(result.stdout);
       expect(output).toHaveProperty('url');
-      expect(output.url).toContain('gravatar.com/v3/qr-code/');
+      expect(output.url).toContain('gravatar.com/');
+      expect(output.url).toContain('.qr');
       expect(output.url).toContain(TEST_EMAIL_HASH);
     });
 

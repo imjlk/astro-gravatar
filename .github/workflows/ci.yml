@@ -37,6 +37,9 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -65,9 +68,10 @@ jobs:
         run: bun run build:package
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
-          file: ./packages/astro-gravatar/coverage/lcov.info
+          use_oidc: true
+          files: ./packages/astro-gravatar/coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
 
