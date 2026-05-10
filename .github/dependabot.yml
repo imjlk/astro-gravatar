@@ -1,14 +1,40 @@
 version: 2
 updates:
-  - package-ecosystem: 'npm'
+  - package-ecosystem: 'bun'
     directory: '/'
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 5
     groups:
-      minor-patch:
+      docs-stack:
         patterns:
-          - '*'
+          - 'astro'
+          - '@astrojs/starlight'
+          - 'sharp'
         update-types:
           - 'minor'
           - 'patch'
+      tooling:
+        patterns:
+          - '@eslint/*'
+          - '@types/*'
+          - '@typescript-eslint/*'
+          - 'eslint'
+          - 'globals'
+          - 'prettier'
+          - 'prettier-plugin-astro'
+          - 'typescript-eslint'
+          - 'wrangler'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 3
+    groups:
+      github-actions:
+        patterns:
+          - '*'
