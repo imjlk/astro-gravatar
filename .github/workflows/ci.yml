@@ -68,7 +68,7 @@ jobs:
         run: bun run build:package
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           use_oidc: true
           files: ./packages/astro-gravatar/coverage/lcov.info
