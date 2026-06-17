@@ -30,7 +30,7 @@
     "sampo:pre": "sampo pre",
     "sampo:preview": "sampo release --dry-run",
     "sampo:release": "sampo release",
-    "security:check": "bun audit --audit-level high --ignore=GHSA-25h7-pfq9-p65f --ignore=GHSA-rf6f-7fwh-wjgh --ignore=GHSA-c2c7-rcm5-vvqj --ignore=GHSA-mw96-cpmx-2vgc",
+    "security:check": "bun scripts/security-audit.ts",
     "security:check:strict": "bun audit",
     "clean": "bun run clean:all",
     "clean:all": "rm -rf node_modules packages/*/node_modules apps/*/node_modules bun.lockb && bun install"
@@ -38,14 +38,14 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/bun": "latest",
-    "@typescript-eslint/eslint-plugin": "^8.59.2",
-    "@typescript-eslint/parser": "^8.59.2",
-    "eslint": "^10.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.61.1",
+    "@typescript-eslint/parser": "^8.61.1",
+    "eslint": "^10.5.0",
     "globals": "^17.6.0",
-    "prettier": "^3.8.3",
+    "prettier": "^3.8.4",
     "prettier-plugin-astro": "^0.14.1",
-    "typescript-eslint": "^8.59.2",
-    "wrangler": "^4.90.0"
+    "typescript-eslint": "^8.61.1",
+    "wrangler": "^4.101.0"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -55,7 +55,17 @@
     "apps/*"
   ],
   "catalog": {
-    "astro": "^6.1.4",
+    "astro": "^6.4.7",
     "@types/node": "^22.0.0"
+  },
+  "overrides": {
+    "brace-expansion": "5.0.6",
+    "esbuild": "0.28.1",
+    "flatted": "3.4.2",
+    "js-yaml": "4.2.0",
+    "postcss": "8.5.15",
+    "rollup": "4.62.0",
+    "vite": "7.3.5",
+    "ws": "8.21.0"
   }
 }

@@ -98,7 +98,7 @@ async function getProfileWithFallback(email: string) {
     return {
       email,
       display_name: email.split('@')[0],
-      avatar_url: `https://www.gravatar.com/avatar/${hashEmail(email)}?d=identicon&s=80`,
+      avatar_url: `https://0.gravatar.com/avatar/${hashEmail(email)}?d=identicon&s=80`,
       description: null,
     };
   }
@@ -169,14 +169,14 @@ function safeGetAvatarUrl(email: string, options = {}) {
   if (!isValidEmail(email)) {
     console.warn('Invalid email provided:', email);
     // Return default avatar URL
-    return 'https://www.gravatar.com/avatar/default?s=80&d=mp';
+    return 'https://0.gravatar.com/avatar/default?s=80&d=mp';
   }
 
   try {
     return buildAvatarUrl(email, options);
   } catch (error) {
     console.error('Failed to build avatar URL:', error);
-    return 'https://www.gravatar.com/avatar/default?s=80&d=mp';
+    return 'https://0.gravatar.com/avatar/default?s=80&d=mp';
   }
 }
 ```
