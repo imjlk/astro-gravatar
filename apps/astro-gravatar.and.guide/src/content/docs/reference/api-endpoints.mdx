@@ -13,7 +13,7 @@ https://api.gravatar.com/v3
 
 ## Authentication
 
-Use Bearer token authentication for all API requests:
+Use Bearer token authentication for richer profile data and higher profile API limits:
 
 ```http
 Authorization: Bearer YOUR_API_KEY
@@ -35,6 +35,10 @@ Retrieve a user's profile using their email hash or profile URL slug.
 **Parameters**:
 
 - `profileIdentifier` (required): SHA256 hash of email or profile URL slug
+
+:::note
+Profile requests only resolve for the hash of the primary email address on a Gravatar account. A user can have multiple email addresses, so an avatar image request for a hash may succeed even when the profile endpoint for that same hash returns `404`.
+:::
 
 **Response Codes**:
 
@@ -84,6 +88,7 @@ Generate a QR code for a user's profile.
 **Query Parameters**:
 
 - `size` (optional): Size of QR code in pixels (default: 80)
+- `s` (optional): Alias for `size`
 - `version` (optional): QR code style (1: standard, 3: modern dots)
 - `utm_medium` (optional): UTM medium parameter
 - `utm_campaign` (optional): UTM campaign parameter
@@ -108,7 +113,7 @@ While not API endpoints, avatar URLs follow a predictable pattern:
 ### Basic Avatar URL
 
 ```
-https://www.gravatar.com/avatar/{hash}?parameters
+https://0.gravatar.com/avatar/{hash}?parameters
 ```
 
 ### URL Parameters
@@ -135,13 +140,31 @@ https://www.gravatar.com/avatar/{hash}?parameters
 
 ```bash
 # Basic avatar
-https://www.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109
+https://0.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109
 
 # With parameters
-https://www.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109?s=200&r=pg&d=identicon
+https://0.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109?s=200&r=pg&d=identicon
 
 # Force default
-https://www.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109?f=y
+https://0.gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109?f=y
+```
+
+## Profile Card Embeds
+
+### oEmbed Profile Card
+
+Embed a Gravatar profile card through the oEmbed endpoint.
+
+**Endpoint**: `GET /oembed`
+
+**Parameters**:
+
+- `url` (required): Gravatar profile URL, such as `https://gravatar.com/{username}`
+
+#### Example Request
+
+```bash
+curl "https://api.gravatar.com/v3/oembed?url=https%3A%2F%2Fgravatar.com%2Fmatt"
 ```
 
 ## Data Formats
@@ -198,10 +221,12 @@ https://gravatar.com/99511d6010af8c574c31f94e1b327bba5e25086dd7b92a4b6f3e132b579
 
 ### Default Rate Limits
 
-| Authentication | Requests per Hour |
-| -------------- | ----------------- |
-| API Key        | 1,000             |
-| Public         | Limited           |
+| Authentication  | Profile Requests per Hour |
+| --------------- | ------------------------- |
+| API Key         | 1,000                     |
+| Unauthenticated | 100                       |
+
+Avatar image requests do not count toward these profile endpoint limits.
 
 ### Rate Limit Headers
 

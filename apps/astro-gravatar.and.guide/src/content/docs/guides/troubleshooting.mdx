@@ -121,7 +121,7 @@ Slow loading or excessive API calls.
 **Solutions**:
 
 - Implement client-side caching
-- Use API key for higher limits (1000/hour vs limited)
+- Use an API key for higher profile API limits (1000/hour vs 100/hour unauthenticated)
 - Apply for increased limits at [gravatar.com/developers](https://gravatar.com/developers)
 - Use exponential backoff for retries
 
@@ -284,7 +284,7 @@ const avatarProps: GravatarAvatarProps = {
   size={80}
   onError={(e) => {
     // Fallback to identicon
-    const fallbackUrl = `https://www.gravatar.com/avatar/${hashEmail(e.target.dataset.email)}?d=identicon&s=80`;
+    const fallbackUrl = `https://0.gravatar.com/avatar/${hashEmail(e.target.dataset.email)}?d=identicon&s=80`;
     e.target.src = fallbackUrl;
   }}
   data-email="user@example.com"
