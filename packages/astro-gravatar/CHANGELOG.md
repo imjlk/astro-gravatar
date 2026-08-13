@@ -1,5 +1,11 @@
 # astro-gravatar
 
+## 0.0.18 — 2026-08-13
+
+### Patch changes
+
+- [06129e1](https://github.com/imjlk/astro-gravatar/commit/06129e15a5e5c35ca3c05ec1138a3571b53bac7a) Add Astro 7 support, including compatible component template syntax. — Thanks @imjlk!
+
 ## 0.0.17 — 2026-04-23
 
 ### Patch changes
