@@ -8,13 +8,7 @@ type IgnoredAdvisory = {
   reason: string;
 };
 
-const ignoredAdvisories: IgnoredAdvisory[] = [
-  {
-    id: 'GHSA-c2c7-rcm5-vvqj',
-    reason:
-      'Unpatched picomatch 2.x advisory pulled through Astro -> unstorage -> anymatch; Bun does not support nested overrides, so remove once that chain no longer resolves picomatch 2.3.1.',
-  },
-];
+const ignoredAdvisories: IgnoredAdvisory[] = [];
 
 const args = [
   'audit',
