@@ -148,8 +148,8 @@ try {
 ---
 
 <div class="gravatar-qr-container">
+  <!-- Render a stable fallback when URL generation fails. -->
   {error ? (
-    <!-- Error fallback state -->
     <div class={`gravatar-qr--error ${cssClasses}`} title={`QR code generation failed: ${error.message}`}>
       <svg
         width={size}
@@ -339,5 +339,4 @@ try {
     }
   }
 </style>
-
 

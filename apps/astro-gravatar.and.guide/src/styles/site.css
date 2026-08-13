@@ -315,7 +315,7 @@ body {
   gap: 0.85rem;
 }
 
-.ag-profile-card-preview :global(.gravatar-profile-card) {
+.ag-profile-card-preview .gravatar-profile-card {
   max-width: 100%;
 }
 
