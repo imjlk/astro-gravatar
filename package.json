@@ -55,7 +55,7 @@
     "apps/*"
   ],
   "catalog": {
-    "astro": "^7.2.1",
+    "astro": "^7.3.8",
     "@types/node": "^22.0.0"
   }
 }
